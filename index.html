@@ -406,6 +406,64 @@ button.play:hover { background: linear-gradient(135deg, #a5f3fc, #93c5fd); }
 }
 dialog.sheet > :not(.grid):not(.cand-grid):not(.season-body) { flex: none; }
 
+/* ---------- Arena look ---------- */
+body { background: #06080c; }
+.arena-bg { position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; }
+.arena-bg canvas { display: block; width: 100%; height: 100vh; height: 100lvh; object-fit: cover; object-position: center top; }
+.arena-bg::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(5, 7, 11, 0.25) 0%, rgba(5, 7, 11, 0.5) 45%, rgba(5, 7, 11, 0.62) 100%); }
+.top h1, .top .sub { text-shadow: 0 2px 12px rgba(0, 0, 0, 0.85); }
+.top .sub { color: #c4c7ce; }
+.draft-panel, .fp-stats, .mode-tabs, .segmented { background: rgba(12, 15, 20, 0.86); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+.style-switch legend { color: #9aa0aa; }
+footer { background: rgba(5, 7, 11, 0.78); border-top-color: rgba(255, 255, 255, 0.1); }
+.rink-wrap { filter: drop-shadow(0 18px 40px rgba(0, 0, 0, 0.55)); }
+
+/* Full Roster: rows sit on a sheet of ice inside the boards */
+.roster-board {
+  position: relative;
+  color: #0f2a4a;
+  background:
+    radial-gradient(ellipse 45% 18% at 22% 12%, rgba(255, 255, 255, 0.55), transparent 70%),
+    radial-gradient(ellipse 45% 18% at 78% 12%, rgba(255, 255, 255, 0.5), transparent 70%),
+    radial-gradient(ellipse 50% 16% at 50% 62%, rgba(255, 255, 255, 0.45), transparent 70%),
+    repeating-linear-gradient(115deg, rgba(255, 255, 255, 0) 0 37px, rgba(255, 255, 255, 0.35) 37px 38px, rgba(255, 255, 255, 0) 38px 91px),
+    repeating-linear-gradient(64deg, rgba(150, 175, 200, 0) 0 53px, rgba(150, 175, 200, 0.12) 53px 54px, rgba(150, 175, 200, 0) 54px 140px),
+    linear-gradient(180deg, #f1f7fc, #dde9f3);
+  border: 7px solid #e9eef4;
+  border-radius: 28px;
+  box-shadow:
+    inset 0 0 0 3px #f5c518,
+    inset 0 0 22px 6px rgba(255, 255, 255, 0.85),
+    0 0 0 4px rgba(170, 215, 255, 0.28),
+    0 20px 50px rgba(0, 0, 0, 0.55);
+}
+.roster-board::before { /* centre red line across the top */
+  content: ""; position: absolute; left: 3px; right: 3px; top: 3px; height: 6px; border-radius: 20px 20px 0 0;
+  background: #d22f37; opacity: 0.9;
+}
+.rb-head { color: #24415f; padding-top: 6px; }
+.rb-progress { background: rgba(30, 60, 100, 0.15); }
+.rb-sec b { color: #0f2a4a; }
+.rb-sec span { color: #3f5a78; font-weight: 600; }
+.rb-sec { position: relative; }
+.rb-sec.def::before, .rb-sec.goal::before { content: ""; position: absolute; left: -9px; right: -9px; top: -9px; }
+.rb-sec.def::before { height: 10px; top: -11px; background: #1f4fbf; }
+.rb-sec.goal::before { height: 4px; background: #d22f37; }
+.rb-unit { background: rgba(9, 13, 17, 0.92); border-radius: 9px; align-self: stretch; padding: 4px 0; }
+.rb-cell { background: rgba(12, 15, 20, 0.95); border-color: rgba(255, 255, 255, 0.12); box-shadow: 0 3px 10px rgba(16, 32, 58, 0.3); }
+.rb-cell:hover { background: rgba(28, 32, 40, 0.97); }
+.rb-cell.empty { background: rgba(255, 255, 255, 0.45); border: 2px dashed rgba(30, 60, 100, 0.4); box-shadow: none; }
+.rb-cell.empty:hover { background: rgba(255, 255, 255, 0.7); }
+.rb-cell.empty .rb-name { color: #3f5a78; }
+.rb-cell.empty .rb-pos.fwd { color: #8a6805; } .rb-cell.empty .rb-pos.def { color: #1e6fa8; } .rb-cell.empty .rb-pos.goal { color: #6d55c9; }
+.rb-plus { color: #3f5a78; border-color: rgba(30, 60, 100, 0.35); }
+.rb-cell.next { border-color: #16a34a; border-style: solid; }
+@keyframes pulse-green { 50% { background: rgba(134, 239, 172, 0.45); } }
+@media (min-width: 700px) {
+  .rb-sec.def::before, .rb-sec.goal::before { left: -15px; right: -15px; }
+  .roster-board { border-radius: 36px; }
+}
+
 </style>
 </head>
 <body>
@@ -1623,39 +1681,203 @@ const GAME = (() => {
       return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
     };
   }
+  // ---------- Arena (crowd, lights, big screen) ----------
+  // Drawn at runtime so it costs nothing in file size. Used for the page backdrop,
+  // the corners around the rink, and the saved images.
+  const FAN_COLORS = ["#7a1f2b", "#8c2a35", "#1d3557", "#24467a", "#c9d2dc", "#aab4c0", "#3a4250", "#2a2f38", "#151820", "#5c4a2e", "#2f5d50", "#b8862b"];
+  const SKIN = ["#e0b08c", "#c48c66", "#8d5a3b", "#f1c9a5", "#6b4430"];
+  function paintArena(g, w, h, opt = {}) {
+    const rnd = seeded(opt.seed || 7);
+    const u = opt.unit || Math.max(w, h) / 1000;
+    const top = opt.top != null ? opt.top : h * 0.17;
+    const bg = g.createLinearGradient(0, 0, 0, h);
+    bg.addColorStop(0, "#04060a");
+    bg.addColorStop(0.3, "#0a0f17");
+    bg.addColorStop(1, "#070a0f");
+    g.fillStyle = bg;
+    g.fillRect(0, 0, w, h);
+    // Seating bowl: rows of fans, small and far at the top, bigger and closer lower down
+    const aisles = [0.11, 0.36, 0.64, 0.89];
+    let y = top, row = 0;
+    while (y < h + 30 * u) {
+      const t = Math.max(0, Math.min(1, (y - top) / Math.max(1, h - top)));
+      const sz = (2.6 + t * 5.4) * u;
+      const step = sz * 2.7;
+      g.fillStyle = `rgba(28, 36, 52, ${0.45 + 0.25 * t})`;
+      g.fillRect(0, y + sz * 0.8, w, sz * 1.7);
+      for (let x = -rnd() * step; x < w + step; x += step * (0.88 + rnd() * 0.26)) {
+        if (aisles.some((a) => Math.abs(x - a * w) < step * 1.1)) continue;
+        if (rnd() < 0.08) continue;
+        const jx = x + (rnd() - 0.5) * sz * 0.5, jy = y + (rnd() - 0.5) * sz * 0.4;
+        g.fillStyle = FAN_COLORS[Math.floor(rnd() * FAN_COLORS.length)];
+        g.beginPath();
+        g.ellipse(jx, jy + sz * 1.55, sz * 1.15, sz * 1.0, 0, Math.PI, 0);
+        g.fill();
+        g.fillStyle = SKIN[Math.floor(rnd() * SKIN.length)];
+        g.beginPath();
+        g.arc(jx, jy + sz * 0.15, sz * 0.72, 0, Math.PI * 2);
+        g.fill();
+        if (rnd() < 0.25) { // caps and toques
+          g.fillStyle = FAN_COLORS[Math.floor(rnd() * 4)];
+          g.beginPath();
+          g.arc(jx, jy, sz * 0.74, Math.PI, 0);
+          g.fill();
+        }
+      }
+      y += step * 0.92;
+      row++;
+      if (row % 14 === 0) { // walkway + railing between tiers
+        g.fillStyle = "#0b0f16";
+        g.fillRect(0, y, w, sz * 2.4);
+        g.fillStyle = "rgba(170, 190, 215, 0.35)";
+        g.fillRect(0, y + sz * 0.3, w, Math.max(1, u * 1.2));
+        y += sz * 2.6;
+      }
+    }
+    // Aisle stairs
+    for (const a of aisles) {
+      const x = a * w;
+      const gr = g.createLinearGradient(0, top, 0, h);
+      gr.addColorStop(0, "rgba(20, 26, 36, 0.9)");
+      gr.addColorStop(1, "rgba(24, 30, 42, 0.9)");
+      g.fillStyle = gr;
+      g.beginPath();
+      g.moveTo(x - 4 * u, top); g.lineTo(x + 4 * u, top); g.lineTo(x + 16 * u, h); g.lineTo(x - 16 * u, h);
+      g.fill();
+    }
+    // Dim the crowd so it stays in the background
+    g.fillStyle = `rgba(4, 6, 10, ${opt.dim != null ? opt.dim : 0.6})`;
+    g.fillRect(0, 0, w, h);
+    // A few phone lights in the stands
+    for (let i = 0; i < 40; i++) {
+      const x = rnd() * w, yy = top + rnd() * (h - top);
+      g.fillStyle = `rgba(255, 250, 230, ${0.25 + rnd() * 0.45})`;
+      g.beginPath(); g.arc(x, yy, (0.8 + rnd()) * u, 0, Math.PI * 2); g.fill();
+    }
+    if (opt.lights !== false) {
+      // Rafters: light rigs with soft beams down onto the bowl
+      g.save();
+      g.globalCompositeOperation = "lighter";
+      const n = w > h ? 7 : 4;
+      for (let i = 0; i < n; i++) {
+        const x = ((i + 0.5) / n) * w, ly = top * 0.42;
+        const beam = g.createLinearGradient(0, ly, 0, h * 0.9);
+        beam.addColorStop(0, "rgba(150, 190, 255, 0.07)");
+        beam.addColorStop(1, "rgba(150, 190, 255, 0)");
+        g.fillStyle = beam;
+        g.beginPath();
+        g.moveTo(x - 10 * u, ly); g.lineTo(x + 10 * u, ly); g.lineTo(x + w * 0.09, h * 0.9); g.lineTo(x - w * 0.09, h * 0.9);
+        g.fill();
+        const glow = g.createRadialGradient(x, ly, 0, x, ly, 46 * u);
+        glow.addColorStop(0, "rgba(220, 235, 255, 0.55)");
+        glow.addColorStop(0.25, "rgba(160, 200, 255, 0.18)");
+        glow.addColorStop(1, "rgba(160, 200, 255, 0)");
+        g.fillStyle = glow;
+        g.fillRect(x - 46 * u, ly - 46 * u, 92 * u, 92 * u);
+        g.fillStyle = "rgba(255, 255, 255, 0.85)";
+        g.fillRect(x - 9 * u, ly - 2 * u, 18 * u, 4 * u);
+      }
+      g.restore();
+    }
+    if (opt.screen !== false) {
+      // Hanging big screen (no logos, just a glowing panel)
+      const bw = Math.min(w * 0.3, h * 0.42), bh = bw * 0.36, bx = w / 2 - bw / 2, by = top * 0.12;
+      g.fillStyle = "rgba(120, 130, 150, 0.25)";
+      g.fillRect(w / 2 - 1.5 * u, 0, 3 * u, by);
+      g.fillStyle = "#0c1018";
+      g.beginPath(); g.roundRect(bx, by, bw, bh, 4 * u); g.fill();
+      const scr = g.createLinearGradient(bx, by, bx, by + bh);
+      scr.addColorStop(0, "rgba(34, 80, 140, 0.55)");
+      scr.addColorStop(1, "rgba(16, 40, 80, 0.45)");
+      g.fillStyle = scr;
+      g.beginPath(); g.roundRect(bx + 4 * u, by + 4 * u, bw - 8 * u, bh - 14 * u, 3 * u); g.fill();
+      g.fillStyle = "rgba(242, 194, 48, 0.55)";
+      g.fillRect(bx + 4 * u, by + bh - 7 * u, bw - 8 * u, 3 * u);
+      const halo = g.createRadialGradient(w / 2, by + bh / 2, 0, w / 2, by + bh / 2, bw * 0.9);
+      halo.addColorStop(0, "rgba(90, 150, 230, 0.12)");
+      halo.addColorStop(1, "rgba(90, 150, 230, 0)");
+      g.fillStyle = halo;
+      g.fillRect(0, 0, w, top * 2);
+    }
+    // Vignette
+    const vig = g.createRadialGradient(w / 2, h * 0.55, Math.min(w, h) * 0.2, w / 2, h * 0.55, Math.max(w, h) * 0.8);
+    vig.addColorStop(0, "rgba(0, 0, 0, 0)");
+    vig.addColorStop(1, "rgba(0, 0, 0, 0.55)");
+    g.fillStyle = vig;
+    g.fillRect(0, 0, w, h);
+  }
+  // Ice surface: base colour, frost specks, painted lines sit under a thin frost layer.
+  function paintIceBase(g, w, h, seed = 20) {
+    const ice = g.createLinearGradient(0, 0, 0, h);
+    ice.addColorStop(0, "#f1f7fc");
+    ice.addColorStop(1, "#dfeaf4");
+    g.fillStyle = ice;
+    g.fillRect(0, 0, w, h);
+    const rnd = seeded(seed + 1);
+    for (let i = 0; i < (w * h) / 260; i++) {
+      g.fillStyle = rnd() > 0.5 ? "rgba(255, 255, 255, 0.55)" : "rgba(140, 170, 200, 0.10)";
+      g.fillRect(rnd() * w, rnd() * h, 1 + rnd() * 2, 1 + rnd() * 2);
+    }
+  }
+  function paintIceWear(g, w, h, seed = 20, k = 1) {
+    // Frost over the paint so lines look frozen in
+    g.fillStyle = "rgba(238, 245, 251, 0.14)";
+    g.fillRect(0, 0, w, h);
+    const rnd = seeded(seed);
+    g.lineCap = "round";
+    for (let i = 0; i < 340 * k; i++) {
+      const x = rnd() * w, y = rnd() * h, len = (30 + rnd() * 170) * Math.sqrt(k > 1 ? 1 : 1), a = (rnd() - 0.5) * 1.1;
+      g.strokeStyle = rnd() > 0.45 ? "rgba(255, 255, 255, 0.75)" : "rgba(140, 168, 196, 0.2)";
+      g.lineWidth = 0.6 + rnd() * 1.4;
+      g.beginPath();
+      g.moveTo(x, y);
+      g.quadraticCurveTo(x + len / 2, y + Math.sin(a) * len * 0.5 + (rnd() - 0.5) * 24, x + len * Math.cos(a), y + len * Math.sin(a));
+      g.stroke();
+    }
+    // Hockey-stop sprays
+    for (let i = 0; i < 26 * k; i++) {
+      const x = rnd() * w, y = rnd() * h, r = 20 + rnd() * 40, a0 = rnd() * Math.PI * 2;
+      g.strokeStyle = "rgba(255, 255, 255, 0.5)";
+      g.lineWidth = 2 + rnd() * 3;
+      g.beginPath(); g.arc(x, y, r, a0, a0 + 0.6 + rnd() * 0.8); g.stroke();
+    }
+    // Reflections of the arena lights
+    g.save();
+    for (const [fx, fy] of [[0.2, 0.22], [0.5, 0.18], [0.8, 0.22], [0.3, 0.62], [0.7, 0.62]]) {
+      g.save();
+      g.translate(fx * w, fy * h);
+      g.scale(1, 0.45);
+      const r = Math.min(w, h) * 0.22;
+      const gl = g.createRadialGradient(0, 0, 0, 0, 0, r);
+      gl.addColorStop(0, "rgba(255, 255, 255, 0.38)");
+      gl.addColorStop(1, "rgba(255, 255, 255, 0)");
+      g.fillStyle = gl;
+      g.fillRect(-r, -r, r * 2, r * 2);
+      g.restore();
+    }
+    g.restore();
+  }
+  // Dasher boards seen from above: glass, white board cap, yellow kick plate.
+  function strokeBoards(g, path, k = 1) {
+    path(-14 * k); g.strokeStyle = "rgba(170, 215, 255, 0.28)"; g.lineWidth = 8 * k; g.stroke();
+    path(-14 * k); g.strokeStyle = "rgba(225, 240, 255, 0.55)"; g.lineWidth = 1.5 * k; g.stroke();
+    path(-5 * k); g.strokeStyle = "#e9eef4"; g.lineWidth = 12 * k; g.stroke();
+    path(-9 * k); g.strokeStyle = "rgba(255, 255, 255, 0.9)"; g.lineWidth = 2 * k; g.stroke();
+    path(3 * k); g.strokeStyle = "#f5c518"; g.lineWidth = 6 * k; g.stroke();
+  }
   function buildRink() {
     const c = document.createElement("canvas");
     c.width = W * SCALE;
     c.height = H * SCALE;
     const g = c.getContext("2d");
     g.scale(SCALE, SCALE);
-    // Arena
-    const arena = g.createLinearGradient(0, 0, 0, H);
-    arena.addColorStop(0, "#151a22");
-    arena.addColorStop(1, "#0b0e13");
-    g.fillStyle = arena;
-    g.fillRect(0, 0, W, H);
+    // Arena around the boards
+    paintArena(g, W, H, { seed: 11, unit: 1.4, top: 0, dim: 0.5, lights: false, screen: false });
     // Ice
     g.save();
     rinkPath(g);
     g.clip();
-    const ice = g.createLinearGradient(0, 0, 0, H);
-    ice.addColorStop(0, "#eef5fb");
-    ice.addColorStop(1, "#dde9f3");
-    g.fillStyle = ice;
-    g.fillRect(0, 0, W, H);
-    // Skate scratches
-    const rnd = seeded(20);
-    g.lineCap = "round";
-    for (let i = 0; i < 260; i++) {
-      const x = rnd() * W, y = rnd() * H, len = 30 + rnd() * 160, a = (rnd() - 0.5) * 0.9;
-      g.strokeStyle = rnd() > 0.5 ? "rgba(255,255,255,0.7)" : "rgba(150,175,200,0.18)";
-      g.lineWidth = 0.6 + rnd() * 1.4;
-      g.beginPath();
-      g.moveTo(x, y);
-      g.quadraticCurveTo(x + len / 2, y + Math.sin(a) * len * 0.5 + (rnd() - 0.5) * 20, x + len * Math.cos(a), y + len * Math.sin(a));
-      g.stroke();
-    }
+    paintIceBase(g, W, H);
     const RED = "#d22f37", BLUE = "#1f4fbf";
     // Center red line and half of centre ice
     g.fillStyle = RED;
@@ -1667,6 +1889,8 @@ const GAME = (() => {
     g.beginPath();
     g.arc(CX, RINK.center, 150, 0, Math.PI);
     g.stroke();
+    g.fillStyle = BLUE;
+    g.beginPath(); g.arc(CX, RINK.center, 9, 0, Math.PI * 2); g.fill();
     // Blue line
     g.fillStyle = BLUE;
     g.fillRect(0, RINK.blue - 12, W, 24);
@@ -1702,7 +1926,16 @@ const GAME = (() => {
     g.fill();
     g.lineWidth = 4;
     g.stroke();
-    g.fillStyle = "rgba(255,255,255,0.85)";
+    paintIceWear(g, W, H);
+    // Snow piles up along the boards
+    for (const [inset, lw, a] of [[10, 34, 0.35], [6, 16, 0.5]]) {
+      rinkPath(g, inset);
+      g.strokeStyle = `rgba(255, 255, 255, ${a})`;
+      g.lineWidth = lw;
+      g.stroke();
+    }
+    // Net (drawn above the frost)
+    g.fillStyle = "rgba(255,255,255,0.88)";
     g.fillRect(CX - 56, RINK.goal + 2, 112, 44);
     g.strokeStyle = "rgba(120,120,130,0.55)";
     g.lineWidth = 1;
@@ -1714,21 +1947,29 @@ const GAME = (() => {
     // Soft vignette
     const vig = g.createRadialGradient(CX, H * 0.45, H * 0.35, CX, H * 0.45, W * 0.75);
     vig.addColorStop(0, "rgba(40,70,110,0)");
-    vig.addColorStop(1, "rgba(40,70,110,0.16)");
+    vig.addColorStop(1, "rgba(40,70,110,0.14)");
     g.fillStyle = vig;
     g.fillRect(0, 0, W, H);
     g.restore();
-    // Boards: kick plate + rail
-    rinkPath(g, 3);
-    g.strokeStyle = "#f5c518";
-    g.lineWidth = 6;
-    g.stroke();
-    rinkPath(g, -6);
-    g.strokeStyle = "#cfd8e3";
-    g.lineWidth = 12;
-    g.stroke();
+    // Boards + glass
+    strokeBoards(g, (inset) => rinkPath(g, inset));
     return c;
   }
+  // Page backdrop: one arena canvas behind everything.
+  function mountArenaBackdrop() {
+    const wrap = document.createElement("div");
+    wrap.className = "arena-bg";
+    wrap.setAttribute("aria-hidden", "true");
+    const c = document.createElement("canvas");
+    const vw = Math.max(320, window.innerWidth), vh = Math.max(480, window.screen && screen.height ? Math.max(window.innerHeight, Math.min(screen.height, 1400)) : window.innerHeight);
+    const k = Math.min(2, window.devicePixelRatio || 1, 2400 / Math.max(vw, vh));
+    c.width = Math.round(vw * k);
+    c.height = Math.round(vh * k);
+    try { paintArena(c.getContext("2d"), c.width, c.height, { seed: 7 }); } catch (_) { return; }
+    wrap.appendChild(c);
+    document.body.prepend(wrap);
+  }
+  mountArenaBackdrop();
 
   const canvas = $("rink");
   canvas.width = W * SCALE;
@@ -1758,8 +1999,9 @@ const GAME = (() => {
     ctx.translate(slot.sx, slot.sb - 2);
     ctx.scale(1, 0.28);
     const gr = ctx.createRadialGradient(0, 0, 0, 0, 0, rx);
-    gr.addColorStop(0, "rgba(20,40,70,0.38)");
-    gr.addColorStop(1, "rgba(20,40,70,0)");
+    gr.addColorStop(0, "rgba(16,32,58,0.5)");
+    gr.addColorStop(0.55, "rgba(16,32,58,0.22)");
+    gr.addColorStop(1, "rgba(16,32,58,0)");
     ctx.fillStyle = gr;
     ctx.beginPath();
     ctx.arc(0, 0, rx, 0, Math.PI * 2);
@@ -2601,7 +2843,7 @@ const GAME = (() => {
     const wrap = $("rb-rows");
     for (const sec of ROSTER_ROWS) {
       const head = document.createElement("div");
-      head.className = "rb-sec";
+      head.className = `rb-sec ${sec.title === "Defense" ? "def" : sec.title === "Goalies" ? "goal" : "fwd"}`;
       head.innerHTML = "<b></b><span></span>";
       head.querySelector("b").textContent = sec.title;
       head.querySelector("span").textContent = sec.note;
@@ -2711,11 +2953,42 @@ const GAME = (() => {
     const rows = ROSTER_ROWS.flatMap((sec, n) => sec.rows.map((row, k) => ({ ...row, gapBefore: k === 0 && n > 0 })));
     const gap = 10, secGap = 22, labelW = 84;
     const rh = (h - gap * (rows.length - 1) - (secGap - gap) * 2) / rows.length;
+    // Ice sheet with boards behind the rows; blue line between forwards and D, goal line above the goalies
+    const P = 16, px = x0 - P, py = y0 - P, pw = w + P * 2, ph = h + P * 2, pr = 34;
+    const panel = (i) => { g.beginPath(); g.roundRect(px + i, py + i, pw - i * 2, ph - i * 2, Math.max(0, pr - i)); };
+    g.save();
+    panel(0);
+    g.clip();
+    g.translate(px, py);
+    paintIceBase(g, pw, ph, 31);
+    g.translate(-px, -py);
+    {
+      let yy = y0;
+      rows.forEach((row) => {
+        if (row.gapBefore) {
+          const mid = yy - gap + secGap / 2;
+          if (row.kind === "d") { g.fillStyle = "#1f4fbf"; g.fillRect(px, mid - 6, pw, 12); }
+          else { g.fillStyle = "#d22f37"; g.fillRect(px, mid - 2.5, pw, 5); }
+          yy += secGap - gap;
+        }
+        yy += rh + gap;
+      });
+    }
+    g.translate(px, py);
+    paintIceWear(g, pw, ph, 32, 0.7);
+    g.translate(-px, -py);
+    for (const [inset, lw, a] of [[6, 22, 0.35], [3, 10, 0.5]]) { panel(inset); g.strokeStyle = `rgba(255,255,255,${a})`; g.lineWidth = lw; g.stroke(); }
+    g.restore();
+    strokeBoards(g, panel, 0.8);
     let y = y0;
     const pix = SPRITE_STYLES[style].pixelated;
     for (const row of rows) {
       if (row.gapBefore) y += secGap - gap;
       const color = row.kind === "f" ? COLORS.F : row.kind === "d" ? COLORS.D : COLORS.G;
+      g.beginPath();
+      g.roundRect(x0, y, labelW - 12, rh, 12);
+      g.fillStyle = "rgba(9, 13, 17, 0.92)";
+      g.fill();
       g.textAlign = "center";
       g.textBaseline = "middle";
       g.fillStyle = color;
@@ -2731,13 +3004,28 @@ const GAME = (() => {
       row.ids.forEach((slotId, i) => {
         const id = r[slotId];
         const x = x0 + labelW + i * (cw + gap);
+        g.save();
         g.beginPath();
         g.roundRect(x, y, cw, rh, 14);
-        g.fillStyle = id ? "#171a20" : "#111318";
-        g.fill();
-        g.lineWidth = 2;
-        g.strokeStyle = id ? "rgba(255,255,255,0.10)" : "rgba(255,255,255,0.06)";
-        g.stroke();
+        if (id) {
+          g.shadowColor = "rgba(16, 32, 58, 0.35)";
+          g.shadowBlur = 10;
+          g.shadowOffsetY = 3;
+          g.fillStyle = "rgba(12, 15, 20, 0.95)";
+          g.fill();
+          g.shadowColor = "transparent";
+          g.lineWidth = 2;
+          g.strokeStyle = "rgba(255,255,255,0.12)";
+          g.stroke();
+        } else {
+          g.fillStyle = "rgba(255, 255, 255, 0.4)";
+          g.fill();
+          g.setLineDash([9, 7]);
+          g.lineWidth = 2.5;
+          g.strokeStyle = "rgba(30, 60, 100, 0.4)";
+          g.stroke();
+        }
+        g.restore();
         const s = rh - 14;
         if (id) {
           const e = getArt(id);
@@ -2758,10 +3046,10 @@ const GAME = (() => {
         g.font = `800 ${fs}px ${FONT}`;
         while (g.measureText(name).width > maxW && fs > 12) { fs -= 1; g.font = `800 ${fs}px ${FONT}`; }
         g.textAlign = "left";
-        g.fillStyle = id ? "#ffffff" : "#52525b";
+        g.fillStyle = id ? "#ffffff" : "#4a6583";
         g.fillText(name, tx, y + rh / 2 - rh * 0.12);
         g.font = `700 ${Math.round(rh * 0.2)}px ${FONT}`;
-        g.fillStyle = color;
+        g.fillStyle = id ? color : { f: "#9a7406", d: "#1e6fa8", g: "#6d55c9" }[row.kind];
         const posTxt = info.pos === "G" ? (slotId === "G1" ? "G · STARTER" : "G · BACKUP") : info.pos;
         g.fillText(posTxt, tx, y + rh / 2 + rh * 0.2);
       });
@@ -2776,8 +3064,12 @@ const GAME = (() => {
     c.width = CW;
     c.height = CH;
     const g = c.getContext("2d");
-    g.fillStyle = "#0a0b0f";
-    g.fillRect(0, 0, CW, CH);
+    paintArena(g, CW, CH, { seed: 9, top: 0, unit: 1.3, dim: 0.62, lights: false, screen: false });
+    const shade = g.createLinearGradient(0, 0, 0, 200);
+    shade.addColorStop(0, "rgba(6, 8, 12, 0.75)");
+    shade.addColorStop(1, "rgba(6, 8, 12, 0.35)");
+    g.fillStyle = shade;
+    g.fillRect(0, 0, CW, 200);
     const glow = g.createRadialGradient(0, 0, 0, 0, 0, 700);
     glow.addColorStop(0, "rgba(134, 239, 172, 0.14)");
     glow.addColorStop(1, "rgba(134, 239, 172, 0)");
@@ -2797,6 +3089,8 @@ const GAME = (() => {
     drawRosterBoard(g, 40, 168, CW - 80, 890, r);
     g.textBaseline = "alphabetic";
     g.textAlign = "left";
+    g.fillStyle = "rgba(6, 8, 12, 0.7)";
+    g.fillRect(0, 1078, CW, CH - 1078);
     g.font = `800 32px Inter, ${FONT}`;
     g.fillStyle = "#ffffff";
     g.fillText("Build all 20. Win the Cup?", 48, 1104);
@@ -2892,8 +3186,13 @@ const GAME = (() => {
     const g = c.getContext("2d");
     const X0 = 64, X1 = CARD_W - 64;
     const text = (s, x, y, font, color, align = "left") => { g.font = font; g.fillStyle = color; g.textAlign = align; g.fillText(s, x, y); return g.measureText(s).width; };
-    g.fillStyle = "#0a0b0f";
-    g.fillRect(0, 0, CARD_W, CARD_H);
+    paintArena(g, CARD_W, CARD_H, { seed: 5, top: 230, unit: 1.4, dim: 0.66, screen: false });
+    const shade = g.createLinearGradient(0, 0, 0, 580);
+    shade.addColorStop(0, "rgba(6, 8, 12, 0.35)");
+    shade.addColorStop(0.35, "rgba(6, 8, 12, 0.72)");
+    shade.addColorStop(1, "rgba(6, 8, 12, 0.8)");
+    g.fillStyle = shade;
+    g.fillRect(0, 0, CARD_W, 580);
     for (const [x, rgb] of [[0, "103, 232, 249"], [CARD_W, "96, 165, 250"]]) {
       const glow = g.createRadialGradient(x, 0, 0, x, 0, 760);
       glow.addColorStop(0, `rgba(${rgb}, 0.16)`);
@@ -2956,6 +3255,12 @@ const GAME = (() => {
       g.drawImage(canvas, 0, 584, CARD_W, rh);
       scheduleRender();
     }
+    const foot = g.createLinearGradient(0, CARD_H - 70, 0, CARD_H);
+    foot.addColorStop(0, "rgba(6, 8, 12, 0)");
+    foot.addColorStop(0.4, "rgba(6, 8, 12, 0.75)");
+    foot.addColorStop(1, "rgba(6, 8, 12, 0.85)");
+    g.fillStyle = foot;
+    g.fillRect(0, CARD_H - 70, CARD_W, 70);
     text(ctx.kind === "free" ? "Pick any six. Win the Cup?" : full ? "Build all 20. Win the Cup?" : "Can you win the Cup?", X0, 1484, `800 36px Inter, ${FONT}`, "#ffffff");
     text(siteLabel(), X1, 1484, `700 30px Inter, ${FONT}`, "#67e8f9", "right");
     return c;
