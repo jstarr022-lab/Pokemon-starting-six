@@ -4,12 +4,12 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Pokémon Starting Six · Hockey Lineup Builder</title>
-  <meta name="description" content="Pick a starting six hockey lineup from the original 150 Pokémon, save it as an image, or draft a team in the Cup Challenge and play an 82-game season plus playoffs." />
+  <meta name="description" content="Pick a starting six hockey lineup from the original 151 Pokémon, draft one in the Cup Challenge, or build a full 20-man roster, then play an 82-game season plus playoffs." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://jstarr022-lab.github.io/Pokemon-starting-six/" />
   <meta property="og:site_name" content="Pokémon Starting Six" />
   <meta property="og:title" content="Pokémon Starting Six · Can you win the Cup?" />
-  <meta property="og:description" content="Ice a starting six from all 151 original Pokémon (LW, C, RW, two D and a goalie) and play a season, or draft one in the Cup Challenge and play an 82-game season and the playoffs." />
+  <meta property="og:description" content="Ice a starting six from all 151 original Pokémon, draft one in the Cup Challenge, or build a full 20-man roster with four lines, three D pairs and two goalies. Then play an 82-game season and the playoffs." />
   <meta property="og:image" content="https://jstarr022-lab.github.io/Pokemon-starting-six/og.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
@@ -82,7 +82,9 @@ body {
 .mode-cta.back:hover { background: rgba(24, 24, 28, 0.95); }
 .mode-cta.back svg { fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
 
-body.mode-draft .builder-only, body:not(.mode-draft) .draft-only { display: none !important; }
+body.mode-draft .builder-only, body:not(.mode-draft) .draft-only,
+body.mode-roster .builder-only, body:not(.mode-roster) .roster-only, body.mode-draft .pick-only,
+body.mode-roster .rink-wrap { display: none !important; }
 
 .top { text-align: center; padding: 12px 16px 18px; }
 .top h1 { margin: 0; font-size: clamp(28px, 5vw, 40px); font-weight: 800; letter-spacing: -0.035em; line-height: 1.05; }
@@ -346,15 +348,78 @@ button.play:hover { background: linear-gradient(135deg, #a5f3fc, #93c5fd); }
   .fp-stats { width: 100%; max-width: none; margin: 12px 0 0; }
 }
 
+/* ---------- Mode tabs ---------- */
+.mode-tabs { order: -1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; margin: 12px 16px 0; padding: 3px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; }
+.mode-tabs button { border: 0; background: transparent; padding: 9px 4px; border-radius: 9px; font-size: 13.5px; font-weight: 800; color: var(--muted); white-space: nowrap; }
+.mode-tabs button:hover { background: var(--surface-3); color: var(--text); }
+.mode-tabs button.on { background: #fafafa; color: #09090b; }
+.mode-tabs button.tab-cup.on { background: linear-gradient(135deg, #fde047, #f59e0b); color: #1c1303; }
+.mode-tabs button.tab-cup:not(.on) { color: #fbbf24; }
+.mode-tabs button.new.on { background: linear-gradient(135deg, #86efac, #22d3ee); color: #04121c; }
+.mode-tabs button.new:not(.on)::after { content: "NEW"; margin-left: 5px; font-size: 9px; padding: 1px 4px; border-radius: 4px; background: rgba(134, 239, 172, 0.18); color: #86efac; vertical-align: 2px; }
+.picker-progress { font-size: 12px; color: var(--subtle); font-weight: 600; }
+
+/* ---------- Full Roster board ---------- */
+.roster-board { margin: 0 12px; padding: 12px; background: rgba(16, 18, 22, 0.9); border: 1px solid var(--line); border-radius: 14px; line-height: 1.2; }
+.rb-head { display: flex; align-items: center; gap: 12px; margin-bottom: 4px; font-size: 13px; font-weight: 700; color: var(--muted); }
+.rb-head span { white-space: nowrap; }
+.rb-progress { flex: 1; height: 4px; border-radius: 4px; background: var(--surface-3); overflow: hidden; }
+.rb-progress i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #86efac, #22d3ee); transition: width 0.3s; }
+.rb-sec { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin: 12px 0 6px; }
+.rb-sec b { font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text); }
+.rb-sec span { font-size: 11.5px; color: var(--subtle); }
+.rb-row { display: grid; grid-template-columns: 30px repeat(6, minmax(0, 1fr)); gap: 6px; margin-bottom: 6px; }
+.rb-unit { display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: "Roboto Condensed", var(--font); }
+.rb-unit b { font-size: 15px; font-weight: 800; }
+.rb-unit small { font-size: 10px; color: var(--subtle); font-weight: 700; }
+.rb-row.f .rb-unit b { color: var(--fwd); } .rb-row.d .rb-unit b { color: var(--def); } .rb-row.g .rb-unit b { color: var(--goal); }
+.rb-row.f .rb-cell { grid-column: span 2; }
+.rb-row.d .rb-cell, .rb-row.g .rb-cell { grid-column: span 3; }
+.rb-cell { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 0; padding: 6px 4px 7px; border-radius: 10px; }
+.rb-img { width: 56px; height: 56px; image-rendering: pixelated; flex: none; }
+.rb-plus { display: none; width: 56px; height: 56px; place-items: center; font-size: 26px; font-weight: 300; color: var(--subtle); border: 2px dashed rgba(255, 255, 255, 0.14); border-radius: 50%; transform: scale(0.8); }
+.rb-cell.empty .rb-img { display: none; }
+.rb-cell.empty .rb-plus { display: grid; }
+.rb-cell.empty { background: rgba(23, 26, 32, 0.5); border-style: dashed; }
+.rb-cell.next { border-color: rgba(134, 239, 172, 0.85); animation: pulse-green 1.4s ease-in-out infinite; }
+@keyframes pulse-green { 50% { background: rgba(134, 239, 172, 0.12); } }
+.rb-txt { display: flex; flex-direction: column; align-items: center; min-width: 0; max-width: 100%; }
+.rb-name { font-family: "Roboto Condensed", var(--font); font-weight: 800; font-size: 13px; text-transform: uppercase; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rb-cell.empty .rb-name { color: var(--subtle); font-weight: 700; }
+.rb-pos { font-family: "Roboto Condensed", var(--font); font-weight: 700; font-size: 11.5px; }
+.rb-pos.fwd { color: var(--fwd); } .rb-pos.def { color: var(--def); } .rb-pos.goal { color: var(--goal); }
+#rs-play.ready { box-shadow: 0 0 0 3px rgba(103, 232, 249, 0.3); }
+@media (min-width: 700px) {
+  .roster-board { padding: 16px 18px; }
+  .rb-row { grid-template-columns: 44px repeat(6, minmax(0, 1fr)); gap: 8px; margin-bottom: 8px; }
+  .rb-unit b { font-size: 19px; }
+  .rb-cell { flex-direction: row; justify-content: flex-start; gap: 10px; padding: 6px 10px; }
+  .rb-img, .rb-plus { width: 64px; height: 64px; }
+  .rb-txt { align-items: flex-start; }
+  .rb-name { font-size: 16px; }
+  .rb-pos { font-size: 13px; }
+}
+@media (min-width: 1000px) and (min-height: 560px) {
+  .mode-tabs { margin: 0 0 14px; }
+  .mode-tabs button { font-size: 13px; padding: 9px 2px; }
+  .roster-board { margin: 0; }
+}
+dialog.sheet > :not(.grid):not(.cand-grid):not(.season-body) { flex: none; }
+
 </style>
 </head>
 <body>
   <div class="app">
     <aside class="panel">
-      <div class="cta-row"><button type="button" class="mode-cta" id="cta"></button></div>
+      <nav class="mode-tabs" id="mode-tabs" aria-label="Game mode">
+        <button type="button" data-mode="builder">Free Pick</button>
+        <button type="button" data-mode="draft" class="tab-cup">Cup Challenge</button>
+        <button type="button" data-mode="roster" class="new">Full Roster</button>
+      </nav>
       <header class="top">
-        <h1><span>Pokémon</span> <span class="accent">Starting Six</span> <span id="title-mode">Builder</span></h1>
-        <p class="sub builder-only">Ice your starting six from <span id="gen-pool">the original 150 Pokémon, no legendaries</span>: a left wing, center and right wing, two defensemen and a goalie. Tap a player to swap them out, or drag one onto another to switch spots. Then play a season with your hand-picked six, or save the image and share it.</p>
+        <h1><span>Pokémon</span> <span class="accent">Starting Six</span> <span id="title-mode">Free Pick</span></h1>
+        <p class="sub builder-only">Ice your starting six from <span class="gen-pool">the original 150 Pokémon, no legendaries</span>: a left wing, center and right wing, two defensemen and a goalie. Tap a player to swap them out, or drag one onto another to switch spots. Then play a season with your hand-picked six, or save the image and share it.</p>
+        <p class="sub roster-only">Build the whole team from <span class="gen-pool">the original 150 Pokémon, no legendaries</span>: four forward lines, three defense pairs, a starting goalie and a backup. Tap any spot to pick. Your top lines play the most and your starter plays about three games in four. Fill all 20, then play an 82-game season and the playoffs.</p>
         <p class="sub draft-only">Each round rolls a Kanto habitat and a type. Draft a matching Pokémon into any open spot, fill all six, then play an 82-game season and the playoffs. <b class="nowrap">Can you win the Cup?</b></p>
       </header>
 
@@ -367,7 +432,15 @@ button.play:hover { background: linear-gradient(135deg, #a5f3fc, #93c5fd); }
         <button id="btn-clear"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>Clear all</button>
       </div>
 
-      <fieldset class="style-switch pool-switch builder-only">
+      <div class="toolbar roster-only" role="toolbar" aria-label="Roster actions">
+        <button id="rs-play" class="play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg>Play Season</button>
+        <button id="rs-save" class="primary"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>Save image</button>
+        <button id="rs-link"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.07 0l3-3a5 5 0 0 0-7.07-7.07l-1.5 1.5"/><path d="M14 11a5 5 0 0 0-7.07 0l-3 3a5 5 0 0 0 7.07 7.07l1.5-1.5"/></svg>Copy link</button>
+        <button id="rs-random"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>Randomize</button>
+        <button id="rs-clear"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>Clear all</button>
+      </div>
+
+      <fieldset class="style-switch pool-switch pick-only">
         <legend>Pokémon pool</legend>
         <div class="segmented two">
           <label><input type="radio" name="pool-panel" autocomplete="off" value="classic" checked /><span>No legendaries</span></label>
@@ -380,6 +453,13 @@ button.play:hover { background: linear-gradient(135deg, #a5f3fc, #93c5fd); }
         <div><dt>Best score</dt><dd id="fp-score">–</dd></div>
         <div><dt>Best finish</dt><dd id="fp-finish">–</dd></div>
         <div><dt>Seasons</dt><dd id="fp-runs">0</dd></div>
+      </dl>
+
+      <dl class="fp-stats roster-only" aria-label="Full Roster records">
+        <div class="fp-cap">Full Roster seasons</div>
+        <div><dt>Best score</dt><dd id="rs-score">–</dd></div>
+        <div><dt>Best finish</dt><dd id="rs-finish">–</dd></div>
+        <div><dt>Seasons</dt><dd id="rs-runs">0</dd></div>
       </dl>
 
       <section id="dp" class="draft-panel draft-only" aria-label="Cup Challenge">
@@ -432,6 +512,10 @@ button.play:hover { background: linear-gradient(135deg, #a5f3fc, #93c5fd); }
     </aside>
 
     <main class="stage">
+      <section class="roster-board roster-only" id="roster-board" aria-label="Full roster">
+        <div class="rb-head"><span id="rb-count">0 of 20 picked</span><div class="rb-progress" aria-hidden="true"><i id="rb-bar"></i></div></div>
+        <div id="rb-rows"></div>
+      </section>
       <div class="rink-wrap" id="rink-wrap">
         <canvas id="rink" aria-label="Lineup on the rink"></canvas>
         <div id="hotspots"></div>
@@ -451,7 +535,7 @@ button.play:hover { background: linear-gradient(135deg, #a5f3fc, #93c5fd); }
 
   <dialog id="picker" class="sheet">
     <form method="dialog" class="sheet-head">
-      <div class="sheet-title"><span id="picker-pos" class="pos-chip">C</span><h2 id="picker-heading">Pick a Pokémon</h2></div>
+      <div class="sheet-title"><span id="picker-pos" class="pos-chip">C</span><h2 id="picker-heading">Pick a Pokémon</h2><span id="picker-progress" class="picker-progress" hidden></span></div>
       <button class="close" value="cancel" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
     </form>
     <div class="segmented two pool-tabs" role="radiogroup" aria-label="Pokémon pool">
@@ -497,7 +581,8 @@ button.play:hover { background: linear-gradient(135deg, #a5f3fc, #93c5fd); }
         <p class="season-notes" id="season-notes"></p>
         <div id="season-playoffs" class="season-playoffs"></div>
         <ol class="season-games" id="season-games"></ol>
-        <p class="season-how">Each Pokémon is graded on how well it fits its spot from its base stats, size and type. Centers want speed, playmaking (Sp. Atk) and faceoff strength (Attack); wingers want speed and scoring punch; D want Defense, HP and size; goalies want Sp. Def, Defense and reflexes, and Psychic types read the play. Ice and Water types skate a bit better, Fire types a bit worse. The goalie counts the most (30%), then the center (18%); wingers and D count 13% each, and your two weakest spots drag the whole team down. The other 31 clubs are rated 350 to 920.</p>
+        <p class="season-how" id="season-how-six">Each Pokémon is graded on how well it fits its spot from its base stats, size and type. Centers want speed, playmaking (Sp. Atk) and faceoff strength (Attack); wingers want speed and scoring punch; D want Defense, HP and size; goalies want Sp. Def, Defense and reflexes, and Psychic types read the play. Ice and Water types skate a bit better, Fire types a bit worse. The goalie counts the most (30%), then the center (18%); wingers and D count 13% each, and your two weakest spots drag the whole team down. The other 31 clubs are rated 350 to 920.</p>
+        <p class="season-how" id="season-how-roster" hidden>Full Roster grades every player the same way (fit for the spot from base stats, size and type), then weights them by ice time. Forward lines count 34%, 28%, 22% and 16% (1st to 4th line), D pairs 40%, 34% and 26%, and in goal the starter counts 75% and the backup 25%. Overall, goaltending is 30% of the team, forwards 44% (centers count more than wingers) and defense 26%. Your two weakest players among the top six forwards, top four D and starting goalie drag the whole team down. The other 31 clubs are rated 350 to 920.</p>
       </details>
     </div>
     <div class="season-actions">
@@ -1139,6 +1224,51 @@ const GAME = (() => {
     return { score: toScore(t.raw), forwards: toScore(t.forwards), defense: toScore(t.defense), goal: toScore(t.goal) };
   }
 
+  // ---------- Full Roster: 4 forward lines, 3 D pairs, a starter and a backup (20 players) ----------
+  // Lines and pairs count by ice time; the starter plays about three games in four.
+  const LINES = [
+    { id: "L1", name: "1st line", w: 0.34 }, { id: "L2", name: "2nd line", w: 0.28 },
+    { id: "L3", name: "3rd line", w: 0.22 }, { id: "L4", name: "4th line", w: 0.16 },
+  ];
+  const PAIRS = [{ id: "P1", name: "1st pair", w: 0.4 }, { id: "P2", name: "2nd pair", w: 0.34 }, { id: "P3", name: "3rd pair", w: 0.26 }];
+  const GOALIES = [{ id: "G1", name: "Starter", w: 0.75 }, { id: "G2", name: "Backup", w: 0.25 }];
+  // Share-link order: L1 LW C RW, L2 ..., L4, P1 LD RD, P2, P3, G1, G2.
+  const ROSTER_SLOTS = [
+    ...LINES.flatMap((u, n) => ["LW", "C", "RW"].map((pos) => ({ id: u.id + pos, pos, unit: u.id, unitName: u.name, w: u.w * WEIGHTS[pos], core: n < 2 }))),
+    ...PAIRS.flatMap((u, n) => ["LD", "RD"].map((pos) => ({ id: u.id + pos, pos, unit: u.id, unitName: u.name, w: u.w * WEIGHTS[pos], core: n < 2 }))),
+    ...GOALIES.map((u, n) => ({ id: u.id, pos: "G", unit: u.id, unitName: u.name, w: u.w * WEIGHTS.G, core: n === 0 })),
+  ];
+  const ROSTER_IDS = ROSTER_SLOTS.map((s) => s.id);
+  const ROSTER_GROUPS = { forwards: (s) => roleOf(s.pos) === "C" || roleOf(s.pos) === "W", defense: (s) => roleOf(s.pos) === "D", goal: (s) => s.pos === "G" };
+  // Your two weakest "core" players (top-six forwards, top-four D, starting goalie) drag the team down.
+  function rawRoster(roster) {
+    let total = 0;
+    const core = [];
+    const group = {};
+    for (const [g, test] of Object.entries(ROSTER_GROUPS)) {
+      let s = 0, w = 0;
+      for (const slot of ROSTER_SLOTS.filter(test)) {
+        const v = roster[slot.id] ? positionScore(roster[slot.id], slot.pos) : 0;
+        s += slot.w * v;
+        w += slot.w;
+        if (slot.core) core.push(v);
+      }
+      total += s;
+      group[g] = s / w;
+    }
+    core.sort((a, b) => a - b);
+    const weak = core.slice(0, WEAK_LINKS).reduce((a, b) => a + b, 0) / WEAK_LINKS;
+    return { raw: total * (1 - WEAK_WEIGHT) + weak * WEAK_WEIGHT, ...group };
+  }
+  // Calibrated with tools/calibrate.js: the best possible roster without Legendaries lands in the
+  // mid 900s (a real Cup threat, not a lock); with Legendaries it tops out at 1000.
+  const ROSTER_SCALE = { low: 18, high: 73.5 };
+  const toRosterScore = (raw) => Math.round(1000 * Math.max(0, Math.min(1, (raw - ROSTER_SCALE.low) / (ROSTER_SCALE.high - ROSTER_SCALE.low))));
+  function rosterScore(roster) {
+    const t = rawRoster(roster);
+    return { score: toRosterScore(t.raw), forwards: toRosterScore(t.forwards), defense: toRosterScore(t.defense), goal: toRosterScore(t.goal) };
+  }
+
   // ---------- League ----------
   // 31 other clubs, rated 350 (worst) to 920 (best) on the Team Score scale.
   const CLUBS = [
@@ -1251,6 +1381,7 @@ const GAME = (() => {
     ROUNDS, GAMES, SLOT_IDS, WEIGHTS, ROLES, ROLE_NAMES, HAB_KEYS, OPPONENTS, ROUND_NAMES,
     roleOf, rand, roll, rerollType, rerollHab, available, typesFor, habsFor,
     positionScore, rawTeam, teamScore, simulateSeason, winChance, recordText,
+    LINES, PAIRS, GOALIES, ROSTER_SLOTS, ROSTER_IDS, rawRoster, rosterScore,
   };
   if (typeof module !== "undefined") module.exports = api;
   return api;
@@ -1291,7 +1422,7 @@ const GAME = (() => {
   const posName = (id) => POS_NAMES[id];
 
   // ---------- Storage ----------
-  const KEYS = { lineup: "starting6-lineup-v1", style: "starting6-style-v1", mode: "starting6-mode-v1", draft: "starting6-draft-v1", stats: "starting6-stats-v1", pool: "starting6-pool-v1", freeStats: "starting6-free-stats-v1" };
+  const KEYS = { lineup: "starting6-lineup-v1", style: "starting6-style-v1", mode: "starting6-mode-v1", draft: "starting6-draft-v1", stats: "starting6-stats-v1", pool: "starting6-pool-v1", freeStats: "starting6-free-stats-v1", roster: "starting6-roster-v1", rosterStats: "starting6-roster-stats-v1" };
   const store = {
     get(k) { try { return JSON.parse(localStorage.getItem(k) || "null"); } catch (_) { return null; } },
     set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (_) { /* storage off */ } },
@@ -1308,6 +1439,26 @@ const GAME = (() => {
     }
     return out;
   }
+  // ---------- Full Roster spots (L1LW … L4RW, P1LD … P3RD, G1, G2) ----------
+  const RSLOTS = GAME.ROSTER_SLOTS;
+  const RSLOT_BY_ID = new Map(RSLOTS.map((s) => [s.id, s]));
+  const GROUP_OF_POS = { LW: "F", C: "F", RW: "F", LD: "D", RD: "D", G: "G" };
+  function slotInfo(id) {
+    const six = SPOT_BY_ID.get(id);
+    if (six) return { pos: six.pos, group: six.group, heading: posName(id), tag: id };
+    const r = RSLOT_BY_ID.get(id);
+    if (r.pos === "G") return { pos: "G", group: "G", heading: r.id === "G1" ? "Starting goalie" : "Backup goalie", tag: r.id };
+    return { pos: r.pos, group: GROUP_OF_POS[r.pos], heading: `${r.unitName} · ${posName(r.pos)}`, tag: r.pos + r.unit[1] };
+  }
+  function sanitizeRoster(obj) {
+    const out = {};
+    const used = new Set();
+    for (const slot of GAME.ROSTER_IDS) {
+      const id = Number(obj && obj[slot]);
+      if (ALL_IDS.has(id) && !used.has(id)) { out[slot] = id; used.add(id); }
+    }
+    return out;
+  }
   const isStyle = (s) => typeof s === "string" && Object.prototype.hasOwnProperty.call(SPRITE_STYLES, s);
 
   // Share hash: 6 base-36 dex numbers (1–151) in slot order ("0" = empty), then "~style", then
@@ -1317,8 +1468,24 @@ const GAME = (() => {
     const ids = GAME.SLOT_IDS.map((s) => (lineup[s] ? lineup[s].toString(36) : "0")).join("-");
     return `${ids}~${style}${poolAll || hasLegend(lineup) ? "~all" : ""}`;
   }
+  // Full Roster share hash: "full~" + 20 base-36 dex numbers in GAME.ROSTER_IDS order, then
+  // "~style" and "~all" (same flags as the six-man link).
+  function encodeRosterHash(r = roster) {
+    const ids = GAME.ROSTER_IDS.map((s) => (r[s] ? r[s].toString(36) : "0")).join("-");
+    return `full~${ids}~${style}${poolAll || hasLegend(r) ? "~all" : ""}`;
+  }
+  function parseRosterHash(str) {
+    const [, ids, st, pool] = str.split("~");
+    const parts = (ids || "").split("-");
+    if (parts.length !== GAME.ROSTER_IDS.length) return null;
+    const obj = {};
+    parts.forEach((p, i) => { obj[GAME.ROSTER_IDS[i]] = parseInt(p, 36); });
+    const r = sanitizeRoster(obj);
+    return { roster: r, style: isStyle(st) ? st : null, all: pool === "all" || hasLegend(r) };
+  }
   function parseHash(str) {
     if (!str) return null;
+    if (/^full~/i.test(str)) return parseRosterHash(str);
     const [ids, st, pool] = str.split("~");
     const parts = ids.split("-");
     if (parts.length !== GAME.SLOT_IDS.length) return null;
@@ -1328,20 +1495,27 @@ const GAME = (() => {
     return { lineup: lu, style: isStyle(st) ? st : null, all: pool === "all" || hasLegend(lu) };
   }
   const CUP_HASHES = ["#cup", "#challenge", "#draft"];
+  const ROSTER_HASHES = ["#roster", "#full", "#fullroster", "#full-roster"];
   // Works from any folder (e.g. user.github.io/pokemon-starting-six/) and from file://.
   const pageUrl = () => location.href.split("#")[0];
   const siteLabel = () => (location.host ? (location.host + location.pathname).replace(/\/(index\.html)?$/, "") : "Pokémon Starting Six");
 
   // ---------- State ----------
   const wantsCup = CUP_HASHES.includes(location.hash.toLowerCase());
-  const shared = wantsCup ? null : parseHash(location.hash.slice(1));
+  const wantsRoster = ROSTER_HASHES.includes(location.hash.toLowerCase());
+  const shared = wantsCup || wantsRoster ? null : parseHash(location.hash.slice(1));
+  const sharedSix = shared && shared.lineup ? shared : null;
+  const sharedRoster = shared && shared.roster ? shared : null;
   let style = (shared && shared.style) || (isStyle(store.get(KEYS.style)) ? store.get(KEYS.style) : "pixel");
   let poolAll = shared ? shared.all : store.get(KEYS.pool) === "all";
-  let builderLineup = shared ? shared.lineup : (store.get(KEYS.lineup) ? sanitize(store.get(KEYS.lineup)) : { ...DEFAULT_LINEUP });
+  let builderLineup = sharedSix ? sharedSix.lineup : (store.get(KEYS.lineup) ? sanitize(store.get(KEYS.lineup)) : { ...DEFAULT_LINEUP });
+  let roster = sharedRoster ? sharedRoster.roster : sanitizeRoster(store.get(KEYS.roster) || {});
   let draft = loadDraft();
-  let mode = wantsCup || (!shared && store.get(KEYS.mode) === "draft") ? "draft" : "builder";
-  let lineup = mode === "draft" ? draft.lineup : builderLineup;
-  if (wantsCup) history.replaceState(null, "", location.pathname + location.search);
+  const storedMode = store.get(KEYS.mode);
+  let mode = wantsCup ? "draft" : wantsRoster || sharedRoster ? "roster" : sharedSix ? "builder" : ["draft", "roster"].includes(storedMode) ? storedMode : "builder";
+  const lineupFor = (m) => (m === "draft" ? draft.lineup : m === "roster" ? roster : builderLineup);
+  let lineup = lineupFor(mode);
+  if (wantsCup || wantsRoster) history.replaceState(null, "", location.pathname + location.search);
 
   function newDraft() {
     const seed = crypto.getRandomValues(new Uint32Array(1))[0] | 0;
@@ -1367,6 +1541,10 @@ const GAME = (() => {
     return validDraft(d) ? d : newDraft();
   }
   const saveDraft = () => store.set(KEYS.draft, draft);
+  function saveRoster() {
+    store.set(KEYS.roster, roster);
+    if (location.hash) history.replaceState(null, "", location.pathname + location.search);
+  }
   function saveBuilder() {
     store.set(KEYS.lineup, builderLineup);
     if (location.hash) history.replaceState(null, "", location.pathname + location.search);
@@ -1679,6 +1857,7 @@ const GAME = (() => {
     ctx.restore();
   }
   let hideBanner = false;
+  let cardRender = false;
   function drawBanner() {
     const res = draftResult();
     if (!res || hideBanner) return;
@@ -1707,6 +1886,7 @@ const GAME = (() => {
     ctx.restore();
   }
   function render() {
+    if (mode === "roster" && !cardRender) return; // the roster board is plain HTML
     if (!rinkLayer) rinkLayer = buildRink();
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.drawImage(rinkLayer, 0, 0);
@@ -1821,6 +2001,7 @@ const GAME = (() => {
   }
 
   function commit() {
+    if (mode === "roster") { saveRoster(); renderRoster(); return; }
     if (mode !== "builder") return;
     saveBuilder();
     updateHotspots();
@@ -1877,7 +2058,18 @@ const GAME = (() => {
         (p.legendary ? '<span class="star" title="Legendary">★</span>' : "");
       el.querySelector(".nm").textContent = p.name;
       el.setAttribute("aria-label", `${p.name}, ${p.types.map(capital).join("/")}${p.legendary ? ", Legendary" : ""}`);
-      el.addEventListener("click", () => { assign(pickerSlot, p.id); picker.close(); });
+      el.addEventListener("click", () => {
+        const from = pickerSlot;
+        const wasEmpty = !lineup[from];
+        assign(from, p.id);
+        picker.close();
+        // Full Roster: filling an empty spot moves straight on to the next empty one.
+        if (mode === "roster" && wasEmpty) {
+          const next = nextEmptyRoster(from);
+          if (next) openPicker(next);
+          else toast("All 20 spots filled. Play a season!");
+        }
+      });
       monEls.push({ el, img: el.querySelector("img"), p, search: `${p.name.toLowerCase()} ${p.id}` });
       frag.appendChild(el);
     }
@@ -1935,21 +2127,23 @@ const GAME = (() => {
     poolAll = all;
     for (const i of poolInputs) i.checked = (i.value === "all") === all;
     if (save) store.set(KEYS.pool, all ? "all" : "classic");
-    $("gen-pool").textContent = all ? "any of the original 151 Pokémon, Legendaries included" : "the original 150 Pokémon, no legendaries";
+    for (const el of document.querySelectorAll(".gen-pool")) el.textContent = all ? "any of the original 151 Pokémon, Legendaries included" : "the original 150 Pokémon, no legendaries";
     filterPicker();
   }
   for (const i of poolInputs) i.addEventListener("change", () => { if (i.checked) setPool(i.value === "all"); });
   function openPicker(slotId) {
     pickerSlot = slotId;
-    const slot = SPOT_BY_ID.get(slotId);
+    const slot = slotInfo(slotId);
     $("picker-pos").textContent = slot.pos;
     $("picker-pos").className = `pos-chip ${GROUP_NAMES[slot.group][0]}`;
-    $("picker-heading").textContent = posName(slotId);
+    $("picker-heading").textContent = slot.heading;
+    $("picker-progress").hidden = mode !== "roster";
+    if (mode === "roster") $("picker-progress").textContent = `${Object.keys(roster).length} of 20 picked`;
     for (const m of monEls) {
       const at = Object.keys(lineup).find((s) => lineup[s] === m.p.id);
       let tag = m.el.querySelector(".tag");
       if (at && !tag) { tag = document.createElement("span"); tag.className = "tag"; m.el.appendChild(tag); }
-      if (tag) { tag.hidden = !at; tag.textContent = at || ""; }
+      if (tag) { tag.hidden = !at; tag.textContent = at ? slotInfo(at).tag : ""; }
       m.el.classList.toggle("here", at === slotId);
     }
     pickerSearch.value = "";
@@ -1971,9 +2165,9 @@ const GAME = (() => {
     a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 4000);
   }
-  async function waitForArt(ms = 8000) {
+  async function waitForArt(ids = Object.values(lineup), ms = 8000) {
     const t0 = performance.now();
-    while (SPOTS.some((s) => lineup[s.id] && getArt(lineup[s.id]).status === "loading") && performance.now() - t0 < ms) {
+    while (ids.some((id) => id && getArt(id).status === "loading") && performance.now() - t0 < ms) {
       await new Promise((r) => setTimeout(r, 100));
     }
   }
@@ -2022,6 +2216,7 @@ const GAME = (() => {
     for (const i of styleInputs) i.checked = i.value === style;
     setPickerImages();
     if (draft.pending) drawThumb($("dp-pick-img"), draft.pending);
+    if (mode === "roster") renderRoster();
     scheduleRender();
   }
   for (const i of styleInputs) {
@@ -2030,6 +2225,7 @@ const GAME = (() => {
       setStyle(i.value);
       store.set(KEYS.style, style);
       if (location.hash && mode === "builder") history.replaceState(null, "", `#${encodeHash()}`);
+      if (location.hash && mode === "roster") history.replaceState(null, "", `#${encodeRosterHash()}`);
     });
   }
 
@@ -2078,6 +2274,23 @@ const GAME = (() => {
     $("fp-finish").textContent = freeStats.cups ? `🏆 ×${freeStats.cups}` : freeStats.runs ? FINISH_SHORT[freeStats.bestReach] : "–";
     $("fp-finish").classList.toggle("cup", freeStats.cups > 0);
     $("fp-runs").textContent = freeStats.runs;
+  }
+  // Full Roster keeps its own records too.
+  const rosterStats = loadStats(KEYS.rosterStats);
+  function recordRoster(res) {
+    rosterStats.runs += 1;
+    if (res.cup) rosterStats.cups += 1;
+    rosterStats.bestScore = Math.max(rosterStats.bestScore, res.score);
+    rosterStats.bestReach = Math.max(rosterStats.bestReach, res.roundReached);
+    rosterStats.bestPts = Math.max(rosterStats.bestPts, res.pts);
+    store.set(KEYS.rosterStats, rosterStats);
+    updateRosterStats();
+  }
+  function updateRosterStats() {
+    $("rs-score").textContent = rosterStats.runs ? rosterStats.bestScore : "–";
+    $("rs-finish").textContent = rosterStats.cups ? `🏆 ×${rosterStats.cups}` : rosterStats.runs ? FINISH_SHORT[rosterStats.bestReach] : "–";
+    $("rs-finish").classList.toggle("cup", rosterStats.cups > 0);
+    $("rs-runs").textContent = rosterStats.runs;
   }
   function recordRun(res) {
     stats.runs += 1;
@@ -2131,6 +2344,7 @@ const GAME = (() => {
   }
   function refresh() {
     if (mode === "draft") updatePanel();
+    if (mode === "roster") renderRoster();
     updateHotspots();
     scheduleRender();
   }
@@ -2139,8 +2353,9 @@ const GAME = (() => {
   function drawThumb(cv, id) {
     const st = style;
     const e = getArt(id, st);
+    cv.dataset.want = id;
     const paint = () => {
-      if (style !== st || e.status !== "ready") return;
+      if (style !== st || e.status !== "ready" || cv.dataset.want !== String(id)) return;
       const g = cv.getContext("2d");
       g.clearRect(0, 0, cv.width, cv.height);
       const box = cv.width * 0.9;
@@ -2346,7 +2561,7 @@ const GAME = (() => {
   $("dp-change").addEventListener("click", openDraftPick);
   $("dp-restart").addEventListener("click", startNewRun);
   $("dp-new").addEventListener("click", startNewRun);
-  $("season-new").addEventListener("click", () => (seasonCtx && seasonCtx.kind === "free" ? playFree() : startNewRun()));
+  $("season-new").addEventListener("click", () => (!seasonCtx ? null : seasonCtx.kind === "free" ? playFree() : seasonCtx.kind === "roster" ? playRoster() : startNewRun()));
   $("dp-season").addEventListener("click", () => openSeason());
   $("dp-share").addEventListener("click", () => shareResults(cupCtx()));
   $("season-share").addEventListener("click", () => shareResults(seasonCtx));
@@ -2375,18 +2590,247 @@ const GAME = (() => {
   }
   $("btn-play").addEventListener("click", playFree);
 
+  // ---------- Full Roster: board, picking, season ----------
+  const ROSTER_ROWS = [
+    { title: "Forwards", note: "Top lines play the most", rows: GAME.LINES.map((u) => ({ label: u.id, sub: u.name, kind: "f", ids: ["LW", "C", "RW"].map((p) => u.id + p) })) },
+    { title: "Defense", note: "Top pairs play the most", rows: GAME.PAIRS.map((u) => ({ label: u.id, sub: u.name, kind: "d", ids: ["LD", "RD"].map((p) => u.id + p) })) },
+    { title: "Goalies", note: "The starter plays about 3 games in 4", rows: [{ label: "G", sub: "Goalies", kind: "g", ids: ["G1", "G2"] }] },
+  ];
+  const rosterCells = new Map();
+  function buildRosterBoard() {
+    const wrap = $("rb-rows");
+    for (const sec of ROSTER_ROWS) {
+      const head = document.createElement("div");
+      head.className = "rb-sec";
+      head.innerHTML = "<b></b><span></span>";
+      head.querySelector("b").textContent = sec.title;
+      head.querySelector("span").textContent = sec.note;
+      wrap.appendChild(head);
+      for (const row of sec.rows) {
+        const el = document.createElement("div");
+        el.className = `rb-row ${row.kind}`;
+        const lab = document.createElement("div");
+        lab.className = "rb-unit";
+        lab.innerHTML = "<b></b><small></small>";
+        lab.querySelector("b").textContent = row.label;
+        lab.querySelector("small").textContent = row.kind === "g" ? "" : row.sub.split(" ")[0];
+        el.appendChild(lab);
+        for (const id of row.ids) {
+          const info = slotInfo(id);
+          const b = document.createElement("button");
+          b.type = "button";
+          b.className = "rb-cell";
+          b.dataset.slot = id;
+          b.innerHTML = `<canvas class="rb-img" width="96" height="96" aria-hidden="true"></canvas><span class="rb-plus" aria-hidden="true">+</span>` +
+            `<span class="rb-txt"><span class="rb-name"></span><span class="rb-pos ${GROUP_NAMES[info.group][0]}"></span></span>`;
+          b.querySelector(".rb-pos").textContent = info.pos === "G" ? (id === "G1" ? "G · Starter" : "G · Backup") : info.pos;
+          b.addEventListener("click", () => openPicker(id));
+          el.appendChild(b);
+          rosterCells.set(id, { el: b, cv: b.querySelector("canvas"), name: b.querySelector(".rb-name"), shown: null });
+        }
+        wrap.appendChild(el);
+      }
+    }
+  }
+  function renderRoster() {
+    const next = GAME.ROSTER_IDS.find((s) => !roster[s]);
+    for (const [slotId, c] of rosterCells) {
+      const id = roster[slotId];
+      const key = id ? `${style}:${id}` : null;
+      c.el.classList.toggle("empty", !id);
+      c.el.classList.toggle("next", slotId === next);
+      c.name.textContent = id ? nameOf(id) : "Empty";
+      c.el.setAttribute("aria-label", `${slotInfo(slotId).heading}: ${id ? nameOf(id) : "empty"}. ${id ? "Change player" : "Pick a Pokémon"}`);
+      if (key !== c.shown) {
+        c.shown = key;
+        c.cv.getContext("2d").clearRect(0, 0, c.cv.width, c.cv.height);
+        if (id) drawThumb(c.cv, id);
+      }
+    }
+    const n = Object.keys(roster).length;
+    $("rb-count").textContent = n === 20 ? "All 20 picked. Ready to play!" : `${n} of 20 picked`;
+    $("rb-bar").style.width = `${(100 * n) / 20}%`;
+    $("rs-play").classList.toggle("ready", n === 20);
+  }
+  function nextEmptyRoster(from) {
+    const ids = GAME.ROSTER_IDS;
+    const start = Math.max(0, ids.indexOf(from));
+    for (let k = 1; k <= ids.length; k++) {
+      const s = ids[(start + k) % ids.length];
+      if (!roster[s]) return s;
+    }
+    return null;
+  }
+  function playRoster() {
+    if (mode !== "roster") return;
+    const missing = GAME.ROSTER_IDS.filter((s) => !roster[s]);
+    if (missing.length) {
+      toast(`Fill all 20 spots first (${missing.length} still empty)`);
+      const c = rosterCells.get(missing[0]);
+      if (c) c.el.scrollIntoView({ block: "center", behavior: "smooth" });
+      return;
+    }
+    const seed = crypto.getRandomValues(new Uint32Array(1))[0] | 0;
+    const team = GAME.rosterScore(roster);
+    const res = { ...team, ...GAME.simulateSeason(team.score, seed) };
+    recordRoster(res);
+    openSeason({ kind: "roster", res, lineup: { ...roster } });
+  }
+  $("rs-play").addEventListener("click", playRoster);
+  $("rs-link").addEventListener("click", async () => {
+    const url = `${pageUrl()}#${encodeRosterHash()}`;
+    try { await navigator.clipboard.writeText(url); toast("Share link copied!"); } catch (_) { window.prompt("Copy this link:", url); }
+  });
+  $("rs-random").addEventListener("click", () => {
+    const ids = (poolAll ? MONS : POOL).map((p) => p.id);
+    for (let i = ids.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [ids[i], ids[j]] = [ids[j], ids[i]]; }
+    for (const k of Object.keys(roster)) delete roster[k];
+    GAME.ROSTER_IDS.forEach((s, i) => { roster[s] = ids[i]; });
+    commit();
+  });
+  $("rs-clear").addEventListener("click", () => {
+    if (Object.keys(roster).length && !confirm("Clear all 20 spots?")) return;
+    for (const k of Object.keys(roster)) delete roster[k];
+    commit();
+  });
+  $("rs-save").addEventListener("click", async () => {
+    try {
+      const c = await buildRosterImage(roster);
+      c.toBlob((blob) => {
+        if (!blob) { toast("Couldn't create the image, try again."); return; }
+        saveBlob(blob, "pokemon-full-roster.png");
+        toast("Roster saved!");
+      }, "image/png");
+    } catch (_) {
+      toast("Couldn't export (artwork blocked). Try Pixel sprites.");
+    }
+  });
+
+  // Draws the 20-man roster as rows (4 lines, 3 pairs, goalies) into a 2D context.
+  function drawRosterBoard(g, x0, y0, w, h, r) {
+    const rows = ROSTER_ROWS.flatMap((sec, n) => sec.rows.map((row, k) => ({ ...row, gapBefore: k === 0 && n > 0 })));
+    const gap = 10, secGap = 22, labelW = 84;
+    const rh = (h - gap * (rows.length - 1) - (secGap - gap) * 2) / rows.length;
+    let y = y0;
+    const pix = SPRITE_STYLES[style].pixelated;
+    for (const row of rows) {
+      if (row.gapBefore) y += secGap - gap;
+      const color = row.kind === "f" ? COLORS.F : row.kind === "d" ? COLORS.D : COLORS.G;
+      g.textAlign = "center";
+      g.textBaseline = "middle";
+      g.fillStyle = color;
+      g.font = `800 ${Math.round(rh * 0.36)}px ${FONT}`;
+      g.fillText(row.label, x0 + labelW / 2 - 6, y + rh / 2 - (row.kind === "g" ? 0 : rh * 0.12));
+      if (row.kind !== "g") {
+        g.fillStyle = "#71717a";
+        g.font = `700 ${Math.round(rh * 0.17)}px Inter, ${FONT}`;
+        g.fillText(row.sub.split(" ")[0].toUpperCase(), x0 + labelW / 2 - 6, y + rh / 2 + rh * 0.24);
+      }
+      const n = row.ids.length;
+      const cw = (w - labelW - gap * (n - 1)) / n;
+      row.ids.forEach((slotId, i) => {
+        const id = r[slotId];
+        const x = x0 + labelW + i * (cw + gap);
+        g.beginPath();
+        g.roundRect(x, y, cw, rh, 14);
+        g.fillStyle = id ? "#171a20" : "#111318";
+        g.fill();
+        g.lineWidth = 2;
+        g.strokeStyle = id ? "rgba(255,255,255,0.10)" : "rgba(255,255,255,0.06)";
+        g.stroke();
+        const s = rh - 14;
+        if (id) {
+          const e = getArt(id);
+          if (e.status === "ready") {
+            let k = Math.min(s / e.canvas.width, s / e.canvas.height);
+            if (pix) k = Math.max(1, Math.floor(k * 2) / 2);
+            const sw = e.canvas.width * k, sh = e.canvas.height * k;
+            g.save();
+            g.imageSmoothingEnabled = !pix;
+            g.drawImage(e.canvas, Math.round(x + 7 + (s - sw) / 2), Math.round(y + 7 + (s - sh) / 2), sw, sh);
+            g.restore();
+          }
+        }
+        const tx = x + s + 18, maxW = cw - s - 30;
+        const info = slotInfo(slotId);
+        const name = id ? nameOf(id).toUpperCase() : "EMPTY";
+        let fs = Math.round(rh * 0.3);
+        g.font = `800 ${fs}px ${FONT}`;
+        while (g.measureText(name).width > maxW && fs > 12) { fs -= 1; g.font = `800 ${fs}px ${FONT}`; }
+        g.textAlign = "left";
+        g.fillStyle = id ? "#ffffff" : "#52525b";
+        g.fillText(name, tx, y + rh / 2 - rh * 0.12);
+        g.font = `700 ${Math.round(rh * 0.2)}px ${FONT}`;
+        g.fillStyle = color;
+        const posTxt = info.pos === "G" ? (slotId === "G1" ? "G · STARTER" : "G · BACKUP") : info.pos;
+        g.fillText(posTxt, tx, y + rh / 2 + rh * 0.2);
+      });
+      y += rh + gap;
+    }
+  }
+  async function buildRosterImage(r) {
+    await document.fonts.ready;
+    await waitForArt(Object.values(r));
+    const CW = 1200, CH = 1130;
+    const c = document.createElement("canvas");
+    c.width = CW;
+    c.height = CH;
+    const g = c.getContext("2d");
+    g.fillStyle = "#0a0b0f";
+    g.fillRect(0, 0, CW, CH);
+    const glow = g.createRadialGradient(0, 0, 0, 0, 0, 700);
+    glow.addColorStop(0, "rgba(134, 239, 172, 0.14)");
+    glow.addColorStop(1, "rgba(134, 239, 172, 0)");
+    g.fillStyle = glow;
+    g.fillRect(0, 0, CW, 600);
+    g.textBaseline = "alphabetic";
+    g.textAlign = "left";
+    g.font = `700 26px Inter, ${FONT}`;
+    g.fillStyle = "#a1a1aa";
+    g.fillText("POKÉMON STARTING SIX", 48, 70);
+    g.font = `800 60px Inter, ${FONT}`;
+    const grad = g.createLinearGradient(48, 0, 48 + g.measureText("FULL ROSTER").width, 0);
+    grad.addColorStop(0, "#86efac");
+    grad.addColorStop(1, "#22d3ee");
+    g.fillStyle = grad;
+    g.fillText("FULL ROSTER", 48, 134);
+    drawRosterBoard(g, 40, 168, CW - 80, 890, r);
+    g.textBaseline = "alphabetic";
+    g.textAlign = "left";
+    g.font = `800 32px Inter, ${FONT}`;
+    g.fillStyle = "#ffffff";
+    g.fillText("Build all 20. Win the Cup?", 48, 1104);
+    g.textAlign = "right";
+    g.font = `700 28px Inter, ${FONT}`;
+    g.fillStyle = "#67e8f9";
+    g.fillText(siteLabel(), CW - 48, 1104);
+    return c;
+  }
+
   // ---------- Season results ----------
   function openSeason(ctx = cupCtx()) {
     if (!ctx) return;
     seasonCtx = ctx;
     const res = ctx.res;
     const free = ctx.kind === "free";
-    $("season-heading").textContent = (free ? "Free Pick · " : "") + (res.cup ? "Cup champions! 🏆" : "Season results");
-    $("season-new").textContent = free ? "Play again" : "New run";
-    $("season-kind").textContent = free ? "Free Pick season: hand-picked six, so it doesn't count toward Cup Challenge records." : "";
-    $("season-kind").hidden = !free;
-    const fits = SPOTS.map((s) => ({ pos: s.pos, id: ctx.lineup[s.id], v: GAME.positionScore(ctx.lineup[s.id], s.id) })).sort((a, b) => b.v - a.v);
-    const top = fits[0], low = fits[fits.length - 1];
+    const full = ctx.kind === "roster";
+    $("season-heading").textContent = (free ? "Free Pick · " : full ? "Full Roster · " : "") + (res.cup ? "Cup champions! 🏆" : "Season results");
+    $("season-new").textContent = free || full ? "Play again" : "New run";
+    $("season-kind").textContent = free ? "Free Pick season: hand-picked six, so it doesn't count toward Cup Challenge records."
+      : full ? "Full Roster season: all 20 players count, weighted by ice time. Records are kept separately from the other modes." : "";
+    $("season-kind").hidden = !(free || full);
+    $("season-how-six").hidden = full;
+    $("season-how-roster").hidden = !full;
+    let top, low;
+    if (full) {
+      const fits = RSLOTS.map((s) => ({ pos: `${s.pos === "G" ? (s.id === "G1" ? "G (starter)" : "G (backup)") : `${s.pos} (${s.unitName})`}`, id: ctx.lineup[s.id], core: s.core, v: GAME.positionScore(ctx.lineup[s.id], s.pos) })).sort((a, b) => b.v - a.v);
+      top = fits[0];
+      low = fits.filter((f) => f.core).at(-1);
+    } else {
+      const fits = SPOTS.map((s) => ({ pos: s.pos, id: ctx.lineup[s.id], v: GAME.positionScore(ctx.lineup[s.id], s.id) })).sort((a, b) => b.v - a.v);
+      top = fits[0];
+      low = fits[fits.length - 1];
+    }
     $("season-notes").textContent = `${GAME.recordText(res)}, ${res.pts} points, ${ordinal(res.rank)} of 32 overall. ${FINISH[res.roundReached]}. ` +
       `Forwards ${res.forwards} · Defense ${res.defense} · Goaltending ${res.goal}. Best fit: ${nameOf(top.id)} at ${top.pos}. Weakest link: ${nameOf(low.id)} at ${low.pos}.`;
     $("season-details").open = false;
@@ -2438,9 +2882,10 @@ const GAME = (() => {
   }
   async function buildCard(ctx) {
     const res = ctx.res;
-    const title = ctx.kind === "free" ? "FREE PICK SEASON" : "CUP CHALLENGE";
+    const full = ctx.kind === "roster";
+    const title = ctx.kind === "free" ? "FREE PICK SEASON" : full ? "FULL ROSTER SEASON" : "CUP CHALLENGE";
     await document.fonts.ready;
-    await waitForArt();
+    await waitForArt(Object.values(ctx.lineup));
     const c = document.createElement("canvas");
     c.width = CARD_W;
     c.height = CARD_H;
@@ -2459,8 +2904,8 @@ const GAME = (() => {
     text("POKÉMON STARTING SIX", X0, 92, `700 28px Inter, ${FONT}`, "#a1a1aa");
     g.font = `800 64px Inter, ${FONT}`;
     const gold = g.createLinearGradient(X0, 0, X0 + g.measureText(title).width, 0);
-    gold.addColorStop(0, ctx.kind === "free" ? "#67e8f9" : "#fde047");
-    gold.addColorStop(1, ctx.kind === "free" ? "#60a5fa" : "#f59e0b");
+    gold.addColorStop(0, ctx.kind === "free" ? "#67e8f9" : full ? "#86efac" : "#fde047");
+    gold.addColorStop(1, ctx.kind === "free" ? "#60a5fa" : full ? "#22d3ee" : "#f59e0b");
     text(title, X0, 160, g.font, gold);
     // Record + points
     text(GAME.recordText(res), X0 - 4, 318, `800 150px ${FONT}`, res.cup ? "#fbbf24" : "#ffffff");
@@ -2484,7 +2929,7 @@ const GAME = (() => {
       g.fill();
       const dark = Boolean(s);
       text(label.toUpperCase(), x + 16, y + 25, `700 17px Inter, ${FONT}`, dark ? "rgba(0,0,0,0.6)" : "#71717a");
-      text(s ? `${s.won ? "W" : "L"} ${s.wins}–${s.losses}` : res.made ? "—" : "Missed", x + 16, y + 52, `800 24px ${FONT}`, dark ? "#0a0b0f" : "#52525b");
+      text(s ? `${s.won ? "W" : "L"} ${s.wins}–${s.losses}` : res.made ? "–" : "Missed", x + 16, y + 52, `800 24px ${FONT}`, dark ? "#0a0b0f" : "#52525b");
     });
     // 82 games: two rows of 41
     const per = 41, gap = 4, sz = (X1 - X0 - (per - 1) * gap) / per;
@@ -2495,22 +2940,34 @@ const GAME = (() => {
       g.fill();
     });
     // Lineup
-    hideBanner = true;
-    const shown = lineup;
-    lineup = ctx.lineup;
-    render();
-    lineup = shown;
-    hideBanner = false;
-    const rh = (CARD_W * H) / W;
-    g.drawImage(canvas, 0, 584, CARD_W, rh);
-    scheduleRender();
-    text(ctx.kind === "free" ? "Pick any six. Win the Cup?" : "Can you win the Cup?", X0, 1484, `800 36px Inter, ${FONT}`, "#ffffff");
+    if (full) {
+      drawRosterBoard(g, 40, 590, CARD_W - 80, 846, ctx.lineup);
+      g.textBaseline = "alphabetic";
+    } else {
+      hideBanner = true;
+      cardRender = true;
+      const shown = lineup;
+      lineup = ctx.lineup;
+      render();
+      lineup = shown;
+      hideBanner = false;
+      cardRender = false;
+      const rh = (CARD_W * H) / W;
+      g.drawImage(canvas, 0, 584, CARD_W, rh);
+      scheduleRender();
+    }
+    text(ctx.kind === "free" ? "Pick any six. Win the Cup?" : full ? "Build all 20. Win the Cup?" : "Can you win the Cup?", X0, 1484, `800 36px Inter, ${FONT}`, "#ffffff");
     text(siteLabel(), X1, 1484, `700 30px Inter, ${FONT}`, "#67e8f9", "right");
     return c;
   }
   function shareText(ctx) {
     const res = ctx.res;
     const series = res.playoffs.map((s) => (s.won ? "🟩" : "🟥")).join("") || "❌";
+    if (ctx.kind === "roster") {
+      const r = ctx.lineup;
+      const top = ["L1LW", "L1C", "L1RW"].map((s) => nameOf(r[s])).join(", ");
+      return `${res.cup ? "🏆 My 20-man Full Roster won the Cup!" : "🏒 My 20-man Full Roster went " + GAME.recordText(res)}\nTop line: ${top} · In net: ${nameOf(r.G1)}\n${GAME.recordText(res)} · ${res.pts} pts · ${FINISH[res.roundReached]}\nTeam Score ${res.score}/1000 · Playoffs ${series}\n${pageUrl()}#${encodeRosterHash(r)}`;
+    }
     if (ctx.kind === "free") {
       const ids = GAME.SLOT_IDS.map((s) => ctx.lineup[s].toString(36)).join("-");
       const six = GAME.SLOT_IDS.map((s) => `${s} ${nameOf(ctx.lineup[s])}`).join(", ");
@@ -2526,7 +2983,7 @@ const GAME = (() => {
     const copied = touch ? null : (navigator.clipboard ? navigator.clipboard.writeText(post).then(() => true, () => false) : Promise.resolve(false));
     const cardData = await prepareCard(ctx);
     if (!cardData) { toast("Couldn't make the card. Try again."); return; }
-    const file = new File([cardData.blob], `${ctx.kind === "free" ? "free-pick" : "cup-challenge"}-${res.w}-${res.l}-${res.otl}.png`, { type: "image/png" });
+    const file = new File([cardData.blob], `${ctx.kind === "free" ? "free-pick" : ctx.kind === "roster" ? "full-roster" : "cup-challenge"}-${res.w}-${res.l}-${res.otl}.png`, { type: "image/png" });
     if (touch) {
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         try { await navigator.share({ files: [file], text: post }); return; } catch (err) { if (err && err.name === "AbortError") return; }
@@ -2540,43 +2997,48 @@ const GAME = (() => {
   }
 
   // ---------- Mode ----------
-  const cta = $("cta");
+  const MODE_TITLES = { builder: "Free Pick", draft: "Cup Challenge", roster: "Full Roster" };
+  const modeTabs = [...document.querySelectorAll("#mode-tabs button")];
   function applyMode() {
     const d = mode === "draft";
     for (const dlg of [picker, pickDlg, seasonDlg]) if (dlg.open) dlg.close();
     if (!d) cancelRoll();
     document.body.classList.toggle("mode-draft", d);
-    cta.classList.toggle("back", d);
-    cta.innerHTML = d
-      ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>Back to Builder'
-      : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg>Play Cup Challenge';
-    $("title-mode").textContent = d ? "Cup Challenge" : "Builder";
-    $("title-mode").classList.toggle("long", d);
-    document.title = d ? "Cup Challenge · Pokémon Starting Six" : "Pokémon Starting Six · Hockey Lineup Builder";
+    document.body.classList.toggle("mode-roster", mode === "roster");
+    for (const b of modeTabs) {
+      const on = b.dataset.mode === mode;
+      b.classList.toggle("on", on);
+      b.setAttribute("aria-pressed", on);
+    }
+    $("title-mode").textContent = MODE_TITLES[mode];
+    $("title-mode").classList.toggle("long", mode !== "builder");
+    document.title = d ? "Cup Challenge · Pokémon Starting Six" : mode === "roster" ? "Full Roster · Pokémon Starting Six" : "Pokémon Starting Six · Hockey Lineup Builder";
     refresh();
   }
   function setMode(next) {
     if (next === mode) return;
     mode = next;
     clearTimeout(autoTimer);
-    lineup = mode === "draft" ? draft.lineup : builderLineup;
+    lineup = lineupFor(mode);
     store.set(KEYS.mode, mode);
     if (location.hash) history.replaceState(null, "", location.pathname + location.search);
     applyMode();
   }
-  cta.addEventListener("click", () => setMode(mode === "draft" ? "builder" : "draft"));
+  for (const b of modeTabs) b.addEventListener("click", () => setMode(b.dataset.mode));
   window.addEventListener("hashchange", () => {
-    if (CUP_HASHES.includes(location.hash.toLowerCase())) {
+    const h = location.hash.toLowerCase();
+    if (CUP_HASHES.includes(h) || ROSTER_HASHES.includes(h)) {
       history.replaceState(null, "", location.pathname + location.search);
-      setMode("draft");
+      setMode(CUP_HASHES.includes(h) ? "draft" : "roster");
       return;
     }
     const next = parseHash(location.hash.slice(1));
     if (!next) return;
-    builderLineup = next.lineup;
+    const target = next.roster ? "roster" : "builder";
+    if (next.roster) roster = next.roster; else builderLineup = next.lineup;
     if (next.all) setPool(true, false);
-    if (mode !== "builder") { mode = "builder"; clearTimeout(autoTimer); }
-    lineup = builderLineup;
+    if (mode !== target) { mode = target; clearTimeout(autoTimer); }
+    lineup = lineupFor(mode);
     setStyle(next.style || style);
     applyMode();
   });
@@ -2584,14 +3046,16 @@ const GAME = (() => {
   // ---------- Boot ----------
   buildHotspots();
   buildPicker();
+  buildRosterBoard();
   setPool(poolAll, !shared);
   updateFreeStats();
+  updateRosterStats();
   setStyle(style);
   applyMode();
   render();
   document.fonts.ready.then(scheduleRender);
   // Lets scripted tests read the game state (no effect on play).
-  window.__starting6 = { get draft() { return draft; }, get lineup() { return lineup; }, result: () => draftResult(), get season() { return seasonCtx; }, get poolAll() { return poolAll; }, encodeHash };
+  window.__starting6 = { get draft() { return draft; }, get lineup() { return lineup; }, result: () => draftResult(), get season() { return seasonCtx; }, get poolAll() { return poolAll; }, get roster() { return roster; }, get mode() { return mode; }, encodeHash, encodeRosterHash, playRoster };
 })();
 
 </script>
