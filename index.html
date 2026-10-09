@@ -246,7 +246,7 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(2px); }
 .cand-name .nm { font-weight: 700; font-size: 15px; }
 .cand-name .num { font-size: 11px; color: var(--subtle); }
 .cand-types { display: flex; gap: 4px; }
-.cand-stats { display: grid; grid-template-columns: repeat(6, 1fr); gap: 2px; font-size: 12px; font-weight: 700; }
+.cand-stats { display: grid; grid-template-columns: repeat(6, 1fr) 1.2fr; gap: 2px; font-size: 12px; font-weight: 700; }
 .cand-stats span { display: flex; flex-direction: column; align-items: center; background: var(--surface); border-radius: 5px; padding: 2px 0; }
 .cand-stats i { font-style: normal; font-size: 9.5px; color: var(--subtle); font-weight: 600; }
 .cand-stats .hi { color: #4ade80; } .cand-stats .lo { color: #f87171; }
@@ -605,8 +605,6 @@ body.pvp-docked .pvp-stage { padding-bottom: 150px; }
 .pp-tools { display: flex; flex-direction: column; }
 .pp-tools[hidden] { display: none !important; }
 .pp-tools .picker-tools input { padding: 9px 12px; }
-.mon .fit { position: absolute; top: 4px; right: 4px; font-size: 10px; font-weight: 800; padding: 1px 5px; border-radius: 5px; background: rgba(103, 232, 249, 0.14); color: #67e8f9; font-family: "Roboto Condensed", var(--font); }
-.mon .fit:empty { display: none; }
 .pp-place { display: flex; flex-direction: column; gap: 4px; padding: 4px 16px 18px; overflow-y: auto; }
 .pp-mon { display: flex; gap: 14px; align-items: center; }
 .pp-mon canvas { width: 96px; height: 96px; border-radius: 14px; background: var(--surface-2); image-rendering: pixelated; }
@@ -614,14 +612,10 @@ body.pvp-docked .pvp-stage { padding-bottom: 150px; }
 .pp-mon b { font-size: 22px; font-weight: 800; }
 .pp-mon span { font-size: 13px; color: var(--muted); }
 .pp-slots { display: flex; flex-direction: column; gap: 8px; }
-.pp-slot { display: grid; grid-template-columns: 52px 1fr 40px; grid-template-rows: auto auto; column-gap: 10px; row-gap: 5px; align-items: center; text-align: left; padding: 10px 12px; min-height: 56px; }
-.pp-slot .lab { grid-row: 1 / 3; font-family: "Roboto Condensed", var(--font); font-size: 20px; font-weight: 800; text-align: center; }
+.pp-slot { display: grid; grid-template-columns: 52px 1fr; column-gap: 10px; align-items: center; text-align: left; padding: 10px 12px; min-height: 56px; }
+.pp-slot .lab { font-family: "Roboto Condensed", var(--font); font-size: 20px; font-weight: 800; text-align: center; }
 .pp-slot.fwd .lab { color: var(--fwd); } .pp-slot.def .lab { color: var(--def); } .pp-slot.goal .lab { color: var(--goal); }
 .pp-slot .full { font-size: 13.5px; font-weight: 600; }
-.pp-slot .fitbar { grid-column: 2; height: 5px; border-radius: 5px; background: var(--surface-3); overflow: hidden; }
-.pp-slot .fitbar i { display: block; height: 100%; background: linear-gradient(90deg, #67e8f9, #60a5fa); }
-.pp-slot .val { grid-column: 3; grid-row: 1 / 3; font-size: 20px; font-weight: 800; text-align: right; font-family: "Roboto Condensed", var(--font); }
-.pp-slot.best { border-color: rgba(74, 222, 128, 0.6); background: rgba(74, 222, 128, 0.08); }
 
 .pv-results { display: flex; flex-direction: column; gap: 10px; }
 .pv-res-head { padding: 14px 16px; border-radius: 14px; background: rgba(12, 15, 20, 0.86); border: 1px solid rgba(251, 191, 36, 0.45); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
@@ -653,6 +647,46 @@ body.pvp-room .sub.pvp-only { display: none; }
 body.pvp-room .top { padding-bottom: 10px; }
 body.pvp-docked #toast { bottom: 150px; }
 @media (min-width: 1000px) and (min-height: 560px) { body.pvp-docked #toast { bottom: 24px; } }
+
+/* ---------- Stat cards (Free Pick, Full Roster and PvP pickers): raw base stats, no rankings ---------- */
+.sort-row { display: flex; align-items: center; gap: 8px; padding: 8px 16px 0; }
+.sort-row label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--subtle); flex: none; }
+.sort-row select { flex: 0 1 auto; min-width: 0; min-height: 40px; font: inherit; font-size: 14px; font-weight: 600; color: var(--text); background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius); padding: 6px 10px; }
+.sort-row select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.sort-row .hint { margin: 0 0 0 auto; white-space: nowrap; }
+.grid.list { grid-template-columns: 1fr; grid-auto-rows: max-content; gap: 6px; align-content: start; }
+@media (min-width: 720px) { .grid.list { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); } }
+.mon.stat-card { display: grid; grid-template-columns: 60px 1fr; grid-template-rows: auto auto; column-gap: 10px; row-gap: 6px; align-items: center; text-align: left; padding: 8px 10px; min-height: 0; }
+.mon.stat-card img { grid-row: 1 / 3; width: 60px; height: 60px; align-self: center; }
+.mc-main { display: flex; align-items: center; gap: 8px; min-width: 0; flex-wrap: wrap; padding-right: 34px; }
+.mc-head { display: flex; align-items: baseline; gap: 6px; min-width: 0; }
+.mon.stat-card .nm { font-size: 15px; font-weight: 700; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mon.stat-card .num { font-size: 11px; }
+.mon.stat-card .star { position: static; font-size: 13px; }
+.mc-types { display: flex; gap: 4px; }
+.mc-types .type { font-size: 10.5px; padding: 1px 7px; }
+.mc-stats { display: grid; grid-template-columns: repeat(6, 1fr) 1.15fr; gap: 3px; }
+.mc-stats .st { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 2px 0 3px; background: rgba(255, 255, 255, 0.04); border-radius: 5px; min-width: 0; }
+.mc-stats i { font-style: normal; font-size: 9.5px; font-weight: 600; color: var(--subtle); line-height: 1.1; }
+.mc-stats b { font-size: 13px; font-weight: 800; font-family: "Roboto Condensed", var(--font); color: var(--text); line-height: 1.1; }
+.mc-stats u { display: block; width: calc(100% - 8px); height: 3px; border-radius: 3px; background: var(--surface-3); overflow: hidden; text-decoration: none; }
+.mc-stats s { display: block; height: 100%; text-decoration: none; background: #94a3b8; }
+.mc-stats .s-hp s { background: #4ade80; } .mc-stats .s-atk s { background: #f87171; } .mc-stats .s-def s { background: #fbbf24; }
+.mc-stats .s-spa s { background: #60a5fa; } .mc-stats .s-spd s { background: #a78bfa; } .mc-stats .s-spe s { background: #f472b6; }
+.mc-stats .tot { background: rgba(103, 232, 249, 0.1); justify-content: center; }
+.mc-stats .tot b { color: var(--accent); }
+.mon.stat-card .tag { top: 6px; right: 8px; }
+.mon.stat-card.legend .star { color: #fbbf24; }
+.pp-stats { margin: 10px 0 2px; }
+.pp-stats .st { padding: 4px 0 5px; }
+.pp-stats b { font-size: 15px; }
+.cand-stats .tot { color: var(--accent); background: rgba(103, 232, 249, 0.1); }
+.pv-offer { padding: 12px 14px; border-radius: 14px; background: rgba(12, 15, 20, 0.9); border: 1px solid rgba(103, 232, 249, 0.35); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+.pv-offer h3 { margin: 0 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent); }
+.pv-offer-grid { padding: 0; overflow: visible; }
+.mon.stat-card.view-only { cursor: default; }
+.mon.stat-card.view-only:hover { background: var(--surface-2); border-color: var(--line); }
+#pp-filters[hidden] { display: none; }
 
 </style>
 </head>
@@ -786,6 +820,10 @@ body.pvp-docked #toast { bottom: 150px; }
               <label><input type="radio" name="pv-pool" autocomplete="off" value="classic" checked /><span>No legendaries</span></label>
               <label><input type="radio" name="pv-pool" autocomplete="off" value="all" /><span>Any of the 151</span></label>
             </div></fieldset>
+            <fieldset class="pv-set"><legend>Draft pool</legend><div class="segmented two">
+              <label><input type="radio" name="pv-draw" autocomplete="off" value="open" checked /><span>Open</span></label>
+              <label><input type="radio" name="pv-draw" autocomplete="off" value="random" /><span>Random each pick</span></label>
+            </div></fieldset>
           </div>
           <p class="dp-note" id="pv-settings-note"></p>
           <button type="button" class="play wide" id="pv-start">Start draft</button>
@@ -819,13 +857,14 @@ body.pvp-docked #toast { bottom: 150px; }
           <h2>How the PvP Draft works</h2>
           <ol>
             <li><b>One person creates a room</b> and texts the invite link. Everyone joins on their own phone (2 to 6 players).</li>
-            <li><b>The host picks the rules:</b> a starting six or a full 20-man roster, with or without legendaries.</li>
+            <li><b>The host picks the rules:</b> a starting six or a full 20-man roster, with or without legendaries, and an open pool or 8 random options each pick.</li>
             <li><b>Snake draft.</b> The order is random, then it flips every round (1-2-3, 3-2-1). Each Pokémon can only be drafted once.</li>
-            <li><b>60 seconds a pick.</b> Pick a Pokémon and the spot it fills. Run out of time and you get the best one left for your biggest need.</li>
+            <li><b>60 seconds a pick.</b> Pick a Pokémon and the spot it fills. Run out of time and you get the best one left for your biggest need (from your 8 options in a Random draft).</li>
             <li><b>Grades and a season.</b> Every team gets a Team Score and plays an 82-game season. Best Team Score wins.</li>
           </ol>
         </div>
         <div class="pv-results" id="pv-results" hidden></div>
+        <div class="pv-offer" id="pv-offer" hidden><h3 id="pv-offer-title"></h3><div class="grid list pv-offer-grid" id="pv-offer-grid"></div></div>
         <div class="pv-board" id="pv-board"></div>
         <div class="pv-feed-wrap" id="pv-feed-wrap" hidden><h3>Recent picks</h3><ol class="pv-feed" id="pv-feed"></ol></div>
         <div class="pv-dock" id="pv-dock" hidden>
@@ -872,8 +911,9 @@ body.pvp-docked #toast { bottom: 150px; }
       <button id="picker-empty" type="button">Empty spot</button>
     </div>
     <div class="type-filter" id="picker-types" role="toolbar" aria-label="Filter by type"></div>
-    <p class="hint"><span id="picker-count"></span> · Picking someone already on the ice swaps the two.</p>
-    <div id="picker-grid" class="grid"></div>
+    <div class="sort-row"><label for="picker-sort">Sort by</label><select id="picker-sort"></select><span class="hint" id="picker-count"></span></div>
+    <p class="hint">Base stats shown. Picking someone already on the ice swaps the two.</p>
+    <div id="picker-grid" class="grid list"></div>
   </dialog>
 
   <dialog id="draft-pick" class="sheet" aria-labelledby="dlg-heading">
@@ -922,17 +962,17 @@ body.pvp-docked #toast { bottom: 150px; }
       <button class="close" value="cancel" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
     </form>
     <div class="pp-tools" id="pp-tools">
-      <div class="picker-tools">
+      <div id="pp-filters"><div class="picker-tools">
         <input id="pp-search" type="search" inputmode="search" placeholder="Search name or #…" autocomplete="off" enterkeyhint="search" />
-        <button id="pp-sort" type="button" aria-pressed="true">Best fit</button>
       </div>
-      <div class="type-filter" id="pp-types" role="toolbar" aria-label="Filter by type"></div>
-      <p class="hint" id="pp-hint"></p>
+      <div class="type-filter" id="pp-types" role="toolbar" aria-label="Filter by type"></div></div>
+      <div class="sort-row"><label for="pp-sort">Sort by</label><select id="pp-sort"></select><span class="hint" id="pp-hint"></span></div>
     </div>
-    <div id="pp-grid" class="grid pp-grid"></div>
+    <div id="pp-grid" class="grid list pp-grid"></div>
     <div class="pp-place" id="pp-place" hidden>
       <div class="pp-mon"><canvas id="pp-img" class="thumb" width="128" height="128" aria-hidden="true"></canvas><div><b id="pp-name"></b><span id="pp-types-line"></span><button type="button" class="dp-link" id="pp-back">Pick someone else</button></div></div>
-      <p class="hint">Tap the spot to draft them into. Fit is 0 to 100.</p>
+      <div class="mc-stats pp-stats" id="pp-stats"></div>
+      <p class="hint">Tap one of your open spots to draft them there.</p>
       <div class="pp-slots" id="pp-slots"></div>
     </div>
   </dialog>
@@ -2579,17 +2619,49 @@ const GAME = (() => {
   let pickerSlot = null;
   const monEls = [];
   closeOnBackdrop(picker);
+
+  // ---------- Pokémon cards with base stats (shared by the Free Pick / Full Roster and PvP pickers) ----------
+  // Raw base stats only: no grading or "best spot" hints, so players judge for themselves.
+  const STAT_KEYS = [["hp", "HP", "HP"], ["atk", "Atk", "Attack"], ["def", "Def", "Defense"], ["spa", "SpA", "Sp. Atk"], ["spd", "SpD", "Sp. Def"], ["spe", "Spe", "Speed"]];
+  const statTotal = (p) => p.hp + p.atk + p.def + p.spa + p.spd + p.spe;
+  function statsHTML(p) {
+    return STAT_KEYS.map(([k, l]) => `<span class="st s-${k}"><i>${l}</i><b>${p[k]}</b><u><s style="width:${Math.min(100, Math.round((p[k] / 160) * 100))}%"></s></u></span>`).join("") +
+      `<span class="st tot"><i>Total</i><b>${statTotal(p)}</b></span>`;
+  }
+  function monCard(p) {
+    const el = document.createElement("button");
+    el.type = "button";
+    el.className = `mon stat-card${p.legendary ? " legend" : ""}`;
+    el.innerHTML = `<img loading="lazy" alt="" width="72" height="72"><span class="mc-main"><span class="mc-head"><span class="nm"></span><span class="num">#${String(p.id).padStart(3, "0")}</span>` +
+      (p.legendary ? '<span class="star" title="Legendary">★</span>' : "") + `</span>` +
+      `<span class="mc-types">${p.types.map((t) => `<span class="type t-${t}">${capital(t)}</span>`).join("")}</span></span>` +
+      `<span class="mc-stats">${statsHTML(p)}</span>`;
+    el.querySelector(".nm").textContent = p.name;
+    el.setAttribute("aria-label", `${p.name}, ${p.types.map(capital).join("/")}${p.legendary ? ", Legendary" : ""}. ` +
+      STAT_KEYS.map(([k, , long]) => `${long} ${p[k]}`).join(", ") + `, Total ${statTotal(p)}`);
+    return el;
+  }
+  const SORTS = [["dex", "Pokédex #"], ["name", "Name (A to Z)"], ...STAT_KEYS.map(([k, , long]) => [k, `${long} (high to low)`]), ["total", "Total stats (high to low)"]];
+  function fillSortSelect(sel) {
+    sel.replaceChildren(...SORTS.map(([v, l]) => { const o = document.createElement("option"); o.value = v; o.textContent = l; return o; }));
+    sel.value = "dex";
+  }
+  function sortCompare(key) {
+    if (key === "name") return (a, b) => a.name.localeCompare(b.name);
+    if (key === "total") return (a, b) => statTotal(b) - statTotal(a) || a.id - b.id;
+    if (STAT_KEYS.some(([k]) => k === key)) return (a, b) => b[key] - a[key] || a.id - b.id;
+    return (a, b) => a.id - b.id;
+  }
+  // Reorders card elements ({ el, p }) inside grid, keeping trailing non-card nodes at the end.
+  function sortCards(grid, list, key, before) {
+    const cmp = sortCompare(key);
+    for (const m of [...list].sort((a, b) => cmp(a.p, b.p))) grid.insertBefore(m.el, before);
+  }
+
   function buildPicker() {
     const frag = document.createDocumentFragment();
     for (const p of MONS) {
-      const el = document.createElement("button");
-      el.type = "button";
-      el.className = `mon${p.legendary ? " legend" : ""}`;
-      el.innerHTML = `<img loading="lazy" alt="" width="72" height="72"><span class="num">#${String(p.id).padStart(3, "0")}</span><span class="nm"></span>` +
-        `<span class="mini-types">${p.types.map((t) => `<i class="t-${t}" title="${capital(t)}"></i>`).join("")}</span>` +
-        (p.legendary ? '<span class="star" title="Legendary">★</span>' : "");
-      el.querySelector(".nm").textContent = p.name;
-      el.setAttribute("aria-label", `${p.name}, ${p.types.map(capital).join("/")}${p.legendary ? ", Legendary" : ""}`);
+      const el = monCard(p);
       el.addEventListener("click", () => {
         const from = pickerSlot;
         const wasEmpty = !lineup[from];
@@ -2624,6 +2696,8 @@ const GAME = (() => {
     empty.textContent = "No Pokémon match that search.";
     frag.appendChild(empty);
     pickerGrid.appendChild(frag);
+    fillSortSelect($("picker-sort"));
+    $("picker-sort").addEventListener("change", () => { sortCards(pickerGrid, monEls, $("picker-sort").value, empty); filterPicker(); pickerGrid.scrollTop = 0; });
   }
   function setPickerImages() {
     for (const m of monEls) {
@@ -2933,7 +3007,7 @@ const GAME = (() => {
     el.innerHTML = `<canvas class="thumb" width="128" height="128" aria-hidden="true"></canvas><span class="cand-main">` +
       `<span class="cand-name"><span class="nm"></span><span class="num">#${String(p.id).padStart(3, "0")}</span></span>` +
       `<span class="cand-types">${p.types.map((t) => `<span class="type t-${t}">${capital(t)}</span>`).join("")}</span>` +
-      `<span class="cand-stats">${STATS.map(([k, l]) => `<span class="${p[k] >= 110 ? "hi" : p[k] < 55 ? "lo" : ""}"><i>${l}</i>${p[k]}</span>`).join("")}</span>` +
+      `<span class="cand-stats">${STATS.map(([k, l]) => `<span class="${p[k] >= 110 ? "hi" : p[k] < 55 ? "lo" : ""}"><i>${l}</i>${p[k]}</span>`).join("")}<span class="tot"><i>Total</i>${statTotal(p)}</span></span>` +
       `<span class="cand-foot">${(p.dm / 10).toFixed(1)} m · ${Number(p.kg.toFixed(1))} kg</span></span>`;
     el.querySelector(".nm").textContent = p.name;
     drawThumb(el.querySelector("canvas"), p.id);
@@ -3647,7 +3721,7 @@ const GAME = (() => {
   // Shared helpers for the PvP Draft (pvp.js).
   window.__S6UI = {
     $, capital, nameOf, slotInfo, posName, GROUP_NAMES, COLORS, FONT, FINISH, FINISH_SHORT, ordinal,
-    getArt, waitForArt, drawThumb, paintArena, toast, saveBlob, showDialog, closeOnBackdrop, openSeason, pageUrl, siteLabel,
+    getArt, waitForArt, drawThumb, monCard, statsHTML, statTotal, fillSortSelect, sortCards, paintArena, toast, saveBlob, showDialog, closeOnBackdrop, openSeason, pageUrl, siteLabel,
     style: () => style, mode: () => mode, setMode: (m) => setMode(m),
   };
 
@@ -3742,14 +3816,20 @@ const GAME = (() => {
     return { slots, teams, taken, n, total, k, cur, round: n ? Math.floor(k / n) : 0, rounds: slots.length };
   }
   const openSlots = (d, seat) => d.slots.filter((s) => !d.teams[seat][s.id]);
+  // "Random each pick" draft pool: the host rolls OFFER_N of the Pokémon still left for every turn.
+  // Any Pokémon can play any spot, so every option can always fill one of the picker's open spots.
+  const OFFER_N = 8;
+  const isRandom = (room) => room.draw === "random";
+  const offerFor = (room, d) => (isRandom(room) && Array.isArray(room.offer) && room.offerK === d.k ? room.offer.filter((id) => !d.taken.has(id)) : null);
+  // The ids the current picker may take: their random options, or everything left.
+  const choicesFor = (room, d) => offerFor(room, d) || poolFor(room.all).filter((id) => !d.taken.has(id));
   // Auto-pick: the open spot that counts the most, filled with the best Pokémon left for it.
   function autoChoice(room, d, seat) {
     const open = openSlots(d, seat);
     if (!open.length) return null;
     const need = open.reduce((a, b) => (b.w > a.w ? b : a));
     let best = null, bv = -1;
-    for (const id of poolFor(room.all)) {
-      if (d.taken.has(id)) continue;
+    for (const id of choicesFor(room, d)) {
       const v = GAME.positionScore(id, need.pos);
       if (v > bv) { bv = v; best = id; }
     }
@@ -3902,7 +3982,7 @@ const GAME = (() => {
   let probeReplies = 0;
 
   function newRoom(code, name, token) {
-    return { v: 1, code, phase: "lobby", size: "six", all: false, pickMs: PICK_MS, seed: 0, players: [{ name, token, host: true, connected: true }], order: [], picks: [], deadline: 0 };
+    return { v: 1, code, phase: "lobby", size: "six", all: false, draw: "open", offer: null, offerK: -1, pickMs: PICK_MS, seed: 0, players: [{ name, token, host: true, connected: true }], order: [], picks: [], deadline: 0 };
   }
   function saveRoom() { if (room) store.set(KEYS.host, { room, key: bus && bus.secret, ts: Date.now() }); }
   function publicRoom() {
@@ -3958,6 +4038,7 @@ const GAME = (() => {
     }
     room = resume || newRoom(me.code, name, me.token);
     if (resume) room.players.forEach((p) => { if (!p.host) p.connected = false; });
+    if (room.phase === "draft" && isRandom(room) && room.offerK !== derive(room).k) rollOffer();
     room.pickMs = room.pickMs || PICK_MS;
     mySeat = 0;
     saveSession();
@@ -4026,12 +4107,22 @@ const GAME = (() => {
     if (n !== d.k || seat !== d.cur) return "It's not your pick right now.";
     if (!poolFor(room.all).includes(id)) return "That Pokémon isn't in this draft.";
     if (d.taken.has(id)) return `${nameOf(id)} was already drafted.`;
+    if (isRandom(room) && !(offerFor(room, d) || []).includes(id)) return `${nameOf(id)} isn't one of your ${OFFER_N} options.`;
     if (!d.slots.some((s) => s.id === slot) || d.teams[seat][slot]) return "That spot is already filled.";
     room.picks.push({ seat, id, slot, auto: Boolean(auto) });
     if (room.picks.length >= d.total) { room.phase = "done"; room.deadline = 0; }
-    else room.deadline = Date.now() + room.pickMs;
+    else { room.deadline = Date.now() + room.pickMs; rollOffer(); }
     broadcast();
     return null;
+  }
+  // Host only: roll this turn's random options (all that are left if fewer than OFFER_N).
+  function rollOffer() {
+    if (!isRandom(room) || room.phase !== "draft") { room.offer = null; room.offerK = -1; return; }
+    const d = derive(room);
+    const left = poolFor(room.all).filter((id) => !d.taken.has(id));
+    for (let i = left.length - 1; i > 0; i--) { const j = randInt(i + 1); [left[i], left[j]] = [left[j], left[i]]; }
+    room.offer = left.slice(0, OFFER_N).sort((a, b) => a - b);
+    room.offerK = d.k;
   }
   function hostClock() {
     if (!room || room.phase !== "draft" || Date.now() < room.deadline) return;
@@ -4055,11 +4146,12 @@ const GAME = (() => {
     const order = room.players.map((_, i) => i);
     for (let i = order.length - 1; i > 0; i--) { const j = randInt(i + 1); [order[i], order[j]] = [order[j], order[i]]; }
     Object.assign(room, { phase: "draft", order, picks: [], seed: crypto.getRandomValues(new Uint32Array(1))[0] | 0, deadline: Date.now() + room.pickMs });
+    rollOffer();
     broadcast();
   }
   function hostAgain() {
     if (!room || room.phase !== "done") return;
-    Object.assign(room, { phase: "lobby", order: [], picks: [], deadline: 0 });
+    Object.assign(room, { phase: "lobby", order: [], picks: [], deadline: 0, offer: null, offerK: -1 });
     for (let s = room.players.length - 1; s > 0; s--) if (!room.players[s].connected) removeSeat(s);
     broadcast();
   }
@@ -4305,6 +4397,7 @@ const GAME = (() => {
   });
   for (const i of document.querySelectorAll('input[name="pv-size"]')) i.addEventListener("change", () => { if (i.checked) hostSettings("size", i.value); });
   for (const i of document.querySelectorAll('input[name="pv-pool"]')) i.addEventListener("change", () => { if (i.checked) hostSettings("all", i.value === "all"); });
+  for (const i of document.querySelectorAll('input[name="pv-draw"]')) i.addEventListener("change", () => { if (i.checked) hostSettings("draw", i.value); });
   async function copyInvite() {
     if (!view) return;
     const url = inviteUrl(view.code);
@@ -4356,11 +4449,12 @@ const GAME = (() => {
       renderPlayers(host);
       for (const i of document.querySelectorAll('input[name="pv-size"]')) { i.checked = (i.value === "full") === (view.size === "full"); i.disabled = !host; }
       for (const i of document.querySelectorAll('input[name="pv-pool"]')) { i.checked = (i.value === "all") === Boolean(view.all); i.disabled = !host; }
+      for (const i of document.querySelectorAll('input[name="pv-draw"]')) { i.checked = (i.value === "random") === isRandom(view); i.disabled = !host; }
       $("pv-settings").classList.toggle("locked", !host);
       const n = view.players.length;
       const per = slotsFor(view.size).length;
       const mins = Math.ceil((n * per * (view.pickMs || 60000)) / 60000);
-      $("pv-settings-note").textContent = `${view.size === "full" ? "Full Roster: 20 picks each (4 lines, 3 D pairs, 2 goalies)" : "Starting Six: 6 picks each (LW, C, RW, LD, RD, G)"}, ${view.all ? "any of the 151" : "no legendaries"}. ` +
+      $("pv-settings-note").textContent = `${view.size === "full" ? "Full Roster: 20 picks each (4 lines, 3 D pairs, 2 goalies)" : "Starting Six: 6 picks each (LW, C, RW, LD, RD, G)"}, ${view.all ? "any of the 151" : "no legendaries"}, ${isRandom(view) ? `${OFFER_N} random options each pick` : "open pool"}. ` +
         (n >= 2 ? `Up to about ${mins} minutes with ${n} players.` : "") + (host ? "" : ` Only ${view.players[0].name} can change these.`);
       const start = $("pv-start");
       start.hidden = !host;
@@ -4493,7 +4587,36 @@ const GAME = (() => {
       if (p.seat === mySeat) li.className = "me";
       return li;
     }));
+    renderOffer(r, d);
     renderResults(r);
+  }
+  // Random each pick: everyone sees the options the current picker was dealt.
+  const offerEls = new Map();
+  let offerShown = "";
+  function renderOffer(r, d) {
+    const offer = r.phase === "draft" && isRandom(r) ? offerFor(r, d) : null;
+    show("pv-offer", Boolean(offer));
+    if (!offer) { offerShown = ""; return; }
+    const mine = d.cur === mySeat;
+    $("pv-offer-title").textContent = `${mine ? "Your" : `${r.players[d.cur].name}'s`} ${offer.length} options · Pick ${d.k + 1}`;
+    const st = UI.style();
+    const key = `${d.k}|${offer.join(",")}|${st}|${mine}`;
+    if (key === offerShown) return;
+    offerShown = key;
+    $("pv-offer-grid").replaceChildren(...offer.map((id) => {
+      let el = offerEls.get(id);
+      if (!el) {
+        el = UI.monCard(MON(id));
+        el.addEventListener("click", () => { if (el.classList.contains("view-only")) return; openPickDialog(); if (pickDlg.open) choose(id); });
+        offerEls.set(id, el);
+      }
+      const img = el.querySelector("img");
+      img.src = SPRITE_STYLES[st].url(id);
+      img.classList.toggle("pixelated", SPRITE_STYLES[st].pixelated);
+      el.classList.toggle("view-only", !mine);
+      el.tabIndex = mine ? 0 : -1;
+      return el;
+    }));
   }
 
   // ---------- Results ----------
@@ -4714,22 +4837,14 @@ const GAME = (() => {
   const ppSearch = $("pp-search");
   const ppEls = [];
   let ppType = "all";
-  let ppSortFit = true;
   let ppChosen = null;
   let pickBusy = false;
   function buildPickGrid() {
     const frag = document.createDocumentFragment();
     for (const p of MONS) {
-      const el = document.createElement("button");
-      el.type = "button";
-      el.className = `mon${p.legendary ? " legend" : ""}`;
-      el.innerHTML = `<img loading="lazy" alt="" width="72" height="72"><span class="num">#${String(p.id).padStart(3, "0")}</span><span class="nm"></span>` +
-        `<span class="mini-types">${p.types.map((t) => `<i class="t-${t}" title="${capital(t)}"></i>`).join("")}</span>` +
-        (p.legendary ? '<span class="star" title="Legendary">★</span>' : "") + '<span class="fit"></span>';
-      el.querySelector(".nm").textContent = p.name;
-      el.setAttribute("aria-label", `${p.name}, ${p.types.map(capital).join("/")}${p.legendary ? ", Legendary" : ""}`);
+      const el = UI.monCard(p);
       el.addEventListener("click", () => choose(p.id));
-      ppEls.push({ el, img: el.querySelector("img"), fit: el.querySelector(".fit"), p, search: `${p.name.toLowerCase()} ${p.id}`, best: 0, bestSlot: null });
+      ppEls.push({ el, img: el.querySelector("img"), p, search: `${p.name.toLowerCase()} ${p.id}` });
       frag.appendChild(el);
     }
     const empty = document.createElement("p");
@@ -4738,6 +4853,8 @@ const GAME = (() => {
     empty.textContent = "No Pokémon left that match.";
     frag.appendChild(empty);
     ppGrid.appendChild(frag);
+    UI.fillSortSelect($("pp-sort"));
+    $("pp-sort").addEventListener("change", () => { UI.sortCards(ppGrid, ppEls, $("pp-sort").value, empty); filterPick(); ppGrid.scrollTop = 0; });
     const types = TYPE_NAMES.filter((t) => MONS.some((m) => m.types.includes(t)));
     for (const t of ["all", ...types]) {
       const b = document.createElement("button");
@@ -4753,34 +4870,23 @@ const GAME = (() => {
   function filterPick() {
     if (!view) return;
     const d = derive(view);
-    const open = mySeat >= 0 ? openSlots(d, mySeat) : [];
-    const q = ppSearch.value.trim().toLowerCase().replace(/^#0*/, "");
+    const offer = isRandom(view) ? offerFor(view, d) || [] : null;
+    $("pp-filters").hidden = Boolean(offer);
+    const q = offer ? "" : ppSearch.value.trim().toLowerCase().replace(/^#0*/, "");
+    const type = offer ? "all" : ppType;
     const st = UI.style();
     let shown = 0;
     for (const m of ppEls) {
       if (imgStyle !== st) { m.img.src = SPRITE_STYLES[st].url(m.p.id); m.img.classList.toggle("pixelated", SPRITE_STYLES[st].pixelated); }
-      const avail = (view.all || !m.p.legendary) && !d.taken.has(m.p.id);
-      m.best = 0; m.bestSlot = null;
-      if (avail) for (const s of open) { const v = GAME.positionScore(m.p.id, s.pos); if (v > m.best) { m.best = v; m.bestSlot = s; } }
-      m.fit.textContent = m.bestSlot ? `${Math.round(m.best)} ${m.bestSlot.label}` : "";
-      m.el.hidden = !avail || (Boolean(q) && !m.search.includes(q)) || (ppType !== "all" && !m.p.types.includes(ppType));
+      const avail = (view.all || !m.p.legendary) && !d.taken.has(m.p.id) && (!offer || offer.includes(m.p.id));
+      m.el.hidden = !avail || (Boolean(q) && !m.search.includes(q)) || (type !== "all" && !m.p.types.includes(type));
       if (!m.el.hidden) shown++;
     }
     imgStyle = st;
-    const order = ppSortFit ? [...ppEls].sort((a, b) => b.best - a.best || a.p.id - b.p.id) : ppEls;
-    const empty = ppGrid.querySelector(".empty-msg");
-    for (const m of order) ppGrid.insertBefore(m.el, empty);
-    empty.hidden = shown > 0;
-    $("pp-hint").textContent = `${shown} left · ${ppSortFit ? "Sorted by best fit for your open spots" : "Sorted by Pokédex number"} · Each badge shows the fit (0 to 100) and the spot.`;
+    ppGrid.querySelector(".empty-msg").hidden = shown > 0;
+    $("pp-hint").textContent = offer ? `Your ${shown} random options` : `${shown} left`;
   }
   ppSearch.addEventListener("input", filterPick);
-  $("pp-sort").addEventListener("click", () => {
-    ppSortFit = !ppSortFit;
-    $("pp-sort").textContent = ppSortFit ? "Best fit" : "Dex #";
-    $("pp-sort").setAttribute("aria-pressed", ppSortFit);
-    filterPick();
-    ppGrid.scrollTop = 0;
-  });
   function openPickDialog() {
     if (!view || view.phase !== "draft") return;
     const d = derive(view);
@@ -4805,6 +4911,8 @@ const GAME = (() => {
     if (!view || view.phase !== "draft") { if (pickDlg.open) pickDlg.close(); return; }
     const d = derive(view);
     $("pp-heading").textContent = `Your pick · Round ${d.round + 1}`;
+    const offer = offerFor(view, d);
+    if (ppChosen && offer && !offer.includes(ppChosen)) ppChosen = null;
     if (ppChosen && d.taken.has(ppChosen)) { toast(`${nameOf(ppChosen)} was just taken`); ppChosen = null; }
     const placing = Boolean(ppChosen);
     $("pp-tools").hidden = placing;
@@ -4816,20 +4924,17 @@ const GAME = (() => {
     $("pp-types-line").textContent = `${p.types.map(capital).join(" / ")}${p.legendary ? " · Legendary" : ""}`;
     const ppImg = $("pp-img");
     if (ppImg.dataset.want !== String(p.id)) { ppImg.getContext("2d").clearRect(0, 0, ppImg.width, ppImg.height); UI.drawThumb(ppImg, p.id); }
+    $("pp-stats").innerHTML = UI.statsHTML(p);
     const open = openSlots(d, mySeat);
-    const fits = open.map((s) => ({ s, v: GAME.positionScore(p.id, s.pos) }));
-    const top = Math.max(...fits.map((f) => f.v));
-    $("pp-slots").replaceChildren(...fits.map(({ s, v }) => {
+    $("pp-slots").replaceChildren(...open.map((s) => {
       const b = document.createElement("button");
       b.type = "button";
-      b.className = `pp-slot ${GROUP[s.pos]}${v === top ? " best" : ""}`;
+      b.className = `pp-slot ${GROUP[s.pos]}`;
       b.dataset.slot = s.id;
       b.disabled = pickBusy;
-      b.innerHTML = `<span class="lab"></span><span class="full"></span><span class="fitbar"><i></i></span><b class="val"></b>`;
+      b.innerHTML = `<span class="lab"></span><span class="full"></span>`;
       b.querySelector(".lab").textContent = s.label;
-      b.querySelector(".full").textContent = slotName(view.size, s.id) + (v === top ? " · best fit" : "");
-      b.querySelector(".fitbar i").style.width = `${Math.round(v)}%`;
-      b.querySelector(".val").textContent = Math.round(v);
+      b.querySelector(".full").textContent = slotName(view.size, s.id);
       b.addEventListener("click", () => {
         if (pickBusy) return;
         pickBusy = true;
@@ -4906,6 +5011,7 @@ const GAME = (() => {
     get room() { return room; }, derive: () => (view ? derive(view) : null), results: () => (view && view.phase === "done" ? getResults(view) : null),
     secsLeft, autoChoice: (r, seat) => autoChoice(r, derive(r), seat),
     // Sends a raw pick request without the UI checks (the host still validates everything).
+    offer: () => view && offerFor(view, derive(view)),
     rawPick: (id, slot, n) => { const k = view ? derive(view).k : 0; if (me && me.role === "host") return tryPick(0, id, slot, n == null ? k : n, false); if (bus) bus.send(hostKey || "host", { t: "pick", id, slot, n: n == null ? k : n }); return "sent"; },
     get relays() { return bus ? bus.openCount() : 0; },
     get netLog() { return netLog.slice(); },
