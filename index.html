@@ -688,6 +688,79 @@ body.pvp-docked #toast { bottom: 150px; }
 .mon.stat-card.view-only:hover { background: var(--surface-2); border-color: var(--line); }
 #pp-filters[hidden] { display: none; }
 
+/* ---------- Spin Draft (Cup Challenge sheet + PvP Spin Draft panel) ---------- */
+.spin-sheet #cup-spin { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 0 16px 16px; }
+.spin { display: flex; flex-direction: column; gap: 10px; }
+.spin-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.spin-pick { font-family: "Roboto Condensed", var(--font); font-size: 15px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: #fbbf24; }
+.spin-who { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); text-align: right; }
+.spin-reels { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.sreel { display: flex; flex-direction: column; gap: 6px; padding: 8px 8px 9px; border-radius: 12px; background: linear-gradient(180deg, #121722, #0c1018); border: 1px solid var(--line-strong); }
+.sreel-cap { font-size: 10.5px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: var(--subtle); }
+.sreel-win { position: relative; height: 54px; overflow: hidden; border-radius: 9px; background: #06080c; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06), inset 0 10px 14px -8px rgba(0, 0, 0, 0.9), inset 0 -10px 14px -8px rgba(0, 0, 0, 0.9); }
+.sreel-strip { display: flex; flex-direction: column; will-change: transform; }
+.sreel-item { height: 54px; flex: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; text-align: center; padding: 0 4px; }
+.sreel-item b { font-family: "Roboto Condensed", var(--font); font-size: 19px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: #fff; line-height: 1.05; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.sreel-item small { font-size: 10.5px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+.sreel-item.q b { font-size: 26px; color: var(--subtle); }
+.sreel.landed .sreel-win { box-shadow: inset 0 0 0 1px rgba(103, 232, 249, 0.55), 0 0 18px rgba(103, 232, 249, 0.18); background: linear-gradient(180deg, #0a2230, #071722); }
+.sreel.landed .sreel-item b { color: var(--accent); }
+.sreel[data-k="stage"].landed .sreel-win { box-shadow: inset 0 0 0 1px rgba(251, 191, 36, 0.55), 0 0 18px rgba(251, 191, 36, 0.16); background: linear-gradient(180deg, #2a1f08, #1b1406); }
+.sreel[data-k="stage"].landed .sreel-item b { color: #fbbf24; }
+.sreel.spinning .sreel-win::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(6, 8, 12, 0.85), transparent 30%, transparent 70%, rgba(6, 8, 12, 0.85)); pointer-events: none; }
+.respin { display: inline-flex; align-items: center; justify-content: center; gap: 5px; font-size: 11.5px; padding: 6px 8px; min-height: 32px; }
+.respin svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.spin-note { margin: 0; font-size: 12.5px; color: var(--subtle); text-align: center; }
+.spin-note:empty { display: none; }
+.spin-cards { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; perspective: 900px; min-height: 0; }
+.spin.has-cards .spin-cards { min-height: 200px; }
+.scard { grid-column: span 2; position: relative; padding: 0; border: 0; background: none; border-radius: 12px; min-height: 0; transform: translateY(130%); opacity: 0; transition: transform 0.42s cubic-bezier(0.2, 0.9, 0.3, 1.1), opacity 0.3s, filter 0.2s; }
+.scard:nth-child(4) { grid-column: 2 / span 2; }
+.scard:nth-child(5) { grid-column: 4 / span 2; }
+.scard:hover { background: none; }
+.scard.dealt { transform: none; opacity: 1; }
+.scard-in { position: relative; display: block; height: 100%; transform-style: preserve-3d; transition: transform 0.46s cubic-bezier(0.3, 0.7, 0.3, 1); border-radius: 12px; }
+.scard.up .scard-in { transform: rotateY(180deg); }
+.scard-back, .scard-face { border-radius: 12px; backface-visibility: hidden; -webkit-backface-visibility: hidden; overflow: hidden; }
+.scard-back { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; border: 2px solid rgba(103, 232, 249, 0.5);
+  background: radial-gradient(circle at 50% 46%, rgba(103, 232, 249, 0.18), transparent 46%), repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.035) 0 6px, transparent 6px 14px), linear-gradient(160deg, #13304a, #0a1622 60%, #081019); }
+.scard-back::before, .scard-back::after { content: ""; position: absolute; left: 0; right: 0; height: 3px; }
+.scard-back::before { top: 22%; background: rgba(96, 165, 250, 0.55); }
+.scard-back::after { bottom: 22%; background: rgba(96, 165, 250, 0.55); }
+.sb-ring { position: absolute; top: 50%; left: 50%; width: 62%; aspect-ratio: 1; transform: translate(-50%, -54%); border-radius: 50%; border: 3px solid rgba(239, 68, 68, 0.75); box-shadow: inset 0 0 0 5px rgba(8, 16, 25, 0.9), inset 0 0 0 7px rgba(239, 68, 68, 0.35); }
+.scard-back b { position: relative; font-family: "Roboto Condensed", var(--font); font-size: 30px; font-weight: 900; color: #e0f7ff; letter-spacing: 0.02em; text-shadow: 0 2px 0 rgba(0, 0, 0, 0.5); margin-top: -6px; }
+.scard-back small { position: relative; font-size: 8.5px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(224, 247, 255, 0.75); }
+.scard-face { position: relative; height: 100%; transform: rotateY(180deg); display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 5px 6px; text-align: center; background: linear-gradient(180deg, #1b2230, #121722); border: 1px solid var(--line-strong); color: var(--text); }
+.scard-face img { width: 54px; height: 54px; object-fit: contain; flex: none; margin-top: 2px; }
+.sc-name { display: flex; flex-direction: column; align-items: center; line-height: 1.1; min-width: 0; max-width: 100%; }
+.sc-name .nm { font-size: 13px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.sc-name .num { font-size: 10px; color: var(--subtle); font-weight: 600; }
+.sc-types { display: flex; flex-wrap: wrap; justify-content: center; gap: 3px; }
+.sc-types .type { font-size: 9.5px; padding: 1px 6px; }
+.sc-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; width: 100%; margin-top: auto; }
+.sc-stats span { display: flex; flex-direction: column; align-items: center; padding: 1px 0; border-radius: 4px; background: rgba(255, 255, 255, 0.05); font-family: "Roboto Condensed", var(--font); font-size: 13px; font-weight: 800; line-height: 1.1; }
+.sc-stats i { font-style: normal; font-family: var(--font); font-size: 8.5px; font-weight: 600; color: var(--subtle); }
+.sc-stats .tot { grid-column: 1 / -1; flex-direction: row; justify-content: center; gap: 6px; background: rgba(103, 232, 249, 0.1); color: var(--accent); }
+.scard.up.sel { transform: translateY(-10px); }
+.scard.sel .scard-face { border: 2px solid #fbbf24; box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.25); }
+.scard.sel { filter: drop-shadow(0 12px 18px rgba(0, 0, 0, 0.55)); }
+.spin.has-pick .scard.up:not(.sel) { filter: brightness(0.7) saturate(0.8); }
+.scard:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.spin-prompt { margin: 2px 0 0; text-align: center; font-size: 12.5px; font-weight: 700; color: var(--muted); letter-spacing: 0.04em; }
+.spin-prompt:empty { display: none; }
+.spin.has-cards:not(.has-pick) .spin-prompt { color: #fbbf24; text-transform: uppercase; letter-spacing: 0.14em; font-size: 13px; }
+.spin-go { min-height: 52px; font-size: 16px; letter-spacing: 0.06em; text-transform: uppercase; }
+.spin.view-only .scard { cursor: default; }
+@media (min-width: 600px) {
+  .spin-cards { grid-template-columns: repeat(5, 1fr); }
+  .scard, .scard:nth-child(4), .scard:nth-child(5) { grid-column: auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .scard, .scard-in { transition: none !important; }
+}
+/* PvP Spin Draft panel on the stage */
+.pv-spin { padding: 12px 14px 14px; border-radius: 14px; background: rgba(12, 15, 20, 0.92); border: 1px solid rgba(251, 191, 36, 0.35); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+
 </style>
 </head>
 <body>
@@ -704,7 +777,7 @@ body.pvp-docked #toast { bottom: 150px; }
         <p class="sub builder-only">Ice your starting six from <span class="gen-pool">the original 150 Pokémon, no legendaries</span>: a left wing, center and right wing, two defensemen and a goalie. Tap a player to swap them out, or drag one onto another to switch spots. Then play a season with your hand-picked six, or save the image and share it.</p>
         <p class="sub roster-only">Build the whole team from <span class="gen-pool">the original 150 Pokémon, no legendaries</span>: four forward lines, three defense pairs, a starting goalie and a backup. Tap any spot to pick. Your top lines play the most and your starter plays about three games in four. Fill all 20, then play an 82-game season and the playoffs.</p>
         <p class="sub pvp-only">Draft against 2 to 6 friends, each on their own phone. Snake draft order, 60 seconds a pick, and every Pokémon can only be taken once. When the board is full, every team gets graded and plays a season. <b class="nowrap">Who built the best team?</b></p>
-        <p class="sub draft-only">Each round rolls a Kanto habitat and a type. Draft a matching Pokémon into any open spot, fill all six, then play an 82-game season and the playoffs. <b class="nowrap">Can you win the Cup?</b></p>
+        <p class="sub draft-only">Each round spins a Kanto location and an evolution stage, then deals you 5 cards. Pick one for any open spot, fill all six, then play an 82-game season and the playoffs. <b class="nowrap">Can you win the Cup?</b></p>
       </header>
 
       <div class="toolbar builder-only" role="toolbar" aria-label="Lineup actions">
@@ -753,12 +826,12 @@ body.pvp-docked #toast { bottom: 150px; }
         </div>
         <div class="dp-progress" aria-hidden="true"><i id="dp-bar"></i></div>
         <div class="dp-state" id="dp-setup">
-          <p class="dp-note">6 rounds, one per spot. One type reroll and one habitat reroll per run. Your goalie matters most, then your center.</p>
+          <p class="dp-note">6 rounds, one per spot. Spin, flip 5 cards and pick one. You get one location re-spin and one stage re-spin per run. Your goalie matters most, then your center.</p>
           <button type="button" class="primary wide" id="dp-start">Start run</button>
         </div>
         <div class="dp-state" id="dp-turn" hidden>
           <div class="roll"><span class="chip" id="dp-hab"></span><span class="chip" id="dp-type"></span></div>
-          <button type="button" class="primary wide" id="dp-choose">Choose a Pokémon</button>
+          <button type="button" class="primary wide" id="dp-choose">Spin</button>
           <p class="dp-note" id="dp-rerolls"></p>
         </div>
         <div class="dp-state" id="dp-placing" hidden>
@@ -822,7 +895,7 @@ body.pvp-docked #toast { bottom: 150px; }
             </div></fieldset>
             <fieldset class="pv-set"><legend>Draft pool</legend><div class="segmented two">
               <label><input type="radio" name="pv-draw" autocomplete="off" value="open" checked /><span>Open</span></label>
-              <label><input type="radio" name="pv-draw" autocomplete="off" value="random" /><span>Random each pick</span></label>
+              <label><input type="radio" name="pv-draw" autocomplete="off" value="random" /><span>Spin Draft</span></label>
             </div></fieldset>
           </div>
           <p class="dp-note" id="pv-settings-note"></p>
@@ -857,14 +930,14 @@ body.pvp-docked #toast { bottom: 150px; }
           <h2>How the PvP Draft works</h2>
           <ol>
             <li><b>One person creates a room</b> and texts the invite link. Everyone joins on their own phone (2 to 6 players).</li>
-            <li><b>The host picks the rules:</b> a starting six or a full 20-man roster, with or without legendaries, and an open pool or 8 random options each pick.</li>
+            <li><b>The host picks the rules:</b> a starting six or a full 20-man roster, with or without legendaries, and an open pool or a Spin Draft (spin a location and a stage, then pick from 5 cards).</li>
             <li><b>Snake draft.</b> The order is random, then it flips every round (1-2-3, 3-2-1). Each Pokémon can only be drafted once.</li>
-            <li><b>60 seconds a pick.</b> Pick a Pokémon and the spot it fills. Run out of time and you get the best one left for your biggest need (from your 8 options in a Random draft).</li>
+            <li><b>60 seconds a pick.</b> Pick a Pokémon and the spot it fills. Run out of time and you get the best one left for your biggest need (from your 5 cards in a Spin Draft, where the clock starts once the cards flip).</li>
             <li><b>Grades and a season.</b> Every team gets a Team Score and plays an 82-game season. Best Team Score wins.</li>
           </ol>
         </div>
         <div class="pv-results" id="pv-results" hidden></div>
-        <div class="pv-offer" id="pv-offer" hidden><h3 id="pv-offer-title"></h3><div class="grid list pv-offer-grid" id="pv-offer-grid"></div></div>
+        <div class="pv-spin" id="pv-spin" hidden aria-label="Spin Draft"></div>
         <div class="pv-board" id="pv-board"></div>
         <div class="pv-feed-wrap" id="pv-feed-wrap" hidden><h3>Recent picks</h3><ol class="pv-feed" id="pv-feed"></ol></div>
         <div class="pv-dock" id="pv-dock" hidden>
@@ -883,16 +956,6 @@ body.pvp-docked #toast { bottom: 150px; }
       <div class="rink-wrap" id="rink-wrap">
         <canvas id="rink" aria-label="Lineup on the rink"></canvas>
         <div id="hotspots"></div>
-        <div class="roll-pop" id="roll-pop" hidden>
-          <div class="roll-card">
-            <div class="roll-title" id="roll-title"></div>
-            <div class="reels" aria-hidden="true">
-              <div class="reel"><div class="reel-win" id="reel-hab"></div><span class="reel-label">Habitat</span></div>
-              <div class="reel"><div class="reel-win" id="reel-type"></div><span class="reel-label">Type</span></div>
-            </div>
-            <div class="roll-skip">Tap to skip</div>
-          </div>
-        </div>
       </div>
     </main>
   </div>
@@ -916,20 +979,12 @@ body.pvp-docked #toast { bottom: 150px; }
     <div id="picker-grid" class="grid list"></div>
   </dialog>
 
-  <dialog id="draft-pick" class="sheet" aria-labelledby="dlg-heading">
+  <dialog id="draft-pick" class="sheet spin-sheet" aria-labelledby="dlg-heading">
     <form method="dialog" class="sheet-head">
       <div class="sheet-title"><h2 id="dlg-heading">Round 1 of 6</h2></div>
       <button class="close" value="cancel" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
     </form>
-    <div class="roll-bar">
-      <div class="roll"><span class="chip" id="dlg-hab"></span><span class="chip" id="dlg-type"></span></div>
-      <div class="rerolls">
-        <button type="button" id="reroll-type"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg>Reroll type <small></small></button>
-        <button type="button" id="reroll-hab"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg>Reroll habitat <small></small></button>
-      </div>
-    </div>
-    <p class="hint" id="dlg-hint"></p>
-    <div id="cand-grid" class="cand-grid"></div>
+    <div id="cup-spin"></div>
   </dialog>
 
   <dialog id="season" class="sheet" aria-labelledby="season-heading">
@@ -1458,8 +1513,11 @@ const HABITATS = {
   cave: "Cave", forest: "Forest", grassland: "Grassland", mountain: "Mountain",
   "rough-terrain": "Rough Terrain", sea: "Sea", urban: "Urban", "waters-edge": "Water's Edge",
 };
+// Evolution stage within the Gen 1 line, index = dex - 1: 0 = Basic (not evolved), 1 = Stage 1, 2 = Stage 2.
+// (Kanto lines only, so Pikachu, Clefairy and Jigglypuff are Basic; Eevee's three evolutions are Stage 1.)
+const STAGES = "0120120120120120120101010101012012010101010120101010101010101201201201201012010101001010101012001010101010000101000010101000000001000111001010000001200";
 const MONS = MONS_RAW.map(([id, name, types, s, dm, kg, habitat, legendary]) => ({
-  id, name, types, hp: s[0], atk: s[1], def: s[2], spa: s[3], spd: s[4], spe: s[5], dm, kg, habitat, legendary: Boolean(legendary),
+  id, name, types, hp: s[0], atk: s[1], def: s[2], spa: s[3], spd: s[4], spe: s[5], dm, kg, habitat, legendary: Boolean(legendary), stage: Number(STAGES[id - 1]),
 }));
 const MON = (id) => MONS[id - 1];
 // The pool: the original 150 minus the Legendaries (Articuno, Zapdos, Moltres, Mewtwo; Mew is #151).
@@ -1481,7 +1539,7 @@ const SPRITE_STYLES = {
   retro: { label: "Retro", pixelated: true, url: (id) => SPRITE_DATA.retro[id] },
   art: { label: "Artwork", pixelated: false, url: (id) => `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png` },
 };
-if (typeof module !== "undefined") module.exports = { MONS, MON, POOL, POOL_IDS, ALL_IDS, TYPE_NAMES, HABITATS };
+if (typeof module !== "undefined") module.exports = { MONS, MON, POOL, POOL_IDS, ALL_IDS, TYPE_NAMES, HABITATS, STAGES };
 
 </script>
 <script>
@@ -1534,6 +1592,61 @@ const GAME = (() => {
   function rerollHab(cur, seed, round, taken) {
     const opts = habsFor(cur.type, taken).filter((h) => h !== cur.hab);
     return opts.length ? { hab: pick(opts, rand(seed ^ 0x4ab1, round)), type: cur.type } : null;
+  }
+
+  // ---------- Spin Draft: a Kanto location (habitat) and an evolution stage, then 5 cards ----------
+  // The reels only ever land on a combination with at least SPIN_CARDS Pokémon still available.
+  // If nothing qualifies (late in a long draft), the location widens to "any" (all of Kanto).
+  const SPIN_CARDS = 5;
+  const STAGE_KEYS = ["basic", "s1", "evolved", "final", "any"];
+  const STAGE_WEIGHT = { basic: 3, s1: 3, evolved: 2, final: 3, any: 1 };
+  const allMons = D.MONS || MONS;
+  // True when the next Pokémon in the Dex is this one's evolution (Gen 1 lines are consecutive).
+  const evolvesFurther = (p) => { const n = mon(p.id + 1); return Boolean(n) && n.stage === p.stage + 1; };
+  const STAGE_TEST = {
+    basic: (p) => p.stage === 0, s1: (p) => p.stage === 1, evolved: (p) => p.stage >= 1,
+    final: (p) => !evolvesFurther(p), any: () => true,
+  };
+  const spinLocs = (all) => (all ? [...HAB_KEYS, "rare"] : HAB_KEYS);
+  function spinCands(hab, stage, taken, all) {
+    const test = STAGE_TEST[stage];
+    return (all ? allMons : pool).filter((p) => !taken.has(p.id) && (hab === "any" || p.habitat === hab) && test(p));
+  }
+  // rng: () => [0, 1). keep / not: { hab, stage } to hold one reel or to land somewhere new (re-spins).
+  // Returns { hab, stage, ids } or null when a re-spin has nowhere new to land.
+  function spinRoll(rng, taken, all, keep = {}, not = {}) {
+    const n = SPIN_CARDS;
+    let hab = keep.hab;
+    if (!hab) {
+      const habs = spinLocs(all).filter((h) => h !== not.hab && STAGE_KEYS.some((s) => (!keep.stage || s === keep.stage) && spinCands(h, s, taken, all).length >= n));
+      if (!habs.length) { if (not.hab || keep.stage) return null; hab = "any"; }
+      else hab = habs[Math.floor(rng() * habs.length)];
+    }
+    let stage = keep.stage;
+    if (!stage) {
+      const stages = STAGE_KEYS.filter((s) => s !== not.stage && spinCands(hab, s, taken, all).length >= n);
+      if (!stages.length) { if (not.stage) return null; stage = "any"; }
+      else {
+        let r = rng() * stages.reduce((a, s) => a + STAGE_WEIGHT[s], 0);
+        stage = stages.find((s) => (r -= STAGE_WEIGHT[s]) < 0) || stages[stages.length - 1];
+      }
+    }
+    const c = spinCands(hab, stage, taken, all).map((p) => p.id);
+    for (let i = c.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [c[i], c[j]] = [c[j], c[i]]; }
+    return { hab, stage, ids: c.slice(0, n) };
+  }
+  // Cup Challenge spins follow from the run's seed. kind: "both" (new round), "hab" or "stage" (re-spin).
+  function cupSpin(seed, round, taken, kind = "both", cur = null) {
+    const rng = stream(seed, 0x5a170000 + round * 0x101 + (kind === "hab" ? 0x10 : kind === "stage" ? 0x20 : 0));
+    if (kind === "hab") return spinRoll(rng, taken, false, { stage: cur.stage }, { hab: cur.hab });
+    if (kind === "stage") return spinRoll(rng, taken, false, { hab: cur.hab }, { stage: cur.stage });
+    return spinRoll(rng, taken, false);
+  }
+  function spinValid(r, taken, all) {
+    if (!r || !STAGE_KEYS.includes(r.stage) || !(r.hab === "any" || spinLocs(all).includes(r.hab))) return false;
+    if (!Array.isArray(r.ids) || !r.ids.length || r.ids.length > SPIN_CARDS || new Set(r.ids).size !== r.ids.length) return false;
+    const ok = new Set(spinCands(r.hab, r.stage, taken, all).map((p) => p.id));
+    return r.ids.every((id) => ok.has(id));
   }
 
   // ---------- Positional fit (0–100) ----------
@@ -1766,11 +1879,206 @@ const GAME = (() => {
   const api = {
     ROUNDS, GAMES, SLOT_IDS, WEIGHTS, ROLES, ROLE_NAMES, HAB_KEYS, OPPONENTS, ROUND_NAMES,
     roleOf, rand, roll, rerollType, rerollHab, available, typesFor, habsFor,
+    SPIN_CARDS, STAGE_KEYS, spinRoll, cupSpin, spinValid, spinCands, evolvesFurther,
     positionScore, rawTeam, teamScore, simulateSeason, winChance, recordText,
     LINES, PAIRS, GOALIES, ROSTER_SLOTS, ROSTER_IDS, rawRoster, rosterScore,
   };
   if (typeof module !== "undefined") module.exports = api;
   return api;
+})();
+
+</script>
+<script>
+// Spin Draft UI (shared by the Cup Challenge and PvP "Spin Draft"): two slot-machine reels
+// (LOCATION and STAGE), then 5 face-down cards that flip over left to right.
+// Cards show only sprite, name, types and base stats: no ratings or fit hints.
+const SPIN_UI = (() => {
+  "use strict";
+  const LOC_LABEL = (h) => (h === "any" ? ["Anywhere", "All of Kanto"] : h === "rare" ? ["Rare", "Legendary sightings"] : [HABITATS[h], "Kanto habitat"]);
+  const STAGE_LABEL = {
+    basic: ["Basic", "Not evolved"], s1: ["Stage 1", "Evolved once"], evolved: ["Evolved", "Stage 1 or 2"],
+    final: ["Final form", "Fully evolved"], any: ["Any stage", "Anything goes"],
+  };
+  const stageLabel = (s) => STAGE_LABEL[s] || STAGE_LABEL.any;
+  const describe = (hab, stage) => `${LOC_LABEL(hab)[0]} · ${stageLabel(stage)[0]}`;
+  const still = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  const REEL_MS = { loc: 1300, stage: 1600 };
+  const DEAL_MS = 420, DEAL_GAP = 90, FLIP_MS = 460, FLIP_GAP = 210;
+  // Total time a full reveal takes (reels, deal, a beat, flips); PvP adds this to the pick clock.
+  const REVEAL_MS = REEL_MS.stage + 250 + DEAL_MS + 4 * DEAL_GAP + 450 + FLIP_MS + 4 * FLIP_GAP + 200;
+  const STATS = [["hp", "HP"], ["atk", "Atk"], ["def", "Def"], ["spa", "SpA"], ["spd", "SpD"], ["spe", "Spe"]];
+
+  function create(root, opts = {}) {
+    const UI = window.__S6UI;
+    const cap = (s) => UI.capital(s);
+    root.classList.add("spin");
+    root.innerHTML =
+      '<div class="spin-head"><b class="spin-pick"></b><span class="spin-who"></span></div>' +
+      '<div class="spin-reels">' +
+      ["loc", "stage"].map((k) => `<div class="sreel" data-k="${k}"><span class="sreel-cap">${k === "loc" ? "Location" : "Stage"}</span>` +
+        '<div class="sreel-win"><div class="sreel-strip"></div></div>' +
+        `<button type="button" class="respin" data-k="${k}" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg><span>Re-spin</span></button></div>`).join("") +
+      '</div><p class="spin-note" aria-live="polite"></p><div class="spin-cards"></div><p class="spin-prompt" aria-live="polite"></p>' +
+      '<button type="button" class="play wide spin-go">Spin</button>';
+    const q = (s) => root.querySelector(s);
+    const reelEls = { loc: q('.sreel[data-k="loc"]'), stage: q('.sreel[data-k="stage"]') };
+    const cardsEl = q(".spin-cards"), go = q(".spin-go");
+    let token = 0, anims = [], cards = [], selected = null;
+
+    function item(k, v) {
+      const el = document.createElement("div");
+      el.className = "sreel-item";
+      const [big, small] = v == null ? ["?", ""] : k === "loc" ? LOC_LABEL(v) : stageLabel(v);
+      el.innerHTML = "<b></b><small></small>";
+      el.querySelector("b").textContent = big;
+      el.querySelector("small").textContent = small;
+      if (v == null) el.classList.add("q");
+      return el;
+    }
+    function setReel(k, v) {
+      const strip = reelEls[k].querySelector(".sreel-strip");
+      strip.getAnimations().forEach((a) => a.cancel());
+      strip.replaceChildren(item(k, v));
+      reelEls[k].classList.toggle("landed", v != null);
+      reelEls[k].classList.remove("spinning");
+    }
+    function spinReel(k, v, ms) {
+      const strip = reelEls[k].querySelector(".sreel-strip");
+      const pool = k === "loc" ? [...GAME.HAB_KEYS, "any"] : GAME.STAGE_KEYS;
+      const vals = [null];
+      const n = Math.round(ms / 70);
+      for (let i = 0; i < n; i++) {
+        let x;
+        do x = pool[Math.floor(Math.random() * pool.length)]; while (x === vals[vals.length - 1] || (i >= n - 2 && x === v));
+        vals.push(x);
+      }
+      vals.push(v);
+      strip.replaceChildren(...vals.map((x) => item(k, x)));
+      reelEls[k].classList.add("spinning");
+      reelEls[k].classList.remove("landed");
+      const end = `translateY(${(-100 * (vals.length - 1)) / vals.length}%)`;
+      const a = strip.animate([
+        { transform: "translateY(0)", filter: "blur(0)" },
+        { offset: 0.12, filter: "blur(2.5px)" },
+        { offset: 0.78, filter: "blur(1.5px)" },
+        { transform: end, filter: "blur(0)" },
+      ], { duration: ms, easing: "cubic-bezier(0.15, 0.6, 0.18, 1)", fill: "forwards" });
+      anims.push(a);
+      return a.finished.then(() => { setReel(k, v); }, () => {});
+    }
+    function cardEl(id) {
+      const p = MON(id);
+      const el = document.createElement("button");
+      el.type = "button";
+      el.className = "scard";
+      el.dataset.id = id;
+      el.innerHTML = '<span class="scard-in"><span class="scard-back" aria-hidden="true"><i class="sb-ring"></i><b>S6</b><small>Starting Six</small></span>' +
+        '<span class="scard-face"><img alt="" width="64" height="64"><span class="sc-name"><b class="nm"></b><span class="num"></span></span>' +
+        `<span class="sc-types">${p.types.map((t) => `<span class="type t-${t}">${cap(t)}</span>`).join("")}</span>` +
+        `<span class="sc-stats">${STATS.map(([k, l]) => `<span><i>${l}</i>${p[k]}</span>`).join("")}<span class="tot"><i>Total</i>${p.hp + p.atk + p.def + p.spa + p.spd + p.spe}</span></span></span></span>`;
+      el.querySelector(".nm").textContent = p.name;
+      el.querySelector(".num").textContent = `#${String(id).padStart(3, "0")}`;
+      const img = el.querySelector("img");
+      const st = SPRITE_STYLES[UI.style()];
+      img.src = st.url(id);
+      img.classList.toggle("pixelated", st.pixelated);
+      el.setAttribute("aria-label", "Face-down card");
+      el.addEventListener("click", () => { if (opts.onCard) opts.onCard(id, el); });
+      return el;
+    }
+    function labelCard(el, up) {
+      const p = MON(Number(el.dataset.id));
+      el.setAttribute("aria-label", up ? `${p.name}, ${p.types.map(cap).join("/")}. ` + STATS.map(([k, l]) => `${l} ${p[k]}`).join(", ") : "Face-down card");
+    }
+    const api = {
+      root,
+      get busy() { return anims.some((a) => a.playState === "running"); },
+      get selected() { return selected; },
+      get flipped() { return cards.length > 0 && cards.every((c) => c.classList.contains("up")); },
+      head(pick, who) { q(".spin-pick").textContent = pick; q(".spin-who").textContent = who || ""; },
+      note(t) { q(".spin-note").textContent = t || ""; },
+      prompt(t) { q(".spin-prompt").textContent = t || ""; },
+      button(text, enabled, show = true) { go.textContent = text; go.disabled = !enabled; go.hidden = !show; },
+      onGo(fn) { go.onclick = fn; },
+      respin(k, { show, enabled, label }) {
+        const b = root.querySelector(`.respin[data-k="${k}"]`);
+        b.hidden = !show;
+        b.disabled = !enabled;
+        b.querySelector("span").textContent = label || "Re-spin";
+      },
+      onRespin(fn) { for (const b of root.querySelectorAll(".respin")) b.onclick = () => fn(b.dataset.k); },
+      cancel() { token++; anims.forEach((a) => a.cancel()); anims = []; },
+      reset() {
+        api.cancel();
+        setReel("loc", null);
+        setReel("stage", null);
+        cardsEl.replaceChildren();
+        cards = [];
+        selected = null;
+        root.classList.remove("has-cards", "has-pick");
+        api.note("");
+        api.prompt("");
+      },
+      clearCards() { cardsEl.replaceChildren(); cards = []; selected = null; root.classList.remove("has-cards", "has-pick"); },
+      // Land the reels straight away (reload, late joiners, reduced motion).
+      setReels(hab, stage) { setReel("loc", hab); setReel("stage", stage); api.note(""); },
+      async spin(hab, stage, which = "both") {
+        const t = ++token;
+        if (still.matches) { api.setReels(hab, stage); return t === token; }
+        const jobs = [];
+        if (which !== "stage") jobs.push(spinReel("loc", hab, which === "both" ? REEL_MS.loc : REEL_MS.stage)); else setReel("loc", hab);
+        if (which !== "hab") jobs.push(spinReel("stage", stage, REEL_MS.stage)); else setReel("stage", stage);
+        await Promise.all(jobs);
+        anims = anims.filter((a) => a.playState === "running");
+        if (t !== token) return false;
+        await wait(250);
+        return t === token;
+      },
+      // Show the cards immediately in their final state.
+      show(ids, { up = false, sel = null } = {}) {
+        cards = ids.map((id) => { const el = cardEl(id); el.classList.add("dealt"); el.classList.toggle("up", up); labelCard(el, up); return el; });
+        cardsEl.replaceChildren(...cards);
+        root.classList.toggle("has-cards", cards.length > 0);
+        api.select(sel);
+      },
+      async deal(ids) {
+        const t = ++token;
+        api.show(ids);
+        if (still.matches) return t === token;
+        for (const c of cards) c.classList.remove("dealt");
+        void cardsEl.offsetWidth;
+        cards.forEach((c, i) => { c.style.transitionDelay = `${i * DEAL_GAP}ms`; c.classList.add("dealt"); });
+        await wait(DEAL_MS + DEAL_GAP * (cards.length - 1) + 60);
+        for (const c of cards) c.style.transitionDelay = "";
+        return t === token;
+      },
+      async flip() {
+        const t = ++token;
+        if (still.matches) { cards.forEach((c) => { c.classList.add("up"); labelCard(c, true); }); return t === token; }
+        for (const c of cards) {
+          if (t !== token) return false;
+          c.classList.add("up");
+          labelCard(c, true);
+          await wait(FLIP_GAP);
+        }
+        await wait(FLIP_MS - FLIP_GAP + 40);
+        return t === token;
+      },
+      select(id) {
+        selected = id && cards.some((c) => Number(c.dataset.id) === id) ? id : null;
+        for (const c of cards) { const on = Number(c.dataset.id) === selected; c.classList.toggle("sel", on); c.setAttribute("aria-pressed", on); }
+        root.classList.toggle("has-pick", Boolean(selected));
+      },
+      setInteractive(on) { root.classList.toggle("view-only", !on); for (const c of cards) c.tabIndex = on ? 0 : -1; },
+      refreshSprites() {
+        const st = SPRITE_STYLES[UI.style()];
+        for (const c of cards) { const img = c.querySelector("img"); img.src = st.url(Number(c.dataset.id)); img.classList.toggle("pixelated", st.pixelated); }
+      },
+    };
+    return api;
+  }
+  return { create, LOC_LABEL, stageLabel, describe, REVEAL_MS, still };
 })();
 
 </script>
@@ -1907,25 +2215,32 @@ const GAME = (() => {
 
   function newDraft() {
     const seed = crypto.getRandomValues(new Uint32Array(1))[0] | 0;
-    return { v: 1, seed, round: 0, roll: GAME.roll(seed, 0, new Set()), revealed: false, started: false, rerolls: { type: 1, hab: 1 }, lineup: {}, pending: null };
+    return { v: 2, seed, round: 0, roll: GAME.cupSpin(seed, 0, new Set()), revealed: false, flipped: false, started: false, rerolls: { hab: 1, stage: 1 }, lineup: {}, pending: null };
+  }
+  // Runs saved before Spin Draft (habitat + type rolls) keep their picks and get a fresh spin.
+  function migrateDraft(d) {
+    if (!d || d.v !== 1 || !d.lineup || typeof d.lineup !== "object" || !Number.isInteger(d.seed) || !Number.isInteger(d.round)) return d;
+    const taken = new Set(Object.values(d.lineup));
+    const rr = d.rerolls || {};
+    return { v: 2, seed: d.seed, round: d.round, roll: d.round >= GAME.ROUNDS ? null : GAME.cupSpin(d.seed, d.round, taken), revealed: false, flipped: false,
+      started: Boolean(d.started), rerolls: { hab: rr.hab ? 1 : 0, stage: rr.type ? 1 : 0 }, lineup: d.lineup, pending: null };
   }
   function validDraft(d) {
-    if (!d || d.v !== 1 || !Number.isInteger(d.seed) || !Number.isInteger(d.round) || d.round < 0 || d.round > GAME.ROUNDS) return false;
+    if (!d || d.v !== 2 || !Number.isInteger(d.seed) || !Number.isInteger(d.round) || d.round < 0 || d.round > GAME.ROUNDS) return false;
     if (!d.lineup || typeof d.lineup !== "object" || Object.keys(d.lineup).length !== d.round) return false;
     const seen = new Set();
     for (const [slot, id] of Object.entries(d.lineup)) {
       if (!SPOT_BY_ID.has(slot) || !POOL_IDS.has(id) || seen.has(id)) return false;
       seen.add(id);
     }
-    if (!d.rerolls || ![0, 1].includes(d.rerolls.type) || ![0, 1].includes(d.rerolls.hab) || typeof d.started !== "boolean") return false;
+    if (!d.rerolls || ![0, 1].includes(d.rerolls.hab) || ![0, 1].includes(d.rerolls.stage) || typeof d.started !== "boolean") return false;
+    if (typeof d.revealed !== "boolean" || typeof d.flipped !== "boolean") return false;
     if (d.round === GAME.ROUNDS) return d.pending == null;
-    const r = d.roll;
-    if (!r || !GAME.HAB_KEYS.includes(r.hab) || !TYPE_NAMES.includes(r.type)) return false;
-    const opts = GAME.available(r.hab, r.type, seen);
-    return opts.length > 0 && (d.pending == null || (d.revealed && opts.some((p) => p.id === d.pending)));
+    if (!GAME.spinValid(d.roll, seen, false)) return false;
+    return d.pending == null || (d.revealed && d.flipped && d.roll.ids.includes(d.pending));
   }
   function loadDraft() {
-    const d = store.get(KEYS.draft);
+    const d = migrateDraft(store.get(KEYS.draft));
     return validDraft(d) ? d : newDraft();
   }
   const saveDraft = () => store.set(KEYS.draft, draft);
@@ -2907,13 +3222,12 @@ const GAME = (() => {
     store.set(KEYS.stats, stats);
   }
 
-  function habChip(el, hab) {
-    const small = document.createElement("small");
-    small.textContent = "Kanto";
-    el.replaceChildren(HABITATS[hab], small);
+  function spinChip(el, [big, small]) {
+    const sm = document.createElement("small");
+    sm.textContent = small;
+    el.replaceChildren(big, sm);
     el.className = "chip";
   }
-  function typeChip(el, t) { el.textContent = capital(t); el.className = `chip type t-${t}`; }
   function blankChip(el, label) { el.textContent = label; el.className = `chip blank${rolling ? " spinning" : ""}`; }
 
   function updatePanel() {
@@ -2927,13 +3241,13 @@ const GAME = (() => {
     $("dp-placing").hidden = done || !draft.pending;
     $("dp-done").hidden = !done;
     if (!done && draft.started) {
-      if (draft.revealed) { habChip($("dp-hab"), draft.roll.hab); typeChip($("dp-type"), draft.roll.type); }
-      else { blankChip($("dp-hab"), "Habitat ?"); blankChip($("dp-type"), "Type ?"); }
+      if (draft.revealed) { spinChip($("dp-hab"), SPIN_UI.LOC_LABEL(draft.roll.hab)); spinChip($("dp-type"), SPIN_UI.stageLabel(draft.roll.stage)); }
+      else { blankChip($("dp-hab"), "Location ?"); blankChip($("dp-type"), "Stage ?"); }
       const choose = $("dp-choose");
-      choose.textContent = rolling ? "Rolling…" : draft.revealed ? "Choose a Pokémon" : "Roll habitat & type";
+      choose.textContent = rolling ? "Spinning…" : !draft.revealed ? "Spin" : draft.flipped ? "See your cards" : "Flip your cards";
       choose.disabled = rolling;
-      const left = [draft.rerolls.type && "type", draft.rerolls.hab && "habitat"].filter(Boolean);
-      $("dp-rerolls").textContent = left.length ? `Rerolls left: ${left.join(" and ")}` : "No rerolls left";
+      const left = [draft.rerolls.hab && "location", draft.rerolls.stage && "stage"].filter(Boolean);
+      $("dp-rerolls").textContent = left.length ? `Re-spins left: ${left.join(" and ")}` : "No re-spins left";
     }
     if (draft.pending) { drawThumb($("dp-pick-img"), draft.pending); $("dp-pick-name").textContent = nameOf(draft.pending); }
     const res = draftResult();
@@ -2978,41 +3292,98 @@ const GAME = (() => {
     }
   }
 
-  const STATS = [["hp", "HP"], ["atk", "Atk"], ["def", "Def"], ["spa", "SpA"], ["spd", "SpD"], ["spe", "Spe"]];
-  function openDraftPick() {
-    if (mode !== "draft" || draftDone() || rolling || !draft.started) return;
-    if (!draft.revealed) { revealRoll("both"); return; }
-    const { hab, type } = draft.roll;
+  // ---------- Spin Draft (Cup Challenge) ----------
+  // Spin a location and a stage, then tap to flip 5 cards and pick one. The spin itself is decided
+  // (and saved) up front from the run's seed; the reels only reveal it.
+  let rolling = false;
+  let cupSpinUI = null;
+  const spinUI = () => cupSpinUI || (cupSpinUI = (() => {
+    const ui = SPIN_UI.create($("cup-spin"), { onCard: cupCard });
+    ui.onGo(() => {
+      if (rolling) return;
+      if (!draft.revealed) runSpin("both");
+      else if (!draft.flipped) cupCard(draft.roll.ids[0]);
+      else if (ui.selected) choosePick(ui.selected);
+    });
+    ui.onRespin((k) => useRespin(k === "loc" ? "hab" : "stage"));
+    return ui;
+  })());
+  function cupRespinState() {
+    const ui = spinUI();
+    const can = draft.revealed && !rolling && !draftDone();
     const taken = takenIds();
-    $("dlg-heading").textContent = `Round ${draft.round + 1} of ${GAME.ROUNDS}`;
-    habChip($("dlg-hab"), hab);
-    typeChip($("dlg-type"), type);
-    for (const kind of ["type", "hab"]) {
-      const opts = kind === "type" ? GAME.typesFor(hab, taken) : GAME.habsFor(type, taken);
-      const btn = $(`reroll-${kind}`);
-      btn.disabled = !draft.rerolls[kind] || opts.length < 2;
-      btn.querySelector("small").textContent = draft.rerolls[kind] ? "1 left" : "used";
+    for (const [k, kind] of [["loc", "hab"], ["stage", "stage"]]) {
+      const left = draft.rerolls[kind];
+      const possible = can && left && GAME.cupSpin(draft.seed, draft.round, taken, kind, draft.roll);
+      ui.respin(k, { show: draft.revealed, enabled: Boolean(possible), label: left ? "Re-spin · 1 left" : "Re-spin used" });
     }
-    const cands = GAME.available(hab, type, taken);
-    const open = openSlots().length;
-    $("dlg-hint").textContent = `${cands.length} ${HABITATS[hab]} ${capital(type)}-type Pokémon to choose from. Pick one, then place it in any of your ${open} open ${open === 1 ? "spot" : "spots"}.`;
-    $("cand-grid").replaceChildren(...cands.map(candCard));
-    showDialog(pickDlg);
-    $("cand-grid").scrollTop = 0;
   }
-  function candCard(p) {
-    const el = document.createElement("button");
-    el.type = "button";
-    el.className = `cand${draft.pending === p.id ? " current" : ""}`;
-    el.innerHTML = `<canvas class="thumb" width="128" height="128" aria-hidden="true"></canvas><span class="cand-main">` +
-      `<span class="cand-name"><span class="nm"></span><span class="num">#${String(p.id).padStart(3, "0")}</span></span>` +
-      `<span class="cand-types">${p.types.map((t) => `<span class="type t-${t}">${capital(t)}</span>`).join("")}</span>` +
-      `<span class="cand-stats">${STATS.map(([k, l]) => `<span class="${p[k] >= 110 ? "hi" : p[k] < 55 ? "lo" : ""}"><i>${l}</i>${p[k]}</span>`).join("")}<span class="tot"><i>Total</i>${statTotal(p)}</span></span>` +
-      `<span class="cand-foot">${(p.dm / 10).toFixed(1)} m · ${Number(p.kg.toFixed(1))} kg</span></span>`;
-    el.querySelector(".nm").textContent = p.name;
-    drawThumb(el.querySelector("canvas"), p.id);
-    el.addEventListener("click", () => choosePick(p.id));
-    return el;
+  function cupPrompt() {
+    const ui = spinUI();
+    if (!draft.revealed) { ui.prompt(""); ui.button(rolling ? "Spinning…" : "Spin", !rolling); return; }
+    if (rolling) { ui.button("Spinning…", false); return; }
+    if (!draft.flipped) { ui.prompt("Tap a card"); ui.button("Flip your cards", true); return; }
+    const open = openSlots().length;
+    ui.prompt(ui.selected ? `Then place them in any of your ${open} open ${open === 1 ? "spot" : "spots"}.` : "Tap a card to pick it. Stats only: you decide.");
+    ui.button(ui.selected ? `Pick ${nameOf(ui.selected)}` : "Choose a card", Boolean(ui.selected));
+  }
+  function openSpin(auto) {
+    if (mode !== "draft" || draftDone() || !draft.started) return;
+    const ui = spinUI();
+    $("dlg-heading").textContent = `Round ${draft.round + 1} of ${GAME.ROUNDS}`;
+    ui.head(`Pick ${draft.round + 1}/${GAME.ROUNDS}`, "Cup Challenge");
+    if (!pickDlg.open) showDialog(pickDlg);
+    if (!rolling) {
+      if (!draft.revealed) ui.reset();
+      else {
+        ui.setReels(draft.roll.hab, draft.roll.stage);
+        ui.show(draft.roll.ids, { up: draft.flipped, sel: draft.pending || ui.selected });
+      }
+    }
+    ui.setInteractive(true);
+    cupRespinState();
+    cupPrompt();
+    if (auto && !draft.revealed && !rolling) runSpin("both");
+  }
+  async function runSpin(kind) {
+    if (rolling || draftDone() || !draft.started) return;
+    const ui = spinUI();
+    rolling = true;
+    ui.clearCards();
+    if (kind === "both") ui.reset();
+    cupRespinState();
+    cupPrompt();
+    refresh();
+    const r = draft.roll;
+    const ok = (await ui.spin(r.hab, r.stage, kind)) && (await ui.deal(r.ids));
+    rolling = false;
+    if (!ok || draft.roll !== r) { refresh(); return; }
+    draft.revealed = true;
+    draft.flipped = false;
+    saveDraft();
+    $("roll-sr").textContent = `Round ${draft.round + 1}: ${SPIN_UI.describe(r.hab, r.stage)}. ${r.ids.length} cards dealt face down.`;
+    cupRespinState();
+    cupPrompt();
+    refresh();
+  }
+  async function cupCard(id) {
+    if (rolling || !draft.revealed) return;
+    const ui = spinUI();
+    if (!draft.flipped) {
+      rolling = true;
+      cupPrompt();
+      await ui.flip();
+      rolling = false;
+      draft.flipped = true;
+      saveDraft();
+      $("roll-sr").textContent = `Your cards: ${draft.roll.ids.map(nameOf).join(", ")}.`;
+      cupRespinState();
+      cupPrompt();
+      refresh();
+      return;
+    }
+    ui.select(ui.selected === id ? null : id);
+    cupPrompt();
   }
   function choosePick(id) {
     draft.pending = id;
@@ -3023,107 +3394,22 @@ const GAME = (() => {
     if (first) hotspotEls.get(first.id).focus({ preventScroll: true });
     $("rink-wrap").scrollIntoView({ block: "nearest", behavior: "smooth" });
   }
-  function useReroll(kind) {
-    if (draftDone() || !draft.rerolls[kind]) return;
-    const taken = takenIds();
-    const next = kind === "type" ? GAME.rerollType(draft.roll, draft.seed, draft.round, taken) : GAME.rerollHab(draft.roll, draft.seed, draft.round, taken);
+  function useRespin(kind) {
+    if (rolling || draftDone() || !draft.rerolls[kind] || !draft.revealed) return;
+    const next = GAME.cupSpin(draft.seed, draft.round, takenIds(), kind, draft.roll);
     if (!next) return;
-    Object.assign(draft, { roll: next, pending: null, revealed: false });
+    Object.assign(draft, { roll: next, pending: null, revealed: false, flipped: false });
     draft.rerolls[kind] = 0;
     saveDraft();
-    pickDlg.close();
-    revealRoll(kind);
+    runSpin(kind);
   }
-  $("reroll-type").addEventListener("click", () => useReroll("type"));
-  $("reroll-hab").addEventListener("click", () => useReroll("hab"));
-
-  // Slot-machine reveal of the (already decided and saved) roll.
-  const rollPop = $("roll-pop");
-  const still = window.matchMedia("(prefers-reduced-motion: reduce)");
-  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
-  let rolling = false;
-  let rollToken = 0;
-  let reels = [];
-  function reelItem(kind, v) {
-    const el = document.createElement("div");
-    el.className = "reel-item";
-    if (kind === "hab") {
-      const b = document.createElement("b");
-      b.textContent = HABITATS[v];
-      const s = document.createElement("small");
-      s.textContent = "Kanto";
-      el.append(b, s);
-    } else {
-      const pill = document.createElement("span");
-      pill.className = `type t-${v}`;
-      pill.textContent = capital(v);
-      el.append(pill);
-    }
-    return el;
-  }
-  function spinReel(win, kind, result, ms, spin) {
-    const pool = kind === "hab" ? GAME.HAB_KEYS : TYPE_NAMES;
-    const values = [];
-    if (spin) {
-      const n = Math.round(ms / 65);
-      for (let i = 0; i < n; i++) {
-        let v;
-        do v = pool[Math.floor(Math.random() * pool.length)]; while (v === values[i - 1] || (i >= n - 3 && v === result));
-        values.push(v);
-      }
-    }
-    values.push(result);
-    const strip = document.createElement("div");
-    strip.className = "reel-strip";
-    strip.append(...values.map((v) => reelItem(kind, v)));
-    win.replaceChildren(strip);
-    win.classList.remove("landed");
-    if (!spin) return { anim: null, done: Promise.resolve() };
-    const anim = strip.animate([{ transform: "translateY(0)" }, { transform: `translateY(${(-100 * (values.length - 1)) / values.length}%)` }], { duration: ms, easing: "cubic-bezier(0.12, 0.7, 0.16, 1)", fill: "forwards" });
-    return { anim, done: anim.finished.then(() => win.classList.add("landed"), () => {}) };
-  }
-  async function playRoll(kind) {
-    const token = ++rollToken;
-    $("roll-title").textContent = `Round ${draft.round + 1} of ${GAME.ROUNDS}`;
-    rollPop.classList.remove("out", "skipped");
-    rollPop.hidden = false;
-    const calm = still.matches;
-    reels = [
-      spinReel($("reel-hab"), "hab", draft.roll.hab, 1100, !calm && kind !== "type"),
-      spinReel($("reel-type"), "type", draft.roll.type, kind === "both" ? 1700 : 1100, !calm && kind !== "hab"),
-    ];
-    await Promise.all(reels.map((r) => r.done));
-    if (token !== rollToken) return false;
-    await wait(calm ? 900 : rollPop.classList.contains("skipped") ? 300 : 700);
-    if (token !== rollToken) return false;
-    rollPop.classList.add("out");
-    await wait(180);
-    if (token !== rollToken) return false;
-    hideRoll();
-    return true;
-  }
-  function skipRoll() { rollPop.classList.add("skipped"); for (const r of reels) if (r.anim) r.anim.finish(); }
-  function hideRoll() { for (const r of reels) if (r.anim) r.anim.cancel(); reels = []; rollPop.hidden = true; rollPop.classList.remove("out", "skipped"); }
-  function cancelRoll() { if (!rolling) return; rollToken++; rolling = false; hideRoll(); }
-  async function revealRoll(kind) {
-    if (rolling || mode !== "draft" || draftDone() || draft.revealed || !draft.started) return;
-    rolling = true;
-    refresh();
-    $("rink-wrap").scrollIntoView({ block: "nearest", behavior: "smooth" });
-    if (!(await playRoll(kind))) return;
-    rolling = false;
-    draft.revealed = true;
-    saveDraft();
-    refresh();
-    $("roll-sr").textContent = `Round ${draft.round + 1}: ${HABITATS[draft.roll.hab]}, ${capital(draft.roll.type)} type.`;
-    openDraftPick();
-  }
-  rollPop.addEventListener("click", skipRoll);
-  document.addEventListener("keydown", (e) => { if (rolling && e.key === "Escape") skipRoll(); });
+  function cancelRoll() { if (cupSpinUI) cupSpinUI.cancel(); rolling = false; }
+  pickDlg.addEventListener("close", () => { if (rolling) { cancelRoll(); refresh(); } });
+  function openDraftPick() { openSpin(false); }
 
   let autoTimer = 0;
   function draftSlotClick(slotId) {
-    if (rolling) { skipRoll(); return; }
+    if (rolling) return;
     if (!draft.started) { toast("Press Start run to begin"); return; }
     const id = draft.lineup[slotId];
     if (id) { toast(`${nameOf(id)} is locked in at ${slotId}`); return; }
@@ -3134,15 +3420,16 @@ const GAME = (() => {
     draft.lineup[slotId] = draft.pending;
     draft.pending = null;
     draft.round += 1;
-    draft.roll = draftDone() ? null : GAME.roll(draft.seed, draft.round, takenIds());
+    draft.roll = draftDone() ? null : GAME.cupSpin(draft.seed, draft.round, takenIds());
     draft.revealed = false;
+    draft.flipped = false;
     saveDraft();
     if (draftDone()) recordRun(draftResult());
     refresh();
     clearTimeout(autoTimer);
     autoTimer = setTimeout(() => {
       if (mode !== "draft" || document.querySelector("dialog[open]")) return;
-      if (draftDone()) openSeason(); else revealRoll("both");
+      if (draftDone()) openSeason(); else openSpin(true);
     }, draftDone() ? 900 : 450);
   }
   function startNewRun() {
@@ -3161,7 +3448,7 @@ const GAME = (() => {
     draft.started = true;
     saveDraft();
     refresh();
-    revealRoll("both");
+    openSpin(false);
   });
   $("dp-choose").addEventListener("click", openDraftPick);
   $("dp-change").addEventListener("click", openDraftPick);
@@ -3816,9 +4103,11 @@ const GAME = (() => {
     return { slots, teams, taken, n, total, k, cur, round: n ? Math.floor(k / n) : 0, rounds: slots.length };
   }
   const openSlots = (d, seat) => d.slots.filter((s) => !d.teams[seat][s.id]);
-  // "Random each pick" draft pool: the host rolls OFFER_N of the Pokémon still left for every turn.
+  // "Spin Draft" pool (draw "random"): each turn the host spins a Kanto location and a stage and deals
+  // OFFER_N cards that match both. Everyone watches the same spin; the pick clock starts after the reveal.
   // Any Pokémon can play any spot, so every option can always fill one of the picker's open spots.
-  const OFFER_N = 8;
+  const OFFER_N = GAME.SPIN_CARDS;
+  const revealMs = (room) => (isRandom(room) ? room.reveal || SPIN_UI.REVEAL_MS : 0);
   const isRandom = (room) => room.draw === "random";
   const offerFor = (room, d) => (isRandom(room) && Array.isArray(room.offer) && room.offerK === d.k ? room.offer.filter((id) => !d.taken.has(id)) : null);
   // The ids the current picker may take: their random options, or everything left.
@@ -4107,22 +4396,23 @@ const GAME = (() => {
     if (n !== d.k || seat !== d.cur) return "It's not your pick right now.";
     if (!poolFor(room.all).includes(id)) return "That Pokémon isn't in this draft.";
     if (d.taken.has(id)) return `${nameOf(id)} was already drafted.`;
-    if (isRandom(room) && !(offerFor(room, d) || []).includes(id)) return `${nameOf(id)} isn't one of your ${OFFER_N} options.`;
+    if (isRandom(room) && !(offerFor(room, d) || []).includes(id)) return `${nameOf(id)} isn't one of your ${OFFER_N} cards.`;
     if (!d.slots.some((s) => s.id === slot) || d.teams[seat][slot]) return "That spot is already filled.";
     room.picks.push({ seat, id, slot, auto: Boolean(auto) });
     if (room.picks.length >= d.total) { room.phase = "done"; room.deadline = 0; }
-    else { room.deadline = Date.now() + room.pickMs; rollOffer(); }
+    else { rollOffer(); room.deadline = Date.now() + room.pickMs + revealMs(room); }
     broadcast();
     return null;
   }
-  // Host only: roll this turn's random options (all that are left if fewer than OFFER_N).
+  // Host only: spin this turn's location + stage and deal the cards (all that are left if fewer than OFFER_N).
   function rollOffer() {
-    if (!isRandom(room) || room.phase !== "draft") { room.offer = null; room.offerK = -1; return; }
+    if (!isRandom(room) || room.phase !== "draft") { room.offer = null; room.spin = null; room.offerK = -1; return; }
     const d = derive(room);
-    const left = poolFor(room.all).filter((id) => !d.taken.has(id));
-    for (let i = left.length - 1; i > 0; i--) { const j = randInt(i + 1); [left[i], left[j]] = [left[j], left[i]]; }
-    room.offer = left.slice(0, OFFER_N).sort((a, b) => a - b);
+    const r = GAME.spinRoll(() => randInt(1 << 30) / (1 << 30), d.taken, room.all);
+    room.offer = r.ids;
+    room.spin = { hab: r.hab, stage: r.stage };
     room.offerK = d.k;
+    room.reveal = SPIN_UI.REVEAL_MS;
   }
   function hostClock() {
     if (!room || room.phase !== "draft" || Date.now() < room.deadline) return;
@@ -4145,13 +4435,14 @@ const GAME = (() => {
     if (room.players.length < MIN_PLAYERS) { toast("You need at least 2 players"); return; }
     const order = room.players.map((_, i) => i);
     for (let i = order.length - 1; i > 0; i--) { const j = randInt(i + 1); [order[i], order[j]] = [order[j], order[i]]; }
-    Object.assign(room, { phase: "draft", order, picks: [], seed: crypto.getRandomValues(new Uint32Array(1))[0] | 0, deadline: Date.now() + room.pickMs });
+    Object.assign(room, { phase: "draft", order, picks: [], seed: crypto.getRandomValues(new Uint32Array(1))[0] | 0 });
     rollOffer();
+    room.deadline = Date.now() + room.pickMs + revealMs(room);
     broadcast();
   }
   function hostAgain() {
     if (!room || room.phase !== "done") return;
-    Object.assign(room, { phase: "lobby", order: [], picks: [], deadline: 0, offer: null, offerK: -1 });
+    Object.assign(room, { phase: "lobby", order: [], picks: [], deadline: 0, offer: null, spin: null, offerK: -1 });
     for (let s = room.players.length - 1; s > 0; s--) if (!room.players[s].connected) removeSeat(s);
     broadcast();
   }
@@ -4454,7 +4745,7 @@ const GAME = (() => {
       const n = view.players.length;
       const per = slotsFor(view.size).length;
       const mins = Math.ceil((n * per * (view.pickMs || 60000)) / 60000);
-      $("pv-settings-note").textContent = `${view.size === "full" ? "Full Roster: 20 picks each (4 lines, 3 D pairs, 2 goalies)" : "Starting Six: 6 picks each (LW, C, RW, LD, RD, G)"}, ${view.all ? "any of the 151" : "no legendaries"}, ${isRandom(view) ? `${OFFER_N} random options each pick` : "open pool"}. ` +
+      $("pv-settings-note").textContent = `${view.size === "full" ? "Full Roster: 20 picks each (4 lines, 3 D pairs, 2 goalies)" : "Starting Six: 6 picks each (LW, C, RW, LD, RD, G)"}, ${view.all ? "any of the 151" : "no legendaries"}, ${isRandom(view) ? `Spin Draft (spin a location and stage, pick from ${OFFER_N} cards)` : "open pool"}. ` +
         (n >= 2 ? `Up to about ${mins} minutes with ${n} players.` : "") + (host ? "" : ` Only ${view.players[0].name} can change these.`);
       const start = $("pv-start");
       start.hidden = !host;
@@ -4590,34 +4881,80 @@ const GAME = (() => {
     renderOffer(r, d);
     renderResults(r);
   }
-  // Random each pick: everyone sees the options the current picker was dealt.
-  const offerEls = new Map();
-  let offerShown = "";
+  // Spin Draft: everyone watches the same spin (location + stage reels, then the cards flip).
+  let spinPanel = null;
+  let spinKey = "";
+  let spinTok = 0;
+  let spinPlaying = false;
+  function pvSpin() {
+    if (spinPanel) return spinPanel;
+    spinPanel = SPIN_UI.create($("pv-spin"), {
+      onCard: (id) => {
+        if (!view || spinPlaying || !spinPanel.flipped || derive(view).cur !== mySeat || mySeat < 0) return;
+        spinPanel.select(spinPanel.selected === id ? null : id);
+        spinButtons();
+      },
+    });
+    spinPanel.onGo(() => {
+      const id = spinPanel.selected;
+      if (!id || !view) return;
+      openPickDialog();
+      if (pickDlg.open) choose(id);
+    });
+    return spinPanel;
+  }
+  function spinButtons() {
+    const ui = pvSpin();
+    const d = derive(view);
+    const mine = d.cur === mySeat && mySeat >= 0;
+    const name = view.players[d.cur] ? view.players[d.cur].name : "";
+    ui.setInteractive(mine);
+    if (spinPlaying) { ui.prompt(""); ui.button("Spinning…", false, mine); return; }
+    if (mine) {
+      ui.prompt(ui.selected ? "Then choose the spot to draft them into." : "Tap a card. Stats only: you decide.");
+      ui.button(ui.selected ? `Pick ${nameOf(ui.selected)}` : "Choose a card", Boolean(ui.selected), true);
+    } else {
+      ui.prompt(`${name} is choosing…`);
+      ui.button("", false, false);
+    }
+  }
   function renderOffer(r, d) {
     const offer = r.phase === "draft" && isRandom(r) ? offerFor(r, d) : null;
-    show("pv-offer", Boolean(offer));
-    if (!offer) { offerShown = ""; return; }
-    const mine = d.cur === mySeat;
-    $("pv-offer-title").textContent = `${mine ? "Your" : `${r.players[d.cur].name}'s`} ${offer.length} options · Pick ${d.k + 1}`;
-    const st = UI.style();
-    const key = `${d.k}|${offer.join(",")}|${st}|${mine}`;
-    if (key === offerShown) return;
-    offerShown = key;
-    $("pv-offer-grid").replaceChildren(...offer.map((id) => {
-      let el = offerEls.get(id);
-      if (!el) {
-        el = UI.monCard(MON(id));
-        el.addEventListener("click", () => { if (el.classList.contains("view-only")) return; openPickDialog(); if (pickDlg.open) choose(id); });
-        offerEls.set(id, el);
+    show("pv-spin", Boolean(offer && r.spin));
+    if (!offer || !r.spin) { spinKey = ""; if (spinPanel) spinPanel.cancel(); spinPlaying = false; return; }
+    const ui = pvSpin();
+    const mine = d.cur === mySeat && mySeat >= 0;
+    const name = r.players[d.cur] ? r.players[d.cur].name : "";
+    ui.head(`Pick ${d.k + 1}/${d.total}`, mine ? "Your pick" : `${name} is picking`);
+    const key = `${r.code}|${d.k}|${r.offer.join(",")}`;
+    if (key !== spinKey) {
+      spinKey = key;
+      const tok = ++spinTok;
+      const reveal = revealMs(r);
+      const since = deadlineAt ? reveal - (deadlineAt - performance.now() - (r.pickMs || 60000)) : reveal;
+      const { hab, stage } = r.spin;
+      if (since > 700 || SPIN_UI.still.matches) {
+        spinPlaying = false;
+        ui.reset();
+        ui.setReels(hab, stage);
+        ui.show(offer, { up: true });
+      } else {
+        spinPlaying = true;
+        ui.reset();
+        (async () => {
+          const ok = (await ui.spin(hab, stage)) && (await ui.deal(offer)) && (await new Promise((res) => setTimeout(() => res(true), 450))) && (await ui.flip());
+          if (tok !== spinTok) return;
+          spinPlaying = false;
+          if (!ok) { ui.setReels(hab, stage); ui.show(offerFor(view, derive(view)) || offer, { up: true }); }
+          spinButtons();
+          renderDock();
+        })();
       }
-      const img = el.querySelector("img");
-      img.src = SPRITE_STYLES[st].url(id);
-      img.classList.toggle("pixelated", SPRITE_STYLES[st].pixelated);
-      el.classList.toggle("view-only", !mine);
-      el.tabIndex = mine ? 0 : -1;
-      return el;
-    }));
+    }
+    spinButtons();
   }
+  function refreshSpinSprites() { if (spinPanel) spinPanel.refreshSprites(); }
+
 
   // ---------- Results ----------
   let resultsCache = null;
@@ -4814,7 +5151,9 @@ const GAME = (() => {
     $("pv-pick").disabled = netState !== "open";
     tickClock();
   }
-  function secsLeft() { return deadlineAt ? Math.max(0, Math.ceil((deadlineAt - performance.now()) / 1000)) : 0; }
+  const pickLeftMs = () => (deadlineAt && view ? Math.max(0, Math.min(view.pickMs || 60000, deadlineAt - performance.now())) : 0);
+  const revealing = () => Boolean(view && view.phase === "draft" && isRandom(view) && deadlineAt && deadlineAt - performance.now() > (view.pickMs || 60000));
+  function secsLeft() { return Math.ceil(pickLeftMs() / 1000); }
   function tickClock() {
     if (!view || view.phase !== "draft") return;
     const left = secsLeft();
@@ -4824,6 +5163,10 @@ const GAME = (() => {
     $("pv-secs").classList.toggle("low", left <= 10);
     $("pv-bar").style.width = `${Math.min(100, (100 * left) / total)}%`;
     $("pv-bar").classList.toggle("low", left <= 10);
+    const spinning = revealing();
+    const pb = $("pv-pick");
+    if (pb.classList.contains("spin-wait") !== spinning) { pb.classList.toggle("spin-wait", spinning); pb.textContent = spinning ? "Spinning…" : "Make your pick"; }
+    if (spinning) pb.disabled = true; else if (netState === "open") pb.disabled = false;
     $("pp-timer").textContent = clock;
     $("pp-timer").classList.toggle("low", left <= 10);
   }
@@ -4884,7 +5227,7 @@ const GAME = (() => {
     }
     imgStyle = st;
     ppGrid.querySelector(".empty-msg").hidden = shown > 0;
-    $("pp-hint").textContent = offer ? `Your ${shown} random options` : `${shown} left`;
+    $("pp-hint").textContent = offer ? `Your ${shown} cards` : `${shown} left`;
   }
   ppSearch.addEventListener("input", filterPick);
   function openPickDialog() {
