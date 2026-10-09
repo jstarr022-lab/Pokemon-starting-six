@@ -6,9 +6,10 @@
   <title>Pokémon Starting Six · Hockey Lineup Builder</title>
   <meta name="description" content="Pick a starting six hockey lineup from the original 150 Pokémon, save it as an image, or draft a team in the Cup Challenge and play an 82-game season plus playoffs." />
   <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://jstarr022-lab.github.io/Pokemon-starting-six/" />
   <meta property="og:site_name" content="Pokémon Starting Six" />
   <meta property="og:title" content="Pokémon Starting Six · Can you win the Cup?" />
-  <meta property="og:description" content="Ice a starting six of Gen 1 Pokémon (LW, C, RW, two D and a goalie), or draft one in the Cup Challenge and play an 82-game season and the playoffs." />
+  <meta property="og:description" content="Ice a starting six from all 151 original Pokémon (LW, C, RW, two D and a goalie) and play a season, or draft one in the Cup Challenge and play an 82-game season and the playoffs." />
   <meta property="og:image" content="https://jstarr022-lab.github.io/Pokemon-starting-six/og.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
@@ -307,6 +308,44 @@ footer .fine { color: var(--subtle); font-size: 12px; margin-top: 8px; }
   .rink-wrap { max-width: calc((100vh - 40px) * 1536 / 1120); border-radius: 14px; overflow: hidden; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5); }
 }
 
+/* ---------- Free Pick ---------- */
+button.play { background: linear-gradient(135deg, #67e8f9, #60a5fa); color: #04121c; border-color: transparent; font-weight: 800; }
+button.play:hover { background: linear-gradient(135deg, #a5f3fc, #93c5fd); }
+.toolbar button.play svg { color: currentColor; fill: currentColor; stroke: none; }
+.segmented.two { grid-template-columns: 1fr 1fr; }
+.pool-switch { order: 2; }
+.fp-stats { order: 2; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 6px auto 14px; padding: 10px 12px; width: calc(100% - 32px); max-width: 420px; background: rgba(16, 18, 22, 0.9); border: 1px solid var(--line); border-radius: 12px; }
+.fp-cap { grid-column: 1 / -1; font-size: 10.5px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; }
+.fp-stats dt { font-size: 10.5px; color: var(--subtle); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }
+.fp-stats dd { margin: 3px 0 0; font-weight: 700; font-size: 15px; }
+.pool-tabs { margin: 0 16px 10px; }
+.pool-tabs span { padding: 9px 0; font-size: 13.5px; }
+.picker-tools input { font-size: 16px; min-height: 44px; }
+.picker-tools button { min-height: 44px; }
+.type-filter { display: flex; gap: 6px; padding: 10px 16px 2px; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.type-filter::-webkit-scrollbar { display: none; }
+.tchip { flex: none; min-height: 36px; padding: 6px 13px; border-radius: 999px; font-size: 13px; font-weight: 700; background: var(--surface-2); color: var(--muted); }
+.tchip[class*="t-"] { background: rgba(var(--t), 0.16); color: rgb(var(--t)); border-color: rgba(var(--t), 0.35); }
+.tchip.on { background: #fafafa; color: #09090b; border-color: transparent; }
+.tchip[class*="t-"].on { background: rgb(var(--t)); color: #111; }
+.tchip.t-fighting.on, .tchip.t-poison.on, .tchip.t-ghost.on, .tchip.t-dragon.on, .tchip.t-dark.on { color: #fff; }
+.mon { min-height: 118px; }
+.mon img { width: 72px; height: 72px; }
+.mon .star { position: absolute; top: 4px; left: 6px; color: #fbbf24; font-size: 14px; }
+.mon.legend { border-color: rgba(251, 191, 36, 0.35); }
+.mini-types { display: flex; gap: 3px; }
+.mini-types i { width: 14px; height: 4px; border-radius: 2px; background: rgb(var(--t)); }
+.season-kind { margin: 10px 0 0; padding: 8px 12px; border-radius: 10px; background: rgba(103, 232, 249, 0.1); color: var(--accent); font-size: 13px; font-weight: 600; text-align: center; }
+@media (max-width: 600px) {
+  .grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; }
+  .toolbar .play { flex-basis: 100%; justify-content: center; padding: 11px; font-size: 15px; }
+}
+@media (min-width: 1000px) and (min-height: 560px) {
+  .toolbar .play { grid-column: 1 / -1; justify-content: center; }
+  .pool-switch { margin: 6px 0 0; }
+  .fp-stats { width: 100%; max-width: none; margin: 12px 0 0; }
+}
+
 </style>
 </head>
 <body>
@@ -315,17 +354,33 @@ footer .fine { color: var(--subtle); font-size: 12px; margin-top: 8px; }
       <div class="cta-row"><button type="button" class="mode-cta" id="cta"></button></div>
       <header class="top">
         <h1><span>Pokémon</span> <span class="accent">Starting Six</span> <span id="title-mode">Builder</span></h1>
-        <p class="sub builder-only">Ice your starting six from the original 150 Pokémon, no legendaries: a left wing, center and right wing, two defensemen and a goalie. Tap a player to swap them out, or drag one onto another to switch spots. Save the image and share it with friends.</p>
+        <p class="sub builder-only">Ice your starting six from <span id="gen-pool">the original 150 Pokémon, no legendaries</span>: a left wing, center and right wing, two defensemen and a goalie. Tap a player to swap them out, or drag one onto another to switch spots. Then play a season with your hand-picked six, or save the image and share it.</p>
         <p class="sub draft-only">Each round rolls a Kanto habitat and a type. Draft a matching Pokémon into any open spot, fill all six, then play an 82-game season and the playoffs. <b class="nowrap">Can you win the Cup?</b></p>
       </header>
 
       <div class="toolbar builder-only" role="toolbar" aria-label="Lineup actions">
+        <button id="btn-play" class="play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg>Play Season</button>
         <button id="btn-save" class="primary"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>Save image</button>
         <button id="btn-link"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.07 0l3-3a5 5 0 0 0-7.07-7.07l-1.5 1.5"/><path d="M14 11a5 5 0 0 0-7.07 0l-3 3a5 5 0 0 0 7.07 7.07l1.5-1.5"/></svg>Copy link</button>
         <button id="btn-random"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>Randomize</button>
         <button id="btn-reset"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 3v6h6"/></svg>Reset</button>
         <button id="btn-clear"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>Clear all</button>
       </div>
+
+      <fieldset class="style-switch pool-switch builder-only">
+        <legend>Pokémon pool</legend>
+        <div class="segmented two">
+          <label><input type="radio" name="pool-panel" autocomplete="off" value="classic" checked /><span>No legendaries</span></label>
+          <label><input type="radio" name="pool-panel" autocomplete="off" value="all" /><span>Pick any of the 151</span></label>
+        </div>
+      </fieldset>
+
+      <dl class="fp-stats builder-only" aria-label="Free Pick records">
+        <div class="fp-cap">Free Pick seasons</div>
+        <div><dt>Best score</dt><dd id="fp-score">–</dd></div>
+        <div><dt>Best finish</dt><dd id="fp-finish">–</dd></div>
+        <div><dt>Seasons</dt><dd id="fp-runs">0</dd></div>
+      </dl>
 
       <section id="dp" class="draft-panel draft-only" aria-label="Cup Challenge">
         <div class="dp-top">
@@ -399,11 +454,16 @@ footer .fine { color: var(--subtle); font-size: 12px; margin-top: 8px; }
       <div class="sheet-title"><span id="picker-pos" class="pos-chip">C</span><h2 id="picker-heading">Pick a Pokémon</h2></div>
       <button class="close" value="cancel" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
     </form>
+    <div class="segmented two pool-tabs" role="radiogroup" aria-label="Pokémon pool">
+      <label><input type="radio" name="pool" autocomplete="off" value="classic" checked /><span>No legendaries (146)</span></label>
+      <label><input type="radio" name="pool" autocomplete="off" value="all" /><span>Pick any of the 151</span></label>
+    </div>
     <div class="picker-tools">
-      <input id="picker-search" type="search" placeholder="Search name or #…" autocomplete="off" />
+      <input id="picker-search" type="search" inputmode="search" placeholder="Search name or #…" autocomplete="off" enterkeyhint="search" />
       <button id="picker-empty" type="button">Empty spot</button>
     </div>
-    <p class="hint">Picking someone already on the ice swaps the two.</p>
+    <div class="type-filter" id="picker-types" role="toolbar" aria-label="Filter by type"></div>
+    <p class="hint"><span id="picker-count"></span> · Picking someone already on the ice swaps the two.</p>
     <div id="picker-grid" class="grid"></div>
   </dialog>
 
@@ -430,6 +490,7 @@ footer .fine { color: var(--subtle); font-size: 12px; margin-top: 8px; }
     </form>
     <div class="season-body">
       <div class="season-card"><img id="season-card" width="1200" height="1500" alt="" /></div>
+      <p class="season-kind" id="season-kind" hidden></p>
       <p class="season-hint" id="season-hint"></p>
       <details class="season-more" id="season-details">
         <summary>Season details</summary>
@@ -599,9 +660,14 @@ const SPRITE_DATA = {
     141: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABABAMAAABYR2ztAAAAMFBMVEXV1dX////m3sW9vbScnJRqamr/AP//AP//AP//AP//AP/23pTevXOslFpaShgQEBC4YtNQAAAAAXRSTlMAQObYZgAAAspJREFUSInNlL9v2kAUx28IIz4ZuWMj5YA1SFhZQYHuxaBsrfyHmrRS1S1nmh0/X/dgbKCZin19Zxs7gWvYqt5gfryPv++97707Qv6vFZ6JN7+eAZZngKb3eEbA//lm3JgvkuoHaNgVfzrU0AQv0QALz5P5i82l90WTgT95nufHGTGW3vyHDlh6HJcfrvCpK8HP4xxU3NeWwAsB9VzoMixqAa7ZFMqDWkCXgfJVLSBO44Qu8uKEit9rBIjhKwAyfDzoBIjxba8Erjn3dBXg2ihAXvKHe60AIXtMIXrvuQ/pWitBEQjNwIc4hRONiwk+Mu6nABDvZATHErfvVJkcIhW3o/BkXBxTSUShxLUbBn50lKNhMiVBpcFn0h4GfC3lKw2nNbpSErjl0y4brriI+CJ6CVh9Zk2Um2La7rcjX0TA+fqxztCxt4pYQULZtD0AkQESiwNBTdt2d8xyMxwDeedimwjgCitgbE/ojLEBFk/tmR2BWKuGshrodwl9tl30p2HfDDMQaFlYNaKAHn5KVc9kN0SrhJQvCATYpPLU3TA7igFQ42BXA4HS/AuzZTLblUOM1jUQpwKo+YF1pW0PfBBBvWObF8AY35+yAY53UB+/rXWo4QLrdVOhAIjq89ewWLf4ZtyO2WeR7AYP95AG1fmiVt6m2q1Nm6EbNHmao5u1hDMqAINvSrHfc0hSqCS2pRGUf7dYzu45JEZaNUKtso296PRzBcMHSWg9vdsyB41Ho1yMRkIkJK6ml3YKCQrb0hOJBE56JfFc9pHGndITA8eHGJLURP5/KrajgydHwy+fSWO9TgUdl56Q1fEBa9z2eBjJzs0BOL4LnVYWACTbcbkxq+OrzLkzryEmdFz0Zoj0dRFEOq2eqvpXkePT6V22kYUZuUTjkp/cE4emPw7zioDp7yJFYsTpSfOvQJ4voVdvAhS38E2gYP7N+gN2b9jqV5m7fAAAAABJRU5ErkJggg==",
     142: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABABAMAAABYR2ztAAAAMFBMVEWc1bT/AP//AP//AP+9g8WUYrRiSpRKMWLeYmKLMTEQEBDm3u7Nzd6UrLRKYlL///9wHneUAAAAAXRSTlMAQObYZgAAAxNJREFUSImFVU1r20AQ1amFhehXNf+g60BOvXgDOoRenIDpD3B7aK8J9KBLHLqW1Hvt5FioPBK9FdYa4ZOh9krnEgh0Vo6tzzh7sL16zzNv3syuLOvgypcv4KgO4gFK9xDOUL4/hB950jFpniX4oTijrw3+7sZtWAmTgU3uuhmLWIhC4nByv+xSMBuLIoL12tGx2xEgFIUEWmMH4jZBj0XvdPuTiQDWLYnxqt93njZj4UEtCdE9ytA7edrfCCcPq/+eugzGot/f+ch659Nq2yaz1KMMnO/CMu5Fm4pO5uswFLwkWAO5nkVliE08j1Z1gg4D3O8YqDAbUwa+7+UQECsEqXwsCGVSmWFaKcNHZTKc7B+85o6u1smygnBaIfS8mttZ2iLkUFRhb2th0apB4BtdiFxspdowrhFecT65NxCZvH2SmCpKAm3Oi3ZNdkq0IZRV3HDuAJWxht058agVx7xC6AkP1wFEe0Is3r4pnRwQIZ9PZ7BviBcO5eB4327Ozy430ynAzm8GNC/O4N2eMLw4B1qR8dt2LduPaaTF2eXOBnkhHID5LDcSNiH1guaJcylLp26dCOY/7pRr5aAYBoSf3lrVdemjnjwqFUCuqFV93jrYNqafHjFLdJSZcbq1mrgG/EgEJK2h6LdwXFCRERIhAZp4p4kfTafGJkRlCCvhNgkL4xINZqYCIvxsBbA0hKQhHeIfEyFJlk2CDymF/+bjBySVUVSxaLsYuSyvr32lEZMoSVIMmgR02a+vvsuwWAqbDF9Z9tUoc+0CB5Ui1HUw1/o+GuFSZ4QngL7fvnX+jh6QJslH1DRZHjRCWOzf6LMiMamUZjBSqF861IyrL54yxzJ1yRJUkKR1AknI6NFarukSJ0shCusBrkcPZmR9c8xlYCLUXxUslF7kmmNLPtuYxM0ILJkWM20rjz49iHRTA5VXxHSZIeTgYaNMW8ryiQ4zVd5JHctWsTz4OtMyeibA9oZZ03R1B8jNPUOnnPBlJ57EkkwyTnfiLAHTBsRUduJkMQKFkM/BRl3TnXYM9wVCe/0HKy8jdQecYGwAAAAASUVORK5CYII=",
     143: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABABAMAAABYR2ztAAAAMFBMVEXV1b17pJRig3M5YlI5UkH//8X29pzu3pyLi0rVpGrFi1K9GBjV1d5qanMQEBD////thgLZAAAAAXRSTlMAQObYZgAAAqxJREFUSInVk89rE0EUxweaQ3twIfkPnER6C5JXvLm2mHPAwwYvFlrJTEHMoYEdLCR40LZQCJ6s7T8g5h/wsKB/gdGL7aWmSxKzou0Geq4b38zuJptf61W/h2Vnvp95782bGUL+Y8Ff/IXU7XhgLWXH+vm1ZDbO794yHiTzcf6jr0YydX/aWTpCvdJoyVj/nqS0O+m/eWmgHu6/ZoaxzjYoXR1fvl8ylIrlXeYyVCqTh9Ful3aNUMXywUdFUJrMDIG90hAwWNmyXIyyeTO1EvqLLAqwA8vqMXeDwrCM3jiwZVkeYycAduBrbBxgv6wP+IUww0IPR2PAE+s9Yxz0wM+yKFDEQRlrYCLcZVsGGBHynxfQF0GNiZwPsOF6VEYIsR3UqOlsWhlHiEocUNERCGrUejOAx+CKdAAkZgO57rBNPdOcAVBaCPvc5pxPATlK/aO88SUBpjkZw6wgQFWftN8JuDMRAodpCaTRb2mDF3BpYlsiy1EgAXnpzt3Pru4tIyDM0Xq+CSABrOLCa5l9L6eIQDJAxQcwxNkJY/0mAEQRznFC5bCJhpF5C2AMkQEUkb4ipzJ3DSaItBoj0CWOrH8LxontYEwzVwowecefwFqrER9At4lzdIg5QoAun5/68XU1dc8me40G5uiEMWm/TeEb/q0U5Byet9ZoHAoxBLIDL33Xk782KYC+qoC3EUC/9ty+BOSLcOWd1XaiQK536ZQHTRg9KUJ+RlPI2/n0+lMnfDHqWWORtXBb6vJVnZo7CoC9RsD1Q+gmV8d+MYgApC5qNkm4CuBCXYyzJomqrvACAg7370XVJjOEhCOeyZJFbZYvCUccy8bOA0jBEQ3Vt3kAUcA7IZ7PAxZlCgRm1iiliR2ZYm4GmeM4LoDf1rgAhPxAf26JSnU33v8n9QcBBsM6P+WjtgAAAABJRU5ErkJggg==",
+    144: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABABAMAAABYR2ztAAAAMFBMVEXV1b3V7v/Fzf+LtOZilM05aqRKSmr/AP//AP+crMV7i6Ric4O9KTnmYnMQEBD////+qzo6AAAAAXRSTlMAQObYZgAAA65JREFUSImlVT2P2zYY5tDTSEAGmqFDgKN7Hj2YOo5uAfM0GknO9Cgo+iCQC6D7NwWuQ4EuHTx4zHJAf0HnDAUKCPoC6gTMkEwZ2r4vZcl2bLdDBdik+D583uf9IEUIUeTfnwv2HwjKmD6/+xn8FUN+DqFeXCEF5zw7adeMjXFsAJEfmx3NJ0NcV8vSm02PduuY80mDOthwyoVol5edGg2sXGZtFEPOvTi0oti0s3tSynn7ghK8GJxph3vfb+0J2sMLhWFeNC3gq28T6WsNVA7Xnid1rWYMw4xYwz1fEEfIecQwHipuZzMUMWEjTBTzYs+fEjqXFffQb5xKj7cAlOYUKBh8VD76hZUymVkGLzA239ogYEqyam5sMOXCQ4asfQMNUnPpc/2g33+ylGKBBIrzEQYBGtCF9H9cVW8/YsLodCGtRm6DIBSz5sn5arX+jk+tRgBcq3gbBOYlRYC5W3OODGW9kLBH6Mkw7PMOmRW/VTCiBCURwD3d2h2oVgwiZn+UsBiSeKpaCZ0Dh41jq/J3HHLKa5SQgoLxtrRZYX1s1hjNvJxaD9cmYl0XUewINAHAL3naBikyQ3pAhraX7hP0LJQCAojxatdeNQHvwnVdGHiqFBCIsi1U15+8BSDFjVog0fxFLwHLMYzBg+s+tWq59RCYnZ0UI14iYBDbEgjcP9qzEycaowd3kNhG8WJB+yRsA4lG7sB1WWWLwMtJaHJyiBgNBu4AALNY8Gh86GDbNuxyMJLQWbwYsWJ8BNDFBI6qhOaK9Lih+RGAFBGbwHGZM0ObYysE4hcsqqCo5pQVAbJhZgZpOkFun0Q2Y2hD7+YcoJJprRIuVXgWoJQyfhoszwDqmyAwf2/WgTKnOahSzZNv7j/XSgXmVJwA+PC5+fl1Dgil9DGLkynz7s2bx9AxPBOlOEAsdUroYw6/x1/hNeO3o9u9joSrizGRAYC8swBSXF1eXT7r7XCbw+HcrGH6ugU47vPB8697QKTgIlR3DXilq9wuvYxZ3F+tzvUwMLFYJT7MtwDoUeHlnYcZHHlns/aTkNyvt5sE9/uqJUlOHLNqKt8nXSNSIXeAKgnv7larnMq0j536+4DM+enh1S9QjV2dnGCxA6QZ/fOHB3BO67qjSAOVBn0aArJZW/W0p6hTVfcAuiTOX/eWz6Tt54KCWXUeAB6SnLZTI+1lDx52BIAPd/Osgg9C4tfLYEcA+/bmjoGjUQeHXeXso0lmzJcHl5z/8nab/i/gUMMXzz/LSnAbHd9mmQAAAABJRU5ErkJggg==",
+    145: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABABAMAAABYR2ztAAAAMFBMVEWD1Xv////e3t6cnJxBQUEQEBD/AP//AP//vTnepDGUWiD//4v/7gDmzRCsi0F7WimjcP/aAAAAAXRSTlMAQObYZgAAAwZJREFUSInNlb9um1AUh89glqgq8mDJL5D38IDnEslIcQLlaSzZHeqJgclr0lcwUlWpDG0OYSlLxA1ZMlR1AVdGclUwPRf8hyTXa9Ujy7L5vvu73HMvNsA/K/k4ev3A318dF6RbaAEsSJMfdtdavWY4pvQ9TwHyndBSAOJ0b4Q+XVikIHt73oN4ru6FHFOlhynk7o4rxN3DHDr6yhtHBbzf8V45x4eDINeC7KhbrhD30jqqWoZfrvqOeulUt0VcQ8SIf1C2i8mw7DtaPWur5mzQ4JBfOn+cm7kPkGiDintBk0ub5GY+nzuZuZg7FUdmllSbOC5LiJOM47pwVXHcXnEoCn7MP+rb74g0LMdGeQH1D9FFrHBV+TPO14A6v1qNZdoLDmCgGyD6pwbxTMB5r3/pmHUMZCU7cLbnIOXLiw+nHYMFjLFwO5wFh+0EmV29MwvGIhK2w59wyO7G1wUfXBz4oHmmiruxZfDRRljHM2q5cuC5cTUZGmHBQj+seKTxrdgZ1KmLsWWx0C2YW03heV7ZNDL8OrF0jd0GBSu4EFKVjVsA7co23cKMWFAYdQBV2hBOJpav+6h5oatXS6iqYZzYZo7+voVaXeZBuLZoJe5e8JvpdYBKS6mEqBQZJxQQYlB3MNOoX8+MoUoPV2KGlaBCZtKmNLlkUStM/gTSFBHfoqx5gyTU2yYvaPL7OIFjJf9E7z6OH8WUGrt5ZGxzTJDHKWwSFnW+z8TCWXcEb2Nj2R2eP29SHXB2XqrS+0RbW+2pSFhq0/ZImibd4awzEgW016Oz6fl42Z1ZQ0skaLJt2euRZNq2bZkCg3pnD2nHpMy2CyY2hr9n9AyyoU2HOxMJkk2T52w94adfFQljCyTELyTQ0RRFrFOQPHR5QlaIItZ0qnx0Rx5F9EUJbTo1Ln7qYFawVe8llzv0M+Hi5w6u+mylvBT4qdGD0Ndw0DOilmgOEla6/yb8pkiRmIM+MHxFjxQQ95In9CPFCJ78HT2pTJGjlhzAUQEUiFqSsI3b6oEG/PXf1V/yc2YMk0atSwAAAABJRU5ErkJggg==",
+    146: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABABAMAAABYR2ztAAAAMFBMVEXV1b3////e3t60AAD/1Zz/lEr/YgDuAADurErNeyCDMQD/9kH/3hD/rAC9UgAQEBB2Dsk7AAAAAXRSTlMAQObYZgAAA3RJREFUSIndk79v2kAUx2+zggTsldr8B+2Qpd3PeMtEzJoBzksrMaT2EOgMXVC3kIWMaaQ2Ywcj2qkMPV8yVFnwOQwulQoYUKWqP5LQd/6FoQl/QE8CzL3P+/V9zwjdevrwkQzjdqM4lvdVIqR8pz1jUWdAtLsDpNvMWxeg32sPiEq0mFhFPZMOilglcZHllXKHJiN5NaohgyRNg54SYXom/4Jj/3TfgHqMREaU+eRgrMTxOgNCDJ0k0mSoi+XYwekwAkdN6DambCy8fCRttgVQkhNtDymjF3AZViREKeVlvBMRGZOOLBEh6olSNY8xjnNwk9pOUS7ETVMmgx1HCSAp5U4R58KIvQ5lwm4sAGpx6DNqNNO3AZALwAdlD9vUclyMc7F2IwBU0FUKtAWAOljVY6XQiG4LwNB9bTImpHBlDcXrILpyB8QIFyALAHfVxLZkoWqbkRLR9CiCg90dpbyIAEq4apGE8xXCeJ+hiZgQN24uD/OUfAcokkMXC+nTUHfQiK9FFtoEYNGE78O2XVgRLYogdCovAyNXDdv445dUSkYAceFuEFYJgFiApT3tQVqPhYAHsyIrhFCXMU/fhVk7kzaD12qZyHQrXWo8V3ZhF9pnVGwLyefE+xsCkl7pGgXoLG2a5pUYBcnnFSRF2iGDVLoEtqo8NM33VIiyoxplaU8lu74/zEnTCdg9arZHvkxCJwnnngUJiL/3AIyg3Ssq1kmD11HHxAoy6GqJQADDATvz10nRtZwB/+h5AMCG5rHCbbg5E4NSfjz9SCin1IpSYFzYe+EDDOagVCdUGNM8bJKUsGxIVS5KAM2VHB9fc/ohUkm6IEW/as8OgGqV8yni57GOOkigUM/jXNgtzrnDneSoAFAqvkWE4P65XAbwfuhq+998vAxIRDFjV27bkIE3j5L7ogvAcuZzAViWdc295nwpxz5MAApHNyKAfen1s6e1aQJ4t995aPl130AABqbT2kE9sS6mOXkQAGgyn39DKPWy9uswAZywzfu8H/573RJA/XBzAaRqb2djHuY8acJDtjl7lKjyuNZ8wyehvXYiGpwlA6Djemt+GjxuNGrHDfjNTn8v7Bu15vcnYYJUo/mzgVbORr21FZWcvfdqdrQKHDSnW7HXdJ5dtaODFnr8j9dShil6PF0HQPj6OiAlpF9j/y/OX7wRPsnD2r2FAAAAAElFTkSuQmCC",
     147: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABABAMAAABYR2ztAAAAMFBMVEXV1dX////u7sXNzZx7e1L/AP//AP//AP//AP+Lc6yLELTFpOakg8VzUpQ5GFoQEBCn0RQmAAAAAXRSTlMAQObYZgAAAbZJREFUSIntk79OwzAQxj1kLRF9AaQLGyBErwsDpH9YEQ/H2vAIDKwp7BUXVJEJNSYIRkpVtWyAzNkmJU3NCwDfZPn76bvz2RbiX79WR+5tb7GoT51Ap/W1aAcWqE0my8C0CAitnxHl5axZ6B3LIQeABUYxRfK+RMzD9k58OfTWg6YJiPuRlDIvNdmE0SS+bANObcBAnuK+/I7wR/Jq9znubHbNXkZJ2lRqf1gC4quN9xuATT2HGlGko1S4ALoAh+qcAQA21hgwnloAe3UI1HnSCFAbDKQtUZa3zsBknDyhaTKjQTqtAAB4QAUwXgUgQDzoJXkXm05ANBBRZpT7BXD3sAx0ESMGpFC6xphIHi4D/gdPtkfJg1AtO4czUSGUvCMiG6znkFZqCPHCPt3Y9ZhHvQLUCPoF8ExJtUvOvYCtosYbJTKsAuIWigg/dgKPoCP0U/T7TsDnqyRDvBE3uQp4DGxrQp8nqlyn0cxGGEl0/I8OmC60BqkL0DW+iGtzaU7AENeIqz2aGkEQgH4b6KqgD9po6JeBPwTwB+MEC7j/uPDm1sZXt8+EMvk/+qwTpfSj+tdf1SeYifdQyEA2wQAAAABJRU5ErkJggg==",
     148: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABABAMAAABYR2ztAAAAMFBMVEWD3oP////m9vbV1eZqant7xfZSg80gQYsYMVoQEBB7MXt7vfZSpNVig6QgSnP/AP+9D1c2AAAAAXRSTlMAQObYZgAAAnRJREFUSIndk79r20AUxwU1hYNYoJIOHnvOFmdor4uhgjjN3C10yxZK/oEYL/0bXLs/ELW9d+16mkIW4ycRaBcRn3GcyVjS39B3J8k627n+AXmDpLvvR+/XvbOsp2mnRoUcq1fr2Ajsy2fF2TcBz3KgZgJaSmk5xhi9WhbB6ZqAeiJuK87rFwag8iGd8PDecQ4MDoiTAEDroGdsxH19CvDqpNk0AUO2ght68taUoxWPfO/rm7rRgQ1wU/PeM6ODOw5R89dfz6RXOfcjbyiijd30toww4QCBEDNdT2C+/ibYBBBClDuWHQfLckWmShdajl/ON+ItUU30COm3j5sVLb2R0HIkLzufd0pONODHWXun5Esv0ICrT9sOnl90Bv8FyFm7BOxxu7MdgbSvBmGxiANvJ0Xy/bJftM72x7pUFakUPI9B/lvV1/8Xd9wPU/zYo0G+v/LnpZ5wNAAkbDrNW7nSIuA5KgDD29TNBJtrQAwTpUOIwLusTsLD0gGsrWvTo3EOzB8Dxnu0MctDdLUIaDPm4jzAAz3KJma1BQQPjLn47iGglJ9lG6pq1JYjxgTAogAG5TCqFNDvkrkipNQtgPVoEV8CuOwzEa2BGNbHShoyB1wS5vYozaYW3ZbAIQLTKYbsN68LgEA5WjaVHoLx3CIxpXURhdjxgQZYi4ZyMfNWE4pFRBCmcZZVAdCsjdy/ljlGahFoF8im1M8QKlMYQnYHy7MgNCd+yxTEUChdv3RYHD3kHJ8yglD2Rx846SIzJgS2C41t3qleJtex2RHBQ2HN0YZukYVU8TzFrCvvsDe3rG1C6kLpjxsZychm3VKOdz0/HfsH9peLiQGPGcoAAAAASUVORK5CYII=",
-    149: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABABAMAAABYR2ztAAAAMFBMVEXevdWslFL/5nv/zVLVtFpzYjl7xcVSpKQxc2r/9s3V1aScnGrV1d5zc3MQEBD///9v1AQdAAAAAXRSTlMAQObYZgAABBJJREFUSIl1lb9v20YUx89oCGSo2R9C/wEaXTvkkVujITyOIYhQhBAPylTZf0AtejI6VZk6NQOlIZMHk0CWZJEIGF2yqUaAdNQPAqJSR5Gp2S1s9t0df8lVbqDIe5/7vh/37kRIOUbsEZHtY/IH+TJ9R4hc/wywviGzqwtCbC15txWQ15MLMo4kZ5rebCd2RxHZfWs/HE3Xt9udTFHmrTJO4GqM6Gf8PFKmCtR3/5yMtyTjWOQLRVH2QCOrEYa78/WmXUKD/UDRHFW35AQFatomYNfBmgM4aYMK+ZoabQo055EOsH5Gc4CaFfuOrbkNAwCu1pnCDjhGxV7Tmu7P6AESBCw+pXUbpQ9md48wAwBKKV9Za3YbViHA7O4TRQFQEeC+7Wb3qPBRa7qdjjtnCjQDJM3tHuVR4od7cHAQg8PtHLCbnVIBP3AcH3Frg8eAazpdNwsCP3D9YfeE2Q32iEjcdNsIiDTmzd8uO8dd13VQPUlQIpINF4GOUJC1S0K63ePnnXaSLP1TVLBQoIPATzwImencP/mFXLbbLd/3KdVNFOBAWWxOfXDqCDSoXseytNtuFeDDgU9DBgD8jcABilR2g+x84wB8DMKwgfXWjpMPhwiUxZ5M2Xzd83r+a3wBi8iHbtIutktO37PpT+HA835nb3h8np+QX8v9vNLZVnteP/T6YOP7gtyPKoCcUlBb1x6OsA+scbRIxulSAdvE8MQIQdOFEyLFBbAb0/0wPGNAH1QWsMoSKAEiL9I07Q8FEGMpeGdWmo48QyD1QpaFauZdIRdmyWF2jDL0XgNvCnq+UWR7Pxyk6Uv0MMiAybhyfumelqb/hAOWZ19HwGw8Hq1K4J6i1F+ih39DESMCUjJalQE+UpSnXso8hDlAyCqpCigfPe/6msdog8hA3vDwfTDwWITei2RRHB0WPH/irfAD2yVmx9PVyg8fId8pPA6bN4KHW83syl5MxfFFabUKoAhqIaDlN8S3e8LVvQzwXgCwO0rNAOmBKpRkAHOQAXxkLmzIlEiDmgEjbGFXVRGjDXlTx9ToYRa9GCYPJwC6zl1LKJz3AqVPz86CMNbS9S0KaKbwrBb3Q0yXvV7vlC7S2e17rAJvpCpgUOPM918ZcDGa3WAdRbOAmseAu2+GQ/8V9uqPaw6w8CXM1yoAugzCc/wBmPJ2qVtkjkCWps62x+c3AwVcjrWmmsPqIQCJ341LnwlR3aC8ZSm/8KKskqy48n7MDTEVv3yIGL56/BcLuyUMDfNNYc+ymM1ujIgXlMViLIMCyOqwWt9GeTLUXPr+mzsKcvYHJbE5tAdBTmRZkqx/JZFtMPQz4s4VxrfdWmBJ/SFeVWi37gJSglPJvh/6ATLn0V17gS2CYXCa/G99ZbSS0vwf23k0+ZYhOWgAAAAASUVORK5CYII="
+    149: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABABAMAAABYR2ztAAAAMFBMVEXevdWslFL/5nv/zVLVtFpzYjl7xcVSpKQxc2r/9s3V1aScnGrV1d5zc3MQEBD///9v1AQdAAAAAXRSTlMAQObYZgAABBJJREFUSIl1lb9v20YUx89oCGSo2R9C/wEaXTvkkVujITyOIYhQhBAPylTZf0AtejI6VZk6NQOlIZMHk0CWZJEIGF2yqUaAdNQPAqJSR5Gp2S1s9t0df8lVbqDIe5/7vh/37kRIOUbsEZHtY/IH+TJ9R4hc/wywviGzqwtCbC15txWQ15MLMo4kZ5rebCd2RxHZfWs/HE3Xt9udTFHmrTJO4GqM6Gf8PFKmCtR3/5yMtyTjWOQLRVH2QCOrEYa78/WmXUKD/UDRHFW35AQFatomYNfBmgM4aYMK+ZoabQo055EOsH5Gc4CaFfuOrbkNAwCu1pnCDjhGxV7Tmu7P6AESBCw+pXUbpQ9md48wAwBKKV9Za3YbViHA7O4TRQFQEeC+7Wb3qPBRa7qdjjtnCjQDJM3tHuVR4od7cHAQg8PtHLCbnVIBP3AcH3Frg8eAazpdNwsCP3D9YfeE2Q32iEjcdNsIiDTmzd8uO8dd13VQPUlQIpINF4GOUJC1S0K63ePnnXaSLP1TVLBQoIPATzwImencP/mFXLbbLd/3KdVNFOBAWWxOfXDqCDSoXseytNtuFeDDgU9DBgD8jcABilR2g+x84wB8DMKwgfXWjpMPhwiUxZ5M2Xzd83r+a3wBi8iHbtIutktO37PpT+HA835nb3h8np+QX8v9vNLZVnteP/T6YOP7gtyPKoCcUlBb1x6OsA+scbRIxulSAdvE8MQIQdOFEyLFBbAb0/0wPGNAH1QWsMoSKAEiL9I07Q8FEGMpeGdWmo48QyD1QpaFauZdIRdmyWF2jDL0XgNvCnq+UWR7Pxyk6Uv0MMiAybhyfumelqb/hAOWZ19HwGw8Hq1K4J6i1F+ih39DESMCUjJalQE+UpSnXso8hDlAyCqpCigfPe/6msdog8hA3vDwfTDwWITei2RRHB0WPH/irfAD2yVmx9PVyg8fId8pPA6bN4KHW83syl5MxfFFabUKoAhqIaDlN8S3e8LVvQzwXgCwO0rNAOmBKpRkAHOQAXxkLmzIlEiDmgEjbGFXVRGjDXlTx9ToYRa9GCYPJwC6zl1LKJz3AqVPz86CMNbS9S0KaKbwrBb3Q0yXvV7vlC7S2e17rAJvpCpgUOPM918ZcDGa3WAdRbOAmseAu2+GQ/8V9uqPaw6w8CXM1yoAugzCc/wBmPJ2qVtkjkCWps62x+c3AwVcjrWmmsPqIQCJ341LnwlR3aC8ZSm/8KKskqy48n7MDTEVv3yIGL56/BcLuyUMDfNNYc+ymM1ujIgXlMViLIMCyOqwWt9GeTLUXPr+mzsKcvYHJbE5tAdBTmRZkqx/JZFtMPQz4s4VxrfdWmBJ/SFeVWi37gJSglPJvh/6ATLn0V17gS2CYXCa/G99ZbSS0vwf23k0+ZYhOWgAAAAASUVORK5CYII=",
+    150: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABABAMAAABYR2ztAAAAMFBMVEXm1dXm5va9vdWLi7RSUmrmtP+0g9WLWqxzMZT/AP//AP//AP//AP//AP8QEBD///+x6tOHAAAAAXRSTlMAQObYZgAAAulJREFUSImdlDFr20AUxw8siCfBkwzdbHwRtJOK7EC32JJFu9lLFfoBErlTaCG1PLnGtHGmfkZFcXGmAzWZe313UhxJJ3XIW3Tw/+m9/929e4S8KIbj/+st/vhi4ETIQ4d3Gn89IcO3KZhNwIjzO855CicNwIzzPyMBNGXQepybAuiNGwgX1T4H6FmKdHOzFgDg7xi9vxW5HYVh9AVrQBZGBWgvUI8iXDmoUgQeq3p0T+6jtagBPd4H+FrR57/wu1/iUYHp8geAH0UA8wud6EtpYjJDn8VdHJ2F8zhzuhbA790DL53UtyBcZqvtmrguXH6f4F7jZ+BnEK4OgDMTp4AunoF2eDZfy9Xww0oDYcC8Swsl9DC30II9AhbzoA9sXAAWuQWHd1eaYRON+qy4ST2KVgeADKg/oeNy1+6jzJAGbEl8F8yB5ZeaUs8T6js71u9MB0zar23KRUJjt+MY4ra4qeqt04Ra3LgFvC8HuirgdKkEOnjjRg2g9dIBpa597Ft4UjRuACxvTDyPng5VgLhdansW7kizGK3J0L5ku0ToRMOGojsVwK6cZieC2zDscRU4QmBNngCwlYexOACi9V9vkmkFuMZbl7eq+Q4YFx93dBrXAtooNeBVEPi457gCyBr4wMF5EwSfPErtKjBfrjUxHgYCsKhVOo1tKImZAMzriyDceH4pRRTKGAmgI9JtvL5XBMT7PQBivbH702Lb6DLFOer4rEIJsJIHPVrkQArvcPUZDZSam2wFcY5DCuB9DpRjjxMkPAfUDemRjisAvo8ouhLzp4t25hu1JUSKSIwgXIRLpUKewhUJMGoSEBxSooYhMq2oOigz4oraQk8Ui1mwrQRYnNRVkD48yhgjOq0vgeHJX5NGQANDABN8Q/UmWingi9DpMaaoJUYcvFgCfTBZI0AYo8YQuLoTbGkJIALcVYGWC8OnKX3LE1CAUdrppfklJXggSoWZAHLzep1F1/DrJsNz6CxW8v4DbWZPdvL+0l8AAAAASUVORK5CYII=",
+    151: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABABAMAAABYR2ztAAAAMFBMVEXe3t7////V1dUYWqRStP//AP//AP//AP//AP/elIP21eb/xc3/pJTVSlKcOTkpKSlg6s6TAAAAAXRSTlMAQObYZgAAAb9JREFUSIntlL1uwjAQx/MC2K3UuS/Rzn1PpAp2o4qdM2Ruc0mYi/hYaUzIShPFPcdQ4WDSuWpvItwv//tOEPxpY5tufy+bdQMLSLsFhOwG3gV25tATIyy6APZThEx2CwQKrwmsbARMN1eSG20scCXAKl80nu3Q71++idHc/Dj4A/QmQohmAgdvhHwBQgCYl7c+YEdOYzcmSV8RHyOASQTwZB6qVNdtoEICXo4AqxB1S4UToDMAuydM1xfNUlF4dw8gT3/rLGzFiGaPt5TldwU8cyUYzh4IkBYwO8vdteQYLRFPY2z0P91+UOaI++IMYGNXQmGcF1ae2aVuZcHrfl/v5gGdBJdJA7R6TkGmkARlSjvXvMsSF8ipyjzlJF/aleHu5u3JPxEFyTOwZ+ECLDLTFGMuN1yug0tARVIZpJQ1Rx9QKY0NEJdVbOtzk+Q1wwimebYsVWzrU24fTJ0yC2FNHbWeqr17FSYQyvUzJp4ITRSMo5lMByr15GgBY9shP6Zwud3NRE9nwTyfKU7hX/XxoTVLa3V/qPvWUY89ftrVIjgMCtMVcfUbwqtE0wVcnM4ZUQKEHX5zN+27+rdfYV/UcTBr0GFX7QAAAABJRU5ErkJggg=="
   },
   retro: {
     1: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADgAAAA4BAMAAABaqCYtAAAAD1BMVEX///9j/1r/UjEAAAD////qHCEnAAAABXRSTlP/////APu2DlMAAAFGSURBVHic7ZJBTsMwEEWfp2whDqypXHMB2jNw/UqoB0hM9k3c7mOziEPjkLBFQszK1vPM/D9j9cZ6yA/sH/5pGKNfhbE916uwFZUVustubr1nHwPBr8Druw+m9oswHiloQr0Iz6gLwUwK32B0xAIa6qVMhbpYM00drXRlS4k9Pk2tJBgrKxaOChrq/SzTV0BETxO/ekbAqjK9zGGgG47BwHbUm8p2CgjMYixbaIIzYnBbcaOZBD92WMQ9nxC2s8x4PQHIpjeIzCBEKkLvgeo2tXTQGMDAQOupWjX0Eb13U7XjhIKDtA8DTQYfnQQJYANO0JusZ2t7H7BX3zgolc7VuhcttjMPW8zteyafLmCLrmzFiei5T09F11W2mopNUB28La21pRlk51b0oSQtc/cNpjXHE/cLQ0hvXpn+lByOpXO1y/Eb8BMMBXRpM1LLXwAAAABJRU5ErkJggg==",
@@ -747,9 +813,14 @@ const SPRITE_DATA = {
     141: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADgAAAA4BAMAAABaqCYtAAAAD1BMVEX///+lcwBjSjEAAAD///8Ft3a6AAAABXRSTlP/////APu2DlMAAAI7SURBVHic1ZVNd9owEEXvmG5Tz8C6jZPseyD8hf59DqT72KZ70DhZW9MFRJik6b5a+fjqvSdp9CE/+bxV/2D/L4zUfwrj2Oo7+KV8Hfaf28bT5Wc6BxR4UKT1U3Z7DpiOtk7blJxj+z4znlRSTUvV9FB9UNaDDxBHAr0e0LMSIQrquNg1VKRHYR6EfJgKqIB8dVDTD1AUrAd5cy1QqAGpAUyBbgJPnW0LSO0Qzz5VAnLTAOYJYDvJVD3LrbZwnhm9rJAoyE3lmBkoOj++2wmzhBkJA6LZXuAcrHWz3CcHaF4mShFqM3vubo8JYkeMfoIJMBOzbhigS0BFc1LGJoFY9g11zbxOyWfWFNuNgxG4+xNGGgHfVgAHmW8heqFpuDFT2a2YvylFRgeJRyoGECVALvXcekKkzff3AGspVVlEfrjZJjWF9gCRRC8lC5W70UTT8vfJNl3Vs5vrzmC2Yk7ng12gLHvkQYmhH9ff+4g6gFidqyLZDU1fnQ2rHly02C4yHZbHntmpb52YlEyz0z5R+5IKdzF41fMiLPd0mJoYM0iYRl+Ui6zZqzszpYkmAFi9QVnu6WIwZaED9w5UWjIXech7A8TqKt06x7vJ1lznIXcOYH6/77zSyTax9Y+Uu9M8xts6GdMLQ7s15/P12vjV2hJH6061wBANnyhz6rkrLpjHRHn8VTVnIQFY5wXmHd/KRVQZtJoKlNkKynFXDi/WerFdKSstkbHLY5SzIsrMmLTHxRLk709HMmLQPy/9+VwaeNEOAAAAAElFTkSuQmCC",
     142: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADgAAAA4BAMAAABaqCYtAAAAD1BMVEX///+cnHtjWloAAAD////DWXoVAAAABXRSTlP/////APu2DlMAAAKVSURBVHicdZVBetw2DIV/0NrGApS1PRrlAPHXI/T+jZ0DROJ4bxHy3kIWlEbTpsaK4tMD8UAAlL8X4zNL01g+B3UY/VOwK/30/9Bakujy6LD+QZ9KTsD7BDwfu5U25z5hxKMjh7cMayljGjwBvE9O68DkIFGijHloiyUAfZjQmMfy9gy045yHc0G0QZAfg0YpEkV6cJRz1Z5A46+IAgGdsf7ou1cHMBJAaZcMqTdTRBlPexLqP0qbHhZRkCEnBxAlAfLPq+rXhxcMwPqrqoZwYR0l5eveaTuSBriXbo75Kf7IYAJB74Exs12eH2Bp4dINyplwYH0FQIAGcTCl64LrLoBCQ7Ro/MvbTbSC1/9AFGC9AQ0CoRhoMZhRr0pIgNnyUeQZ89GZ8iCmO3NzF09LQYg5OWDlCvKRsKIupm/pBBC6g6vcFV5OgEUeHCDoNnDsBPm+OMGcoj1UJUB/Bl9Akcj9siwuZuYb8ytAPgcxpmhZzDYpDRBPcFcd9TWXx63AhI0SQBetHhgNkE4jKA4sN7xNpwO6hhAqN1h1e+5Jelkc96MtGCszWRJCifaGuE5dTV8y3nBBTr6jMdbSrFaI9uT7V/y6HOA64XS+1xi/LlYDWh3ECT6U3avpSUmsPj8DCMsLcp0ekiExTnetr4VWTfI1gk5wEt9alJJlWeYnub+ij+I0iDpl5ntGau9XyylowJzoLyIQxzCb6dFmO17ft3TWcKd560/RrS7kZedNM0m3ugWx6BGBU4G1zHBmL00wvPZEqWMq6QEaxv0rJI/ZoRJpAKnNEcK0Z35Q2C67tpcYCosDQ53edQ7VtURyWr1i9cyuiouc+siR+n3qNzWczc4awlEquxQAGRS5fSvSzZr/PiK/AQ1RHOtpoGBqAAAAAElFTkSuQmCC",
     143: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADgAAAA4BAMAAABaqCYtAAAAD1BMVEX////elHNrSkoAAAD///8WqP02AAAABXRSTlP/////APu2DlMAAAIySURBVHicfZSxetNAEIT/Pbsl2hM1fJLSExO/Aq9vYqC2JUhtay/UuaPQyZYskm20n+Zmb2ZsrXzj7XLvYAsw9u+AXZqg6xtQAqZwvqfVcAPGYniWvdHrgmmgAAXIDSjpwJYjlGp6e2d3gP0dcEYXaj+4bRVJvWELtZG4Q1htY5eWPg1Q4vFPlSDNQelw2yYpsZuF0BblMHnn77Hh3Qi2yayh25KeOOZ3LoMpCbTFAbgv2nFaBlsF+A5w8HULyFWtDyEEyYrbOjfjnUpiP7QFrfemM5+SiQRK7RWo3NU8D5nZFCZmpJFZAac09H/3RlEUvFx8Rvf0ZQBlkwIB9G4EUxseu9PQvv56AAHpHNBBT9qdsrDnjQzi1EFsSVyrGC0RXURejZ+jDyTEzdi6YwecSDoSlaPl3ml7btoVEnISweA8Ujc/I8LjMQGmQ+C4CoD1x88dBR1iICH/abO/NR3eYNNpyrRLuTV4NMnvGTJMNXcQQBCdUnbDEaeaDU/QT+MhQbwCha8vxEmjCCBBmgEuq1XD6540+RwUpAHgEPD7FY61AahdzhBbQ4+bFaau4aZaQ4I9Q4VL2AyLBqoaX3eGyzFOyvur2pAMu8pPOaiXleKoma4efmRq+AoOKWFMEyjUg7+EUJdw1RxG0zp8ZbVOxurkx1nDMKWdngBmC6P2g9/x8obZNql9P1JyMLM91EAM9D4ZTlnuW+creoOa/4BQVkCji7EAiHf0fnnnOHmS0Nv1D57KzvJjoLeVAAAAAElFTkSuQmCC",
+    144: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADgAAAA4BAMAAABaqCYtAAAAD1BMVEX///9arf9CWoQAAAD///8UvNS6AAAABXRSTlP/////APu2DlMAAAMcSURBVHicZZRBUiM5EEVfyt5ipcpr2lWCPQHcYKIPPhdosA9glcy6rZLcaypnYUMbJlcZevEVqS99yU+ua25Yd2nf+uVX9L4VlTOW9AXOZQvKL5464Djna1i2MgBWX546bIu6v8y23SaN0A28Fo7AlXLflUKARLRRstZ6pewKLir0pKa5tcXVQFaI86jYacjK7Tv319vmmERB5jEih+b0Cu5dCrge5tdR++Lvycs5xzlHQGmuF4X52SSx0HFcpuw2yfVAi6IALtgL3I77hVOABIgrH04dUflzBFdJIEDdfLp4CNVSBRc/BopZ0tnFXZgwr+7RCYDNCTPO/VZNaW39UJ0hBpKy6+uqAHsJrdI9Tlmd698LERJh06Ypo8E89cdoyhIFdE/EBQ4cfuyGig2nWEhLKpWqKLjgWDTw1NFwKo4I2NZpAhdCfwy0av5sByIHSSJzygAo5pFW2cAS/OUyUw/MuyATRDWrsoQGEHZnKwQmcyEoR10vMQ8wee4B9ugkU1kMm1ddO9zQWmvSTpoAVcO8vqeja9WBee8VDSVlbCswrCvCD9c7aK01QJMqe9Fqb8MdD+BZQpwQoDSYc2c0q4N1v+s9Dqxddu+0iGIdr0TWJ3DgHrzeKNKGeRuo7di/ZzA/4YB1Q5Woowhmni724PqKA8zLDvfSz3u0tnbXnV/HXB3gBuF0G0DBvM8wThl6loC9EdjFTAWRoTGW4rwbowMotxDoYlaTQXrbh3D89eLrEjDQld1sHVVtf/rnOEx0Wk6PS8A9CAKYUAWZ30qgFHk+B6n+0RqSqAlKkNUUy8STIj8B+7fXVw8gFoKNMczNuo/Y96vtJcG0SV3ABbhA4W1jp1UzjLkrdx8JOf8JN3Ooq6korVWN+hWKVLRywHvN9TPsl9ir6hFmbcZVnZWnLvgMYCqb8A0Oq+nUgx5CN9TvSvI0raHNNSj/gxr89KQWhoz8xZeBZjdr62QIwajfjgKNZjJ0MNmUv8E1C9XQwYiY5W/KHALAONb3YONXKI/YC3AjQeXzoB9KRZ4VeDy/sy/TAgRgoayFx8vKf27GjkVMG44cAAAAAElFTkSuQmCC",
+    145: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADgAAAA4BAMAAABaqCYtAAAAD1BMVEX/////5wC9hAAAAAD///8HyCdJAAAABXRSTlP/////APu2DlMAAALQSURBVHicdZRBd9s4DIQ/QL6uBTrndin1vI2T/oX8/W7s9lyK67tMyveQe6AU776+4CI9jAYcDCHICx9FWXYfYlx/fgxO4ZtSIhD/l49A/eWyIlOG/TtaI9Wgzk68In9NIFPLw2xkKPOZAQVKbqTZGpdcr2cjo/CQJzAoJ6CeyXyez4Z6lHeqyErkejYYQEEemSAzqwEGb2cDNRqTUqGeDJihnGxVrsCDp5SKDIBQXiUDA7AD+PG1wgxQT/ZKL6A22dIEXQSiQcIQWQCS4TWkTC0ZRC1Fcu17AzwIug9TPmqmQArDbCKySjH0IZcA6Akf1OTuvoDKMyzwCQ34uvnvqQaK89wKJyso+d7grbVy4NJSJeA3qvj2jRygCowwxq2qbQ7hPT1jYQzvclJsZad+uu3zIe/vwxJAeuoO9hNH4qefX/lvpFQ7eaEs11u/pwvc9VChG3ag2fqb5gSbbEDys5gCww2WhIfiN1CfnTW1g1I9Ot6p4+C2VupJXCSG0Teqjs4A5AXKP9WyC1pQH2gTQT00ZuhlcXUsnhKg/R9IiijQZduHGjbvlusJwLW59ZSIEkAArP8jwyYoSWQkA3UcAJFrXlbja94zwp/kTJRxBNK1pxmf5DKy+LdoqCfO3bGQwuhgR83OGa50LBzgs6dcxhLDF2PHr84BCMeTeSAWCDpioOXiAIh0x4W6+uudA1QGgwRAd4zkSARCAtDkqOl7BuDm/7b1XkICVIz51CV8Zhno3n741mBIsHPAo+RcEF+/f8tEoIx1Cl9MgU5yrdkZdJlWNspoEwo4ektiIE99NQAKHNqqqa854wAMaORIXcdEnIlt09ODeArSbkWenKutGSf9krXePNGtM2Tcifp4gKy+5G3VgHtldVHAg/pp3SasuwRmqO3toHfmw9P2kAGtgrg7uB4qRiVbbZ1t4D0WvKzu/77jRynbTvkdFJRDg/8FK28/Wztpp0wAAAAASUVORK5CYII=",
+    146: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADgAAAA4BAMAAABaqCYtAAAAD1BMVEX/////tQD/YxgAAAD///8KWpb8AAAABXRSTlP/////APu2DlMAAAKXSURBVHicbZPBkts2EETfgLxmMeAHrKH1ORWm9Av5/XVUlbMkFn22OXDOwuQAUNLaQfFAsKt7pqeH8he/nNs/M7evGUK712dwuIHU0x1clifwHepiLwsjQH2GOMPZklIJ8M4C+Y59McQwA0ZuVEMvocM3h2iKEBhvcI0/tVSkoGRGTpiA9s44AdFU8C9TGAB3/dCWSQFRAjOAWb6sGUABogLkwAnAp0p+GCoGBAJHIKW6UDOAPZgEOJLalACYEaQYkAlAAnfvqBDxGB1ghEuTQvsYCpTmbeS2aQQQv7wBELGIUJccOFFKKUW8cOmtShEgMwIOKm4KS8ZxRejdzr1OM8egUrpNRkRLNHcjSpu+N5MZAuEwHRCZ3hoTxEppAY8Q8hnn9v5ZN+7MsPaGqiFunDmW3ajWHPqCKWqSEu/ejEYlrHSwJAdInK9gUgothQCI1QVCJnG2iscIbz0VvtXF4dOPjPI3SCl9GcfW/pBX4wdCNSKwsssCv58Az6hvFCn5Ne+y/zLsSy0YMUzrepf97bMFC+AApmXe1zQAXF+vHIzt1DyvPEA/5UDQP8QATPYfA0bwID4lhhccx1+UJ+Yla0kKDpvtS9hBX8WTPv8N97cAWYsCrSQKy44GNvEE8J2e1wUql6UxU9GdA0QRsEpdIJD00DjNQVHwuPSNF345pQuFx6evTTxDjDFGLntkwLQCTUc2EHR5YtY/QTQsn4BhdiU/mJLXdL/MYB+YU83Aa7i27CA/gXJYM2F5ZbMjgC8PWUCnUMMLcJpvuA0P0AtJPDzbvstu22aA6QDAMMzc12Uzc3BLMLdnOO5D8E1LLOpsynD8Sfa7gLht6vY/NZMr4PIhhg5OitSiQXuq7fSawiQ+kDw9M/8DRHgmsoFvk6oAAAAASUVORK5CYII=",
     147: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADgAAAA4BAMAAABaqCYtAAAAD1BMVEX////n1jlCc8YAAAD///9j8jrMAAAABXRSTlP/////APu2DlMAAAFkSURBVHic7ZJBUuNADEWfwmzBaucCwRxg4A5zfWaYCyQu9qFlZk1rFm476hA4AIU3dvnVVz9JLb/4+Nl8wr7hl4Fun8Djn/fQluCTBngwgPJ7CcptgF0GEFmCjVCaDYrtc4YjGqFoBtCy95xXhR+tZbmaNPMkmyiEu4H0/35eC4Y0Z9IbgLqB3lB21vaZwR/3dgXA4/shHMEBFB4amOf2zLBXYasXbCE7kFqhYy0H4APlTCght5XbjkMsawL0qdKe55AsI4AMtX3p41bqSNKgAG6iATpkgKTRvML9qjXvroFKqX8t0DC++TLs5gmewdGXLRv1K44vI+oHOf04wQJZnAld69ayW2AEz29daCYIlRHS3ym0Es9005cO4Xxlcg94zjZ9lMSzdlyw3c6vCRQRbYXkfs523Xohgu18pWQKPicodwlElVPVIJSGure0BKNtGsoIDGuwaSWVDTDtLve5ScEG+A/m4n/FsxNpqgAAAABJRU5ErkJggg==",
     148: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADgAAAA4BAMAAABaqCYtAAAAD1BMVEX///+MnP8pc70AAAD///9LLVbvAAAABXRSTlP/////APu2DlMAAAHiSURBVHic1ZW9dhoxEEbvYLc20lI7Xuh9wJBHyOsn4JMas05qmAH6nRTSLlpM0kfNHunuN3+aOZJv/H2N/sH+c2gAh9uwXQO0dhNKa9Bu1iX0Du4BZOhz10urHex5sQKGRNwAfHO3ueVzDbU1PEkB22MO5+Xn01ofaKrmAvsI5FHGTvXa1p99chodozTPv0bp4B5gezqmX32c7EwLnzFLW0MiNJ2l5DNvJPDAuO6EWRnTRpE3OM1CCdkqwL6BZVeKHu7MDdqPgBs9yjBE6Ty7QhxA4li5sXIquPUx9yXJqURQ6Co8VBKjecNUYu+ugMgzAaYxPhrATg8FpDIF8Lsv0KqraQFzeqp3YAqoXaDMvYH2h5o5+LuihdIJIMmCy0zNm+u+nYKBwEwJV1AiTznfmkMP27eU8OzcN7hcAhIMkIDjIQakTAWpIfe+xIjgTQe3dfoGXxj5EkIHwyUqwy3N1vV8prlVI3yGIpwdXMUGMPXVRzLoCp8LH7DaurMOTgwFPKBBr2Ey5Ud8OcmNK+G+R6A4uI3RMFTKPGXA71oWSRoLs9YZYMLB4Fhc2SSFoa8gCw7v79MiIJkb4OcAVAtYhTzZSboh+O4rwKhaeQTk8gDod1hWFOuiJK7wASshw1kA/gCywMSIY++4qAAAAABJRU5ErkJggg==",
-    149: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADgAAAA4BAMAAABaqCYtAAAAD1BMVEX////GjCFaUowAAAD///+MsUFxAAAABXRSTlP/////APu2DlMAAAK7SURBVHicbZRBl+I2EIQ/yXPdpQW5wgrdQ2D5C/n7LAx7xhbkjC1NzpZykAzDvPRF8itXd6nUavU3z0gR8+kTPW26AP3hMAD5K9hdjrk/7beHAJfwCuZLs+uvjVlsjyBfmJdmJ3wjqMUY8mkC38oifwiIyUG2x78aIUUlEzP9Ltu2GxbLX4A6dA+mAkhAat1iEUHZGGSqOQ4h+6sHWowFRHdTWrU9HENAW6CdDjKBudmPY2Z5tkAHpHe7ChW8/1J7oPnzDKRQRRQwvwtGAU1xC4CProD93HZohT99p1D7eajM7K1OA0LaVCWDfzjU6oxtNeDrLSR+xMoUAh92yTOsC+RV0JD8D8gf/oklPTArzCIbhX2gGajG6yjx6YoFrqBMuQprSud4NCyPYcqEBlGiRIkrxBM5kIwotGjQAmJMAlasSkVlwKDBQB+FuUV75yl/K6nnTEPXgZq75FoEt+qquDfI/busgZRcC9q1wCAVvHijBdAe0GMLBF2vLHvFGsg95JAsMNmh6UsTH3sPYYa24K4plLQZtHC8jwqIXAdHW9vuLV8VkO8qCmy9SpvTw25NngH3sqgY+AewpVU0MZKGEyoCzATAfa/MfjYDT2HeFKSfrp1uSKkI36hMgDRh6ISAIDPBcrfAvzSeUGoK6KuKEYicQV22D6b2QJ7NBDKMFtOwrWNBG2AVY3mElvP6sv0AdsUhxXMK3Bjf94cmTm9FbSaZ+kRyjAd2K7QUQZqBR7QOGrRdV/tMsmcAlhZondswnqWCan/bThWB1ngWu8l4zC5ZwJ2SA5q2dlcBMflmcQO0zjabKmYC8yndnDE/4brY+Ke6MocUSWHyvni+5jOzeqBSe7Pg5JX5iHRzn8exBtDuIcJ8HtUaUMt7wUSt4QsIJdf82r9gpeaiqVmn9eUopZDaqf9hTmFeMf4DQbEYN2aMzAUAAAAASUVORK5CYII="
+    149: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADgAAAA4BAMAAABaqCYtAAAAD1BMVEX////GjCFaUowAAAD///+MsUFxAAAABXRSTlP/////APu2DlMAAAK7SURBVHicbZRBl+I2EIQ/yXPdpQW5wgrdQ2D5C/n7LAx7xhbkjC1NzpZykAzDvPRF8itXd6nUavU3z0gR8+kTPW26AP3hMAD5K9hdjrk/7beHAJfwCuZLs+uvjVlsjyBfmJdmJ3wjqMUY8mkC38oifwiIyUG2x78aIUUlEzP9Ltu2GxbLX4A6dA+mAkhAat1iEUHZGGSqOQ4h+6sHWowFRHdTWrU9HENAW6CdDjKBudmPY2Z5tkAHpHe7ChW8/1J7oPnzDKRQRRQwvwtGAU1xC4CProD93HZohT99p1D7eajM7K1OA0LaVCWDfzjU6oxtNeDrLSR+xMoUAh92yTOsC+RV0JD8D8gf/oklPTArzCIbhX2gGajG6yjx6YoFrqBMuQprSud4NCyPYcqEBlGiRIkrxBM5kIwotGjQAmJMAlasSkVlwKDBQB+FuUV75yl/K6nnTEPXgZq75FoEt+qquDfI/busgZRcC9q1wCAVvHijBdAe0GMLBF2vLHvFGsg95JAsMNmh6UsTH3sPYYa24K4plLQZtHC8jwqIXAdHW9vuLV8VkO8qCmy9SpvTw25NngH3sqgY+AewpVU0MZKGEyoCzATAfa/MfjYDT2HeFKSfrp1uSKkI36hMgDRh6ISAIDPBcrfAvzSeUGoK6KuKEYicQV22D6b2QJ7NBDKMFtOwrWNBG2AVY3mElvP6sv0AdsUhxXMK3Bjf94cmTm9FbSaZ+kRyjAd2K7QUQZqBR7QOGrRdV/tMsmcAlhZondswnqWCan/bThWB1ngWu8l4zC5ZwJ2SA5q2dlcBMflmcQO0zjabKmYC8yndnDE/4brY+Ke6MocUSWHyvni+5jOzeqBSe7Pg5JX5iHRzn8exBtDuIcJ8HtUaUMt7wUSt4QsIJdf82r9gpeaiqVmn9eUopZDaqf9hTmFeMf4DQbEYN2aMzAUAAAAASUVORK5CYII=",
+    150: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADgAAAA4BAMAAABaqCYtAAAAD1BMVEX///+1pc6EKaUAAAD///+Th575AAAABXRSTlP/////APu2DlMAAAJVSURBVHicdZQ9ctswEEbfIm4t7KqPReEAmUnOkOvL8qQ3SLk3Acq1iRQkQSpyUGHw5tv/hfxmOWVQoDWtL67eeD1nGF9bvoI6ttDLmOvLAxvqEzdnA7PzkYO6r3yO3VOHXLbKjU/OGc//IIUMm4BW2HN3KiwvIAC09/AdWOO89ymL9kuYXfM1vApPfH8GnvIdPArsP24jWqMFFAeuuzfrfvC24wA0tQy18AlG6YHj550y9SAtsGnKAks7yHQ9llz5DHvvr14DYV+SVO3sU66+BGJIkgzbmi1tSV5JOSBF4zp+DuhjFkB2JeZyId5WSDMgjy8XHRVIucI+O+tVZHdpEM6jkvuZunJuT4Y8nv5YHmFqakrEBA4dJdK9sEuE2QNjTPGUceCUvTdDQlKEAbVMq5xxEg7IY2rgiA3KLzWzQBFpcFjBCxBSVmQfL6ZYUNRwsAecCwnE2w5sTi7hQIK+NZoAyqmDDpCG41QEvTaSgJILMO4AZG+GA2RZvdIByFQC0aUrqQDWIrim4yeYW2o79UhO6Zu6Q2rGDKJrs33OPFLG5pBL2yyz+TCZL+ti1oYtSpNhkBfgDeC6zOYUkFTlRrfO0FAXTId/YfG494mvw7fA/QXRrGgB/LLFyzp43K5D/I3POU+xgetsUbLdQkS1mEoGfPW6QJUC5gHLNaKq9BkhgxXi8j8uAaUWU3TQKIUYhmaj7J9hiIgp4PS17VZYnkuy3cSEz0v+7FezvWbXfxwACUTEpmLVPA1MAbMgijuuyn3nmqhz7haWAs8tC6Kh/nt1s/8C6p/oB4RZtGUAAAAASUVORK5CYII=",
+    151: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADgAAAA4BAMAAABaqCYtAAAAD1BMVEX/////e/85WtYAAAD////Vv5DcAAAABXRSTlP/////APu2DlMAAAGESURBVHic7ZNBcptAEEVfQ7a2e9DaKoSzdZWxrpDrWyLZB7CzFtM6gGayQCQMkr13lWcDzOP/nt808oP3V/YB+4KfHPrzNfr+AsbfBkAY2gGAbzM2nG9aE1kqB6wDOL0eR4eZ8rBXBUCiyl2qjHuORwB2HK1I4QHiXTBAiYUmMDQgo1Jhk+bcAbGgAyDXBMYSkPuSZGXniD2QWQOwok7goTcQMoJdKhn3+tT1DFcA8eZJtQOpLYHyrIB12bjtE4jTLWBrgkGxqEm1L/9pZG0pzNwbFH78MNamkNohZT8+V7KA1A+1kj8GA7kdQ80mYUPL408F0HyhBH+LFAYQl7bEF/h1Hzumhk3Qe8BB6AFCbzMYfetNqj+oAUhezg/k9SV/anEZYHpIakrlOe2oQGXd+dfnpKZ7gJi5CtEstJWS5HTbU7PBBd5chWMRxa22CkWzwU1sllMcMB3logmAb6apvIS+TV6dN57Yot/fsx3+z/oVWzf9JFeg+Cn9lZpOXMJS5YLxFy5EhluLblOsAAAAAElFTkSuQmCC"
   }
 };
 
@@ -923,6 +994,8 @@ const MON = (id) => MONS[id - 1];
 // The pool: the original 150 minus the Legendaries (Articuno, Zapdos, Moltres, Mewtwo; Mew is #151).
 const POOL = MONS.filter((m) => !m.legendary);
 const POOL_IDS = new Set(POOL.map((m) => m.id));
+// Free Pick (builder) can use all 151, Legendaries included.
+const ALL_IDS = new Set(MONS.map((m) => m.id));
 
 // Which way each sprite faces as drawn (L / R / F = front), index = dex - 1.
 const FACING = {
@@ -937,7 +1010,7 @@ const SPRITE_STYLES = {
   retro: { label: "Retro", pixelated: true, url: (id) => SPRITE_DATA.retro[id] },
   art: { label: "Artwork", pixelated: false, url: (id) => `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png` },
 };
-if (typeof module !== "undefined") module.exports = { MONS, MON, POOL, POOL_IDS, TYPE_NAMES, HABITATS };
+if (typeof module !== "undefined") module.exports = { MONS, MON, POOL, POOL_IDS, ALL_IDS, TYPE_NAMES, HABITATS };
 
 </script>
 <script>
@@ -1218,7 +1291,7 @@ const GAME = (() => {
   const posName = (id) => POS_NAMES[id];
 
   // ---------- Storage ----------
-  const KEYS = { lineup: "starting6-lineup-v1", style: "starting6-style-v1", mode: "starting6-mode-v1", draft: "starting6-draft-v1", stats: "starting6-stats-v1" };
+  const KEYS = { lineup: "starting6-lineup-v1", style: "starting6-style-v1", mode: "starting6-mode-v1", draft: "starting6-draft-v1", stats: "starting6-stats-v1", pool: "starting6-pool-v1", freeStats: "starting6-free-stats-v1" };
   const store = {
     get(k) { try { return JSON.parse(localStorage.getItem(k) || "null"); } catch (_) { return null; } },
     set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (_) { /* storage off */ } },
@@ -1231,24 +1304,28 @@ const GAME = (() => {
     const used = new Set();
     for (const slot of GAME.SLOT_IDS) {
       const id = Number(obj && obj[slot]);
-      if (POOL_IDS.has(id) && !used.has(id)) { out[slot] = id; used.add(id); }
+      if (ALL_IDS.has(id) && !used.has(id)) { out[slot] = id; used.add(id); }
     }
     return out;
   }
   const isStyle = (s) => typeof s === "string" && Object.prototype.hasOwnProperty.call(SPRITE_STYLES, s);
 
-  // Share hash: 6 base-36 dex numbers in slot order ("0" = empty), then "~style".
+  // Share hash: 6 base-36 dex numbers (1–151) in slot order ("0" = empty), then "~style", then
+  // "~all" when the lineup was built from all 151 (Legendaries included).
+  const hasLegend = (lu) => Object.values(lu).some((id) => MON(id).legendary);
   function encodeHash() {
-    return `${GAME.SLOT_IDS.map((s) => (lineup[s] ? lineup[s].toString(36) : "0")).join("-")}~${style}`;
+    const ids = GAME.SLOT_IDS.map((s) => (lineup[s] ? lineup[s].toString(36) : "0")).join("-");
+    return `${ids}~${style}${poolAll || hasLegend(lineup) ? "~all" : ""}`;
   }
   function parseHash(str) {
     if (!str) return null;
-    const [ids, st] = str.split("~");
+    const [ids, st, pool] = str.split("~");
     const parts = ids.split("-");
     if (parts.length !== GAME.SLOT_IDS.length) return null;
     const obj = {};
     parts.forEach((p, i) => { obj[GAME.SLOT_IDS[i]] = parseInt(p, 36); });
-    return { lineup: sanitize(obj), style: isStyle(st) ? st : null };
+    const lu = sanitize(obj);
+    return { lineup: lu, style: isStyle(st) ? st : null, all: pool === "all" || hasLegend(lu) };
   }
   const CUP_HASHES = ["#cup", "#challenge", "#draft"];
   // Works from any folder (e.g. user.github.io/pokemon-starting-six/) and from file://.
@@ -1259,6 +1336,7 @@ const GAME = (() => {
   const wantsCup = CUP_HASHES.includes(location.hash.toLowerCase());
   const shared = wantsCup ? null : parseHash(location.hash.slice(1));
   let style = (shared && shared.style) || (isStyle(store.get(KEYS.style)) ? store.get(KEYS.style) : "pixel");
+  let poolAll = shared ? shared.all : store.get(KEYS.pool) === "all";
   let builderLineup = shared ? shared.lineup : (store.get(KEYS.lineup) ? sanitize(store.get(KEYS.lineup)) : { ...DEFAULT_LINEUP });
   let draft = loadDraft();
   let mode = wantsCup || (!shared && store.get(KEYS.mode) === "draft") ? "draft" : "builder";
@@ -1790,15 +1868,31 @@ const GAME = (() => {
   closeOnBackdrop(picker);
   function buildPicker() {
     const frag = document.createDocumentFragment();
-    for (const p of POOL) {
+    for (const p of MONS) {
       const el = document.createElement("button");
       el.type = "button";
-      el.className = "mon";
-      el.innerHTML = `<img loading="lazy" alt="" width="64" height="64"><span class="num">#${String(p.id).padStart(3, "0")}</span><span class="nm"></span>`;
+      el.className = `mon${p.legendary ? " legend" : ""}`;
+      el.innerHTML = `<img loading="lazy" alt="" width="72" height="72"><span class="num">#${String(p.id).padStart(3, "0")}</span><span class="nm"></span>` +
+        `<span class="mini-types">${p.types.map((t) => `<i class="t-${t}" title="${capital(t)}"></i>`).join("")}</span>` +
+        (p.legendary ? '<span class="star" title="Legendary">★</span>' : "");
       el.querySelector(".nm").textContent = p.name;
+      el.setAttribute("aria-label", `${p.name}, ${p.types.map(capital).join("/")}${p.legendary ? ", Legendary" : ""}`);
       el.addEventListener("click", () => { assign(pickerSlot, p.id); picker.close(); });
-      monEls.push({ el, img: el.querySelector("img"), p, search: `${p.name.toLowerCase()} ${p.id} ${p.types.join(" ")}` });
+      monEls.push({ el, img: el.querySelector("img"), p, search: `${p.name.toLowerCase()} ${p.id}` });
       frag.appendChild(el);
+    }
+    // Type filter chips (only types that exist in Gen 1).
+    const types = TYPE_NAMES.filter((t) => MONS.some((m) => m.types.includes(t)));
+    const row = $("picker-types");
+    for (const t of ["all", ...types]) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = `tchip${t === "all" ? " on" : ` t-${t}`}`;
+      b.dataset.type = t;
+      b.textContent = t === "all" ? "All types" : capital(t);
+      b.setAttribute("aria-pressed", t === "all");
+      b.addEventListener("click", () => setTypeFilter(t));
+      row.appendChild(b);
     }
     const empty = document.createElement("p");
     empty.className = "empty-msg";
@@ -1813,12 +1907,38 @@ const GAME = (() => {
       m.img.classList.toggle("pixelated", SPRITE_STYLES[style].pixelated);
     }
   }
+  let typeFilter = "all";
+  function setTypeFilter(t) {
+    typeFilter = t;
+    for (const b of $("picker-types").children) {
+      const on = b.dataset.type === t;
+      b.classList.toggle("on", on);
+      b.setAttribute("aria-pressed", on);
+    }
+    filterPicker();
+  }
   function filterPicker() {
     const q = pickerSearch.value.trim().toLowerCase().replace(/^#0*/, "");
     let shown = 0;
-    for (const m of monEls) { m.el.hidden = Boolean(q) && !m.search.includes(q); if (!m.el.hidden) shown++; }
-    pickerGrid.querySelector(".empty-msg").hidden = shown > 0;
+    for (const m of monEls) {
+      m.el.hidden = (!poolAll && m.p.legendary) || (Boolean(q) && !m.search.includes(q)) || (typeFilter !== "all" && !m.p.types.includes(typeFilter));
+      if (!m.el.hidden) shown++;
+    }
+    const empty = pickerGrid.querySelector(".empty-msg");
+    empty.hidden = shown > 0;
+    empty.textContent = !poolAll && /articuno|zapdos|moltres|mewtwo|mew/.test(q) ? "Legendaries are off. Switch to “Pick any of the 151” to use them." : "No Pokémon match that search.";
+    $("picker-count").textContent = `${shown} shown`;
   }
+  // Pool: the classic 146 (no Legendaries, same as the Cup Challenge) or any of the 151.
+  const poolInputs = [...document.querySelectorAll('input[name="pool"], input[name="pool-panel"]')];
+  function setPool(all, save = true) {
+    poolAll = all;
+    for (const i of poolInputs) i.checked = (i.value === "all") === all;
+    if (save) store.set(KEYS.pool, all ? "all" : "classic");
+    $("gen-pool").textContent = all ? "any of the original 151 Pokémon, Legendaries included" : "the original 150 Pokémon, no legendaries";
+    filterPicker();
+  }
+  for (const i of poolInputs) i.addEventListener("change", () => { if (i.checked) setPool(i.value === "all"); });
   function openPicker(slotId) {
     pickerSlot = slotId;
     const slot = SPOT_BY_ID.get(slotId);
@@ -1833,7 +1953,7 @@ const GAME = (() => {
       m.el.classList.toggle("here", at === slotId);
     }
     pickerSearch.value = "";
-    filterPicker();
+    setTypeFilter("all");
     showDialog(picker);
     pickerGrid.scrollTop = 0;
     if (window.matchMedia("(pointer: fine)").matches) pickerSearch.focus();
@@ -1877,7 +1997,7 @@ const GAME = (() => {
     try { await navigator.clipboard.writeText(url); toast("Share link copied!"); } catch (_) { window.prompt("Copy this link:", url); }
   });
   $("btn-random").addEventListener("click", () => {
-    const ids = POOL.map((p) => p.id);
+    const ids = (poolAll ? MONS : POOL).map((p) => p.id);
     for (let i = ids.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [ids[i], ids[j]] = [ids[j], ids[i]]; }
     for (const k of Object.keys(lineup)) delete lineup[k];
     GAME.SLOT_IDS.forEach((s, i) => { lineup[s] = ids[i]; });
@@ -1934,14 +2054,31 @@ const GAME = (() => {
     return resultCache.value;
   }
 
-  function loadStats() {
-    const s = store.get(KEYS.stats);
+  function loadStats(key) {
+    const s = store.get(key);
     const n = (v, max) => (Number.isInteger(v) && v >= 0 ? Math.min(v, max) : 0);
     return s && typeof s === "object"
       ? { runs: n(s.runs, 1e9), cups: n(s.cups, 1e9), bestScore: n(s.bestScore, 1000), bestReach: n(s.bestReach, 5), bestPts: n(s.bestPts, 164) }
       : { runs: 0, cups: 0, bestScore: 0, bestReach: 0, bestPts: 0 };
   }
-  const stats = loadStats();
+  const stats = loadStats(KEYS.stats);
+  // Free Pick seasons keep their own records so Cup Challenge bests stay meaningful.
+  const freeStats = loadStats(KEYS.freeStats);
+  function recordFree(res) {
+    freeStats.runs += 1;
+    if (res.cup) freeStats.cups += 1;
+    freeStats.bestScore = Math.max(freeStats.bestScore, res.score);
+    freeStats.bestReach = Math.max(freeStats.bestReach, res.roundReached);
+    freeStats.bestPts = Math.max(freeStats.bestPts, res.pts);
+    store.set(KEYS.freeStats, freeStats);
+    updateFreeStats();
+  }
+  function updateFreeStats() {
+    $("fp-score").textContent = freeStats.runs ? freeStats.bestScore : "–";
+    $("fp-finish").textContent = freeStats.cups ? `🏆 ×${freeStats.cups}` : freeStats.runs ? FINISH_SHORT[freeStats.bestReach] : "–";
+    $("fp-finish").classList.toggle("cup", freeStats.cups > 0);
+    $("fp-runs").textContent = freeStats.runs;
+  }
   function recordRun(res) {
     stats.runs += 1;
     if (res.cup) stats.cups += 1;
@@ -2209,17 +2346,46 @@ const GAME = (() => {
   $("dp-change").addEventListener("click", openDraftPick);
   $("dp-restart").addEventListener("click", startNewRun);
   $("dp-new").addEventListener("click", startNewRun);
-  $("season-new").addEventListener("click", startNewRun);
-  $("dp-season").addEventListener("click", openSeason);
-  $("dp-share").addEventListener("click", shareResults);
-  $("season-share").addEventListener("click", shareResults);
+  $("season-new").addEventListener("click", () => (seasonCtx && seasonCtx.kind === "free" ? playFree() : startNewRun()));
+  $("dp-season").addEventListener("click", () => openSeason());
+  $("dp-share").addEventListener("click", () => shareResults(cupCtx()));
+  $("season-share").addEventListener("click", () => shareResults(seasonCtx));
+
+  // ---------- Free Pick season (hand-picked six from the builder) ----------
+  let seasonCtx = null;
+  let cupCtxCache = null;
+  function cupCtx() {
+    const res = draftResult();
+    if (!res) return null;
+    if (!cupCtxCache || cupCtxCache.res !== res) cupCtxCache = { kind: "cup", res, lineup: draft.lineup };
+    return cupCtxCache;
+  }
+  function playFree() {
+    if (mode !== "builder") return;
+    const missing = GAME.SLOT_IDS.filter((s) => !builderLineup[s]);
+    if (missing.length) {
+      toast(`Fill all six spots first (${missing.join(", ")} ${missing.length === 1 ? "is" : "are"} empty)`);
+      return;
+    }
+    const seed = crypto.getRandomValues(new Uint32Array(1))[0] | 0;
+    const team = GAME.teamScore(builderLineup);
+    const res = { ...team, ...GAME.simulateSeason(team.score, seed) };
+    recordFree(res);
+    openSeason({ kind: "free", res, lineup: { ...builderLineup } });
+  }
+  $("btn-play").addEventListener("click", playFree);
 
   // ---------- Season results ----------
-  function openSeason() {
-    const res = draftResult();
-    if (!res) return;
-    $("season-heading").textContent = res.cup ? "Cup champions! 🏆" : "Season results";
-    const fits = SPOTS.map((s) => ({ pos: s.pos, id: draft.lineup[s.id], v: GAME.positionScore(draft.lineup[s.id], s.id) })).sort((a, b) => b.v - a.v);
+  function openSeason(ctx = cupCtx()) {
+    if (!ctx) return;
+    seasonCtx = ctx;
+    const res = ctx.res;
+    const free = ctx.kind === "free";
+    $("season-heading").textContent = (free ? "Free Pick · " : "") + (res.cup ? "Cup champions! 🏆" : "Season results");
+    $("season-new").textContent = free ? "Play again" : "New run";
+    $("season-kind").textContent = free ? "Free Pick season: hand-picked six, so it doesn't count toward Cup Challenge records." : "";
+    $("season-kind").hidden = !free;
+    const fits = SPOTS.map((s) => ({ pos: s.pos, id: ctx.lineup[s.id], v: GAME.positionScore(ctx.lineup[s.id], s.id) })).sort((a, b) => b.v - a.v);
     const top = fits[0], low = fits[fits.length - 1];
     $("season-notes").textContent = `${GAME.recordText(res)}, ${res.pts} points, ${ordinal(res.rank)} of 32 overall. ${FINISH[res.roundReached]}. ` +
       `Forwards ${res.forwards} · Defense ${res.defense} · Goaltending ${res.goal}. Best fit: ${nameOf(top.id)} at ${top.pos}. Weakest link: ${nameOf(low.id)} at ${low.pos}.`;
@@ -2248,9 +2414,8 @@ const GAME = (() => {
     $("season-hint").textContent = touch ? "Press and hold the card to save it, or tap Share." : "Right-click the card to copy or save it.";
     showDialog(seasonDlg);
     seasonDlg.querySelector(".season-body").scrollTop = 0;
-    const forDraft = draft;
-    prepareCard().then((card) => {
-      if (draft !== forDraft) return;
+    prepareCard(ctx).then((card) => {
+      if (seasonCtx !== ctx) return;
       if (!card) { $("season-hint").textContent = "Couldn't draw the card. Check your connection and try again."; return; }
       img.src = card.url;
       img.classList.remove("loading");
@@ -2261,18 +2426,19 @@ const GAME = (() => {
   // ---------- Share card (1200×1500 PNG) ----------
   const CARD_W = 1200, CARD_H = 1500;
   let card = null;
-  function prepareCard() {
-    if (!card || card.draft !== draft) {
-      const promise = buildCard().then((c) => new Promise((resolve) => {
+  function prepareCard(ctx) {
+    if (!card || card.ctx !== ctx) {
+      const promise = buildCard(ctx).then((c) => new Promise((resolve) => {
         const url = c.toDataURL("image/png");
         c.toBlob((blob) => resolve(blob ? { blob, url } : null), "image/png");
       }), () => null);
-      card = { draft, promise };
+      card = { ctx, promise };
     }
     return card.promise;
   }
-  async function buildCard() {
-    const res = draftResult();
+  async function buildCard(ctx) {
+    const res = ctx.res;
+    const title = ctx.kind === "free" ? "FREE PICK SEASON" : "CUP CHALLENGE";
     await document.fonts.ready;
     await waitForArt();
     const c = document.createElement("canvas");
@@ -2292,10 +2458,10 @@ const GAME = (() => {
     }
     text("POKÉMON STARTING SIX", X0, 92, `700 28px Inter, ${FONT}`, "#a1a1aa");
     g.font = `800 64px Inter, ${FONT}`;
-    const gold = g.createLinearGradient(X0, 0, X0 + g.measureText("CUP CHALLENGE").width, 0);
-    gold.addColorStop(0, "#fde047");
-    gold.addColorStop(1, "#f59e0b");
-    text("CUP CHALLENGE", X0, 160, g.font, gold);
+    const gold = g.createLinearGradient(X0, 0, X0 + g.measureText(title).width, 0);
+    gold.addColorStop(0, ctx.kind === "free" ? "#67e8f9" : "#fde047");
+    gold.addColorStop(1, ctx.kind === "free" ? "#60a5fa" : "#f59e0b");
+    text(title, X0, 160, g.font, gold);
     // Record + points
     text(GAME.recordText(res), X0 - 4, 318, `800 150px ${FONT}`, res.cup ? "#fbbf24" : "#ffffff");
     text(`${res.pts} PTS  ·  ${ordinal(res.rank)} OVERALL`, X0, 368, `700 30px Inter, ${FONT}`, "#d4d4d8");
@@ -2330,33 +2496,42 @@ const GAME = (() => {
     });
     // Lineup
     hideBanner = true;
+    const shown = lineup;
+    lineup = ctx.lineup;
     render();
+    lineup = shown;
     hideBanner = false;
     const rh = (CARD_W * H) / W;
     g.drawImage(canvas, 0, 584, CARD_W, rh);
     scheduleRender();
-    text("Can you win the Cup?", X0, 1484, `800 36px Inter, ${FONT}`, "#ffffff");
+    text(ctx.kind === "free" ? "Pick any six. Win the Cup?" : "Can you win the Cup?", X0, 1484, `800 36px Inter, ${FONT}`, "#ffffff");
     text(siteLabel(), X1, 1484, `700 30px Inter, ${FONT}`, "#67e8f9", "right");
     return c;
   }
-  function shareText(res) {
+  function shareText(ctx) {
+    const res = ctx.res;
     const series = res.playoffs.map((s) => (s.won ? "🟩" : "🟥")).join("") || "❌";
+    if (ctx.kind === "free") {
+      const ids = GAME.SLOT_IDS.map((s) => ctx.lineup[s].toString(36)).join("-");
+      const six = GAME.SLOT_IDS.map((s) => `${s} ${nameOf(ctx.lineup[s])}`).join(", ");
+      return `${res.cup ? "🏆 My hand-picked six won the Cup!" : "🏒 My hand-picked six went " + GAME.recordText(res)} (Free Pick)\n${six}\n${GAME.recordText(res)} · ${res.pts} pts · ${FINISH[res.roundReached]}\nTeam Score ${res.score}/1000 · Playoffs ${series}\n${pageUrl()}#${ids}~${style}~all`;
+    }
     return `${res.cup ? "🏆 I won the Cup" : "🏒 I went " + GAME.recordText(res)} in the Cup Challenge!\n${GAME.recordText(res)} · ${res.pts} pts · ${FINISH[res.roundReached]}\nTeam Score ${res.score}/1000 · Playoffs ${series}\nCan you win the Cup? ${pageUrl()}#cup`;
   }
-  async function shareResults() {
-    const res = draftResult();
-    if (!res) return;
-    const post = shareText(res);
+  async function shareResults(ctx) {
+    if (!ctx) return;
+    const res = ctx.res;
+    const post = shareText(ctx);
     const touch = window.matchMedia("(pointer: coarse)").matches;
     const copied = touch ? null : (navigator.clipboard ? navigator.clipboard.writeText(post).then(() => true, () => false) : Promise.resolve(false));
-    const cardData = await prepareCard();
+    const cardData = await prepareCard(ctx);
     if (!cardData) { toast("Couldn't make the card. Try again."); return; }
-    const file = new File([cardData.blob], `cup-challenge-${res.w}-${res.l}-${res.otl}.png`, { type: "image/png" });
+    const file = new File([cardData.blob], `${ctx.kind === "free" ? "free-pick" : "cup-challenge"}-${res.w}-${res.l}-${res.otl}.png`, { type: "image/png" });
     if (touch) {
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         try { await navigator.share({ files: [file], text: post }); return; } catch (err) { if (err && err.name === "AbortError") return; }
       }
-      if (!seasonDlg.open) openSeason();
+      if (!seasonDlg.open) openSeason(ctx);
       toast("Press and hold the card to save it");
       return;
     }
@@ -2368,7 +2543,7 @@ const GAME = (() => {
   const cta = $("cta");
   function applyMode() {
     const d = mode === "draft";
-    for (const dlg of d ? [picker] : [pickDlg, seasonDlg]) if (dlg.open) dlg.close();
+    for (const dlg of [picker, pickDlg, seasonDlg]) if (dlg.open) dlg.close();
     if (!d) cancelRoll();
     document.body.classList.toggle("mode-draft", d);
     cta.classList.toggle("back", d);
@@ -2399,6 +2574,7 @@ const GAME = (() => {
     const next = parseHash(location.hash.slice(1));
     if (!next) return;
     builderLineup = next.lineup;
+    if (next.all) setPool(true, false);
     if (mode !== "builder") { mode = "builder"; clearTimeout(autoTimer); }
     lineup = builderLineup;
     setStyle(next.style || style);
@@ -2408,12 +2584,14 @@ const GAME = (() => {
   // ---------- Boot ----------
   buildHotspots();
   buildPicker();
+  setPool(poolAll, !shared);
+  updateFreeStats();
   setStyle(style);
   applyMode();
   render();
   document.fonts.ready.then(scheduleRender);
   // Lets scripted tests read the game state (no effect on play).
-  window.__starting6 = { get draft() { return draft; }, get lineup() { return lineup; }, result: () => draftResult(), encodeHash };
+  window.__starting6 = { get draft() { return draft; }, get lineup() { return lineup; }, result: () => draftResult(), get season() { return seasonCtx; }, get poolAll() { return poolAll; }, encodeHash };
 })();
 
 </script>
