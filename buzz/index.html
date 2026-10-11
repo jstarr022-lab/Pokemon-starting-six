@@ -1,0 +1,2338 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Buzz Board · Trivia with friends</title>
+  <meta name="description" content="A quiz-show trivia game for 2 to 6 players. Everyone buzzes in from their own phone." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://jstarr022-lab.github.io/Pokemon-starting-six/buzz/" />
+  <meta property="og:site_name" content="Buzz Board" />
+  <meta property="og:title" content="Buzz Board · Quiz-show trivia night" />
+  <meta property="og:description" content="Trivia for 2 to 6 players. Pick a clue, buzz in from your phone, bet it all on the Final Clue. General knowledge with a side of sports and pro wrestling." />
+  <meta property="og:image" content="https://jstarr022-lab.github.io/Pokemon-starting-six/buzz/og.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="A quiz-show board of trivia categories with gold point values and a big red buzz button." />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Buzz Board" />
+  <meta name="twitter:description" content="Quiz-show trivia night. Everyone buzzes in from their own phone." />
+  <meta name="twitter:image" content="https://jstarr022-lab.github.io/Pokemon-starting-six/buzz/og.png" />
+  <meta name="theme-color" content="#0a0c18" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23f5c542'/%3E%3Ctext x='32' y='46' font-family='Arial Black,Arial,sans-serif' font-weight='900' font-size='40' text-anchor='middle' fill='%231a1405'%3EB%3C/text%3E%3C/svg%3E" />
+  <style>
+:root {
+  --bg: #0a0c18; --panel: #141832; --panel2: #1b2044; --line: rgba(255,255,255,.1);
+  --text: #eef0ff; --dim: #a3a9d0; --gold: #f5c542; --gold2: #ffdf7e; --red: #ff5a5f; --green: #3ddc84;
+  --cell: linear-gradient(180deg, #1d2350 0%, #141838 100%);
+  --r: 14px;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--text); }
+body { min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; -webkit-tap-highlight-color: transparent; }
+[hidden] { display: none !important; }
+.bg { position: fixed; inset: 0; z-index: -1; background:
+  radial-gradient(900px 500px at 15% -10%, rgba(91,104,255,.25), transparent 60%),
+  radial-gradient(700px 500px at 110% 10%, rgba(245,197,66,.12), transparent 60%),
+  linear-gradient(180deg, #0c0f22, #07080f); }
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+.top { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; padding-top: max(10px, env(safe-area-inset-top)); }
+.brand { display: flex; align-items: center; gap: 8px; color: var(--text); text-decoration: none; font-weight: 900; letter-spacing: .5px; text-transform: uppercase; font-size: 15px; }
+.logo { width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center; background: var(--gold); color: #1a1405; font-weight: 900; box-shadow: 0 0 0 2px rgba(245,197,66,.3), 0 4px 14px rgba(245,197,66,.35); }
+.top-r { display: flex; align-items: center; gap: 8px; }
+.chip { font-weight: 800; letter-spacing: 2px; font-size: 13px; padding: 4px 10px; border-radius: 99px; background: var(--panel2); border: 1px solid var(--line); }
+.net-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); }
+.net-dot.lost, .net-dot.connecting { background: #ffb020; box-shadow: 0 0 8px #ffb020; }
+main { flex: 1; width: 100%; max-width: 1400px; margin: 0 auto; padding: 0 12px 16px; }
+.panel.narrow { max-width: 460px; margin: 0 auto; }
+.hero { font-size: 44px; line-height: 1; margin: 18px 0 18px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; color: var(--gold);
+  text-shadow: 0 2px 0 #8a6510, 0 8px 30px rgba(245,197,66,.35); }
+.hero small { display: block; font-size: 15px; font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--dim); text-shadow: none; margin-top: 10px; line-height: 1.35; }
+.field { display: block; margin-bottom: 12px; }
+.field span { display: block; font-size: 13px; color: var(--dim); margin-bottom: 6px; }
+input { width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: #0e1128; font-size: 17px; outline: none; }
+input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(245,197,66,.2); }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 14px; margin-bottom: 12px; }
+.card h2, h2.sub { margin: 0 0 10px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: var(--dim); }
+h2.sub { margin: 18px 0 8px; display: flex; justify-content: space-between; }
+.row { display: flex; gap: 8px; align-items: center; }
+.row.center { justify-content: center; flex-wrap: wrap; }
+.code-in { text-transform: uppercase; letter-spacing: 4px; font-weight: 800; text-align: center; }
+.btn, .ghost { border: 0; border-radius: 12px; padding: 12px 16px; font-weight: 800; background: var(--panel2); border: 1px solid var(--line); white-space: nowrap; }
+.btn.gold { background: linear-gradient(180deg, var(--gold2), var(--gold)); color: #1d1604; border-color: transparent; box-shadow: 0 6px 18px rgba(245,197,66,.25); }
+.btn:disabled { opacity: .55; cursor: default; }
+.ghost { background: transparent; }
+.sm { padding: 6px 10px; font-size: 13px; border-radius: 10px; }
+.wide { width: 100%; margin-top: 8px; }
+.big { padding: 16px; font-size: 18px; }
+.note { font-size: 13px; color: var(--dim); line-height: 1.4; margin: 10px 0 0; }
+.center { text-align: center; }
+.linkbtn { background: none; border: 0; color: var(--gold); font-weight: 700; font-size: 13px; padding: 4px 6px; text-decoration: underline; }
+.how { margin-top: 14px; color: var(--dim); font-size: 14px; }
+.how summary { cursor: pointer; font-weight: 700; color: var(--text); }
+.how li { margin: 6px 0; line-height: 1.4; }
+.wait-msg { text-align: center; color: var(--dim); margin: 16px 0; line-height: 1.4; }
+.spinner { width: 42px; height: 42px; margin: 40px auto 0; border-radius: 50%; border: 4px solid var(--line); border-top-color: var(--gold); animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+/* Lobby */
+.room-big { text-align: center; margin: 14px 0; }
+.room-big small { display: block; color: var(--dim); text-transform: uppercase; letter-spacing: 1px; font-size: 12px; }
+.room-big b { display: block; font-size: 56px; letter-spacing: 10px; color: var(--gold); font-weight: 900; text-shadow: 0 4px 24px rgba(245,197,66,.35); padding-left: 10px; }
+.lobby-url { font-size: 12px; color: var(--dim); word-break: break-all; }
+.players { list-style: none; padding: 0; margin: 0 0 12px; }
+.players li { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; margin-bottom: 6px; }
+.players li.me { border-color: rgba(245,197,66,.5); }
+.players li.empty { color: var(--dim); border-style: dashed; background: transparent; font-size: 14px; }
+.players .nm { font-weight: 700; flex: 1; }
+.players .tags { font-size: 12px; color: var(--dim); }
+.dot { width: 9px; height: 9px; border-radius: 50%; background: var(--green); flex: none; }
+.off .dot { background: #666; }
+.opt { margin-bottom: 10px; }
+.opt > span { display: block; font-size: 13px; color: var(--dim); margin-bottom: 6px; }
+.seg { display: flex; background: #0e1128; border-radius: 12px; padding: 3px; border: 1px solid var(--line); }
+.seg label { flex: 1; }
+.seg input { display: none; }
+.seg span { display: block; text-align: center; padding: 9px 4px; border-radius: 9px; font-size: 13px; font-weight: 700; color: var(--dim); }
+.seg input:checked + span { background: var(--gold); color: #1d1604; }
+.locked .seg { opacity: .75; }
+/* Game */
+.scores { display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 8px 6px; padding: 6px 0 6px; }
+.score { min-width: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 6px 10px; text-align: center; position: relative; }
+.score .nm { display: block; font-size: 12px; color: var(--dim); max-width: 110px; margin: 0 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.score b { font-size: 18px; color: var(--gold); font-variant-numeric: tabular-nums; }
+.score.neg b { color: var(--red); }
+.score.me { border-color: rgba(245,197,66,.55); }
+.score.ctl::after { content: "PICKS"; position: absolute; top: -7px; left: 50%; transform: translateX(-50%); font-size: 9px; font-weight: 900; letter-spacing: 1px; background: var(--gold); color: #1d1604; padding: 1px 6px; border-radius: 99px; }
+.score.ans { border-color: var(--green); box-shadow: 0 0 0 2px rgba(61,220,132,.4); animation: pulse 1s ease-in-out infinite; }
+.score.off { opacity: .5; }
+@keyframes pulse { 50% { box-shadow: 0 0 0 5px rgba(61,220,132,.15); } }
+.banner { text-align: center; font-weight: 800; font-size: 14px; color: var(--dim); padding: 6px 0 8px; }
+.banner.mine { color: var(--gold); animation: glow 1.4s ease-in-out infinite; }
+@keyframes glow { 50% { opacity: .65; } }
+.stage { position: relative; }
+.board { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; }
+.cat { background: linear-gradient(180deg, #232a63, #1a1f4a); border-radius: 8px; min-height: 58px; display: grid; place-items: center; padding: 4px 3px; text-align: center; }
+.cat span { font-size: 9px; font-weight: 900; text-transform: uppercase; line-height: 1.15; letter-spacing: 0; overflow-wrap: break-word; -webkit-hyphens: auto; hyphens: auto; }
+.cell { aspect-ratio: 1 / .78; border: 0; border-radius: 8px; background: var(--cell); color: var(--gold); font-weight: 900; font-size: 15px; font-variant-numeric: tabular-nums;
+  text-shadow: 0 2px 0 rgba(0,0,0,.5); box-shadow: inset 0 1px 0 rgba(255,255,255,.08); padding: 0; }
+.cell.used { background: rgba(255,255,255,.03); box-shadow: none; }
+.cell:disabled { cursor: default; }
+@media (hover: hover) { .board.can .cell:not(:disabled):hover { background: linear-gradient(180deg, #2b3480, #1c2260); } }
+.board.can .cell:not(:disabled):active { background: linear-gradient(180deg, #2b3480, #1c2260); transform: translateY(-1px); }
+.board.can .cell:not(:disabled) { outline: 1px solid rgba(245,197,66,.25); }
+.cell.live { background: var(--gold); }
+.cluebox { background: radial-gradient(800px 300px at 50% 0%, #283089, #161a44); border: 1px solid rgba(245,197,66,.3); border-radius: 16px; padding: 16px; box-shadow: 0 20px 60px rgba(0,0,0,.5); animation: pop .25s ease-out; }
+@keyframes pop { from { transform: scale(.94); opacity: 0; } }
+.cb-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: .5px; color: var(--dim); }
+.cb-head b { color: var(--gold); font-size: 20px; white-space: nowrap; }
+.cb-text { font-size: 22px; line-height: 1.32; font-weight: 700; margin: 14px 0; min-height: 3em; text-transform: uppercase; letter-spacing: .3px; text-shadow: 0 2px 0 rgba(0,0,0,.45); }
+.cluebox.dd .cb-text { color: var(--gold); font-size: 34px; text-align: center; font-weight: 900; padding: 18px 0; }
+.timer { height: 6px; background: rgba(255,255,255,.08); border-radius: 99px; overflow: hidden; }
+.timer i { display: block; height: 100%; width: 100%; background: var(--gold); border-radius: 99px; }
+.timer.reading i { background: #6f7bff; }
+.timer.small { height: 4px; margin-bottom: 8px; }
+.cb-status { margin-top: 10px; font-weight: 800; font-size: 15px; color: var(--dim); min-height: 1.3em; }
+.cb-status.open { color: var(--green); }
+.cb-status.answer { color: var(--gold); }
+.cb-status.result { color: var(--red); }
+.cb-log { list-style: none; padding: 0; margin: 8px 0 0; }
+.cb-log li { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 10px; background: rgba(0,0,0,.2); margin-top: 5px; font-size: 14px; }
+.cb-log .nm { font-weight: 800; }
+.cb-log q { flex: 1; color: var(--dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cb-log li.ok b { color: var(--green); }
+.cb-log li.no b { color: var(--red); }
+.cb-log .over { font-size: 10px; color: var(--gold); text-transform: uppercase; }
+.cb-answer { margin-top: 12px; padding: 12px; border-radius: 12px; background: rgba(245,197,66,.12); border: 1px solid rgba(245,197,66,.35); text-align: center; }
+.cb-answer small { display: block; color: var(--dim); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
+.cb-answer b { font-size: 22px; color: var(--gold2); }
+.donebox { text-align: center; padding: 10px 0; max-width: 520px; margin: 0 auto; }
+.trophy { font-size: 64px; filter: drop-shadow(0 8px 24px rgba(245,197,66,.5)); }
+.donebox h2 { font-size: 30px; margin: 6px 0 16px; color: var(--gold); }
+.final-scores { list-style: none; padding: 0; margin: 0 0 16px; counter-reset: n; }
+.final-scores li { display: flex; justify-content: space-between; padding: 12px 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; margin-bottom: 6px; font-size: 18px; counter-increment: n; }
+.final-scores li span::before { content: counter(n) ". "; color: var(--dim); }
+.final-scores li.top { border-color: var(--gold); background: rgba(245,197,66,.1); }
+.final-scores b { color: var(--gold); }
+.judge { margin-top: 12px; background: rgba(255,255,255,.03); border: 1px dashed rgba(255,255,255,.18); border-radius: 12px; padding: 10px 12px; }
+.judge-h { font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; color: var(--dim); }
+.judge-h small { text-transform: none; letter-spacing: 0; font-weight: 600; margin-left: 6px; }
+.judge-list { list-style: none; padding: 0; margin: 6px 0; font-size: 14px; }
+.judge-list li { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 3px 0; }
+.judge-list q { color: var(--dim); }
+#judge-btns { flex-wrap: wrap; }
+.tts { display: flex; gap: 6px; align-items: center; font-size: 13px; color: var(--dim); }
+.tts input { width: auto; }
+/* Phone dock */
+.dock { position: sticky; bottom: 0; margin-top: 12px; padding: 10px 0 max(10px, env(safe-area-inset-bottom)); background: linear-gradient(180deg, transparent, var(--bg) 22%); }
+.buzz { position: relative; display: block; width: 100%; height: 132px; border-radius: 22px; border: 0; font-size: 34px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase;
+  touch-action: manipulation; user-select: none; -webkit-user-select: none; transition: transform .06s, background .15s; }
+.buzz.wait { background: #252a4a; color: #7d84b4; }
+.buzz.live { background: radial-gradient(circle at 50% 35%, #ff6b6b, #d4252b); color: #fff; box-shadow: 0 10px 30px rgba(255,60,60,.45), inset 0 -6px 0 rgba(0,0,0,.25); animation: ready .8s ease-in-out infinite; }
+.buzz.live:active { transform: scale(.97); }
+.buzz.early { background: #5a2330; color: #ffb3b3; animation: shake .25s; }
+.buzz.sent { background: var(--gold); color: #1d1604; }
+.buzz.out { background: #1a1d33; color: #5c6290; font-size: 22px; }
+@keyframes ready { 50% { box-shadow: 0 10px 40px rgba(255,60,60,.7), inset 0 -6px 0 rgba(0,0,0,.25); } }
+@keyframes shake { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+.ansform { background: var(--panel); border: 1px solid rgba(245,197,66,.45); border-radius: 16px; padding: 12px; }
+.ansform input { font-size: 18px; }
+.ansform.busy { opacity: .6; }
+.mic { flex: none; width: 48px; height: 48px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel2); font-size: 20px; }
+.mic.on { background: var(--red); animation: glow .8s infinite; }
+.hint { display: block; font-size: 12px; color: var(--dim); margin-top: 6px; }
+.quick-bets { margin-top: 8px; flex-wrap: wrap; }
+.quick-bets .ghost { flex: 1; }
+.dock-msg { text-align: center; color: var(--dim); font-size: 14px; padding: 8px; }
+.foot { text-align: center; padding: 14px; font-size: 12px; }
+.foot a { color: var(--dim); text-decoration: none; }
+.foot a:hover { color: var(--gold); }
+.toast { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 30px); opacity: 0; background: #f5f6ff; color: #111; padding: 10px 16px; border-radius: 99px; font-weight: 700; font-size: 14px; pointer-events: none; transition: .25s; z-index: 50; box-shadow: 0 10px 30px rgba(0,0,0,.4); max-width: 90vw; text-align: center; }
+.toast.on { opacity: 1; transform: translate(-50%, 0); }
+/* Clue covers the board on phones; the board stays visible on wide screens */
+@media (max-width: 899px) {
+  body.ingame .cluebox, body.ingame .finalbox { min-height: 300px; }
+  .board:has(~ .cluebox:not([hidden])) { display: none; }
+}
+@media (min-width: 600px) {
+  .cat span { font-size: 12px; }
+  .cell { font-size: 22px; }
+  .cb-text { font-size: 28px; }
+}
+/* Big screen (host screen on a TV or laptop) */
+body.tv main { max-width: none; padding: 0 3vw 2vh; }
+body.tv .scores { display: flex; justify-content: center; gap: 1vw; }
+body.tv .score { flex: 0 1 220px; padding: 1vh 1vw; }
+body.tv .score .nm { font-size: clamp(14px, 1.3vw, 26px); max-width: none; }
+body.tv .score b { font-size: clamp(22px, 2.4vw, 46px); }
+body.tv .banner { font-size: clamp(16px, 1.5vw, 28px); }
+body.tv .board { gap: .6vw; }
+body.tv .cat { min-height: 8.6vh; }
+body.tv .cat span { font-size: clamp(13px, 1.35vw, 28px); }
+body.tv .cell { aspect-ratio: auto; height: 9.6vh; font-size: clamp(24px, 3.4vw, 64px); border-radius: 10px; }
+body.tv .stage { min-height: 62vh; }
+body.tv .toast { top: 14px; bottom: auto; transform: translate(-50%, -30px); }
+body.tv .toast.on { transform: translate(-50%, 0); }
+body.tv .cluebox { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; padding: 4vh 6vw; }
+body.tv .cluebox[hidden] { display: none; }
+body.tv .cb-head { font-size: clamp(16px, 1.6vw, 30px); }
+body.tv .cb-head b { font-size: clamp(24px, 2.6vw, 50px); }
+body.tv .cb-text { font-size: clamp(28px, 3.6vw, 72px); text-align: center; }
+body.tv .cb-status { font-size: clamp(18px, 1.8vw, 34px); text-align: center; }
+body.tv .cb-log li { font-size: clamp(16px, 1.4vw, 28px); }
+body.tv .cb-answer b { font-size: clamp(26px, 2.8vw, 54px); }
+body.tv .cluebox.dd .cb-text { font-size: clamp(48px, 7vw, 140px); }
+body.tv .donebox { max-width: 900px; }
+body.tv .final-scores li { font-size: clamp(18px, 2vw, 36px); }
+body.tv .dock { display: none; }
+body.tv .judge { position: fixed; right: 12px; bottom: 12px; max-width: 420px; background: rgba(10,12,24,.92); z-index: 20; }
+body.tv .top { padding: 1.2vh 3vw; }
+
+</style>
+</head>
+<body>
+  <div class="bg" aria-hidden="true"></div>
+  <header class="top">
+    <a class="brand" href="./" id="brand"><span class="logo" aria-hidden="true">B</span><span id="app-name">Buzz Board</span></a>
+    <div class="top-r">
+      <span class="chip" id="top-code" hidden></span>
+      <span class="net-dot" id="net-dot" hidden title="Connection"></span>
+      <button type="button" class="ghost sm" id="leave" hidden>Leave</button>
+    </div>
+  </header>
+
+  <main id="app">
+    <!-- Home -->
+    <section id="home" class="panel narrow">
+      <h1 class="hero"><span id="hero-name">Buzz Board</span><small>Quiz-show trivia night. Everyone buzzes in from their own phone.</small></h1>
+      <label class="field"><span>Your name</span><input id="name" maxlength="16" autocomplete="nickname" placeholder="e.g. Justin" /></label>
+      <div class="card">
+        <h2>Join a game</h2>
+        <div class="row">
+          <input id="code" class="code-in" maxlength="5" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="ROOM CODE" />
+          <button type="button" class="btn" id="join">Join</button>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Host a game</h2>
+        <button type="button" class="btn gold wide" id="host-play">I'll host and play on this phone</button>
+        <button type="button" class="btn wide" id="host-tv">Big screen only (TV or laptop)</button>
+        <p class="note">Big screen: this device shows the board and runs the show, and everyone plays on their own phone. The game runs as long as the host's page stays open.</p>
+      </div>
+      <button type="button" class="ghost wide" id="rejoin" hidden></button>
+      <details class="how">
+        <summary>How to play</summary>
+        <ul>
+          <li>Two rounds of 6 categories with 5 clues each, then a Final Clue. Quick game skips round 2.</li>
+          <li>Whoever has control picks a clue. Once the clue has been read, the buzzers open. Buzz too early and you're locked out for a quarter second.</li>
+          <li>First buzz answers. Type your answer (or say it, where your phone supports it). Any form is fine, small typos are OK.</li>
+          <li>Right adds the value and gives you control. Wrong takes the value away and the others can buzz.</li>
+          <li>Wager clues are hidden on the board: only the player who finds one answers, and they bet first.</li>
+          <li>Final Clue: everyone with a positive score bets in secret, then answers in secret. The host can overrule any call.</li>
+        </ul>
+      </details>
+    </section>
+
+    <!-- Connecting / errors -->
+    <section id="wait" class="panel narrow" hidden>
+      <div class="spinner" id="wait-spin"></div>
+      <p id="wait-msg" class="wait-msg"></p>
+      <div class="row center" id="wait-btns" hidden>
+        <button type="button" class="btn" id="retry">Try again</button>
+        <button type="button" class="ghost" id="home-btn">Back</button>
+      </div>
+    </section>
+
+    <!-- Lobby -->
+    <section id="lobby" class="panel narrow" hidden>
+      <div class="room-big"><small>Room code</small><b id="code-big"></b><span id="lobby-url" class="lobby-url"></span></div>
+      <div class="row center">
+        <button type="button" class="btn gold" id="invite">Invite friends</button>
+        <button type="button" class="ghost" id="copy">Copy link</button>
+      </div>
+      <h2 class="sub">Players <span id="pcount"></span></h2>
+      <ul id="players" class="players"></ul>
+      <div class="card" id="settings">
+        <h2>Game options</h2>
+        <div class="opt"><span>Categories</span>
+          <div class="seg" id="opt-mix">
+            <label><input type="radio" name="mix" value="standard" checked /><span>Standard mix</span></label>
+            <label><input type="radio" name="mix" value="fight" /><span>Fight Night</span></label>
+            <label><input type="radio" name="mix" value="general" /><span>No sports</span></label>
+          </div>
+        </div>
+        <div class="opt"><span>Length</span>
+          <div class="seg" id="opt-len">
+            <label><input type="radio" name="len" value="full" checked /><span>Full game</span></label>
+            <label><input type="radio" name="len" value="quick" /><span>Quick game</span></label>
+          </div>
+        </div>
+        <p class="note" id="opt-note"></p>
+      </div>
+      <button type="button" class="btn gold wide big" id="start" hidden>Start</button>
+      <p class="note center" id="lobby-note"></p>
+    </section>
+
+    <!-- Game -->
+    <section id="game" hidden>
+      <div id="scores" class="scores"></div>
+      <div id="banner" class="banner"></div>
+      <div class="stage">
+        <div id="board" class="board"></div>
+        <div id="cluebox" class="cluebox" hidden>
+          <div class="cb-head"><span id="cb-cat"></span><b id="cb-val"></b></div>
+          <div id="cb-text" class="cb-text"></div>
+          <div class="timer" id="cb-timer"><i></i></div>
+          <div id="cb-status" class="cb-status"></div>
+          <ul id="cb-log" class="cb-log"></ul>
+          <div id="cb-answer" class="cb-answer" hidden><small>Correct answer</small><b></b></div>
+        </div>
+        <div id="finalbox" class="cluebox final" hidden>
+          <div class="cb-head"><span>Final Clue</span><b id="fn-cat"></b></div>
+          <div id="fn-text" class="cb-text"></div>
+          <div class="timer" id="fn-timer"><i></i></div>
+          <div id="fn-status" class="cb-status"></div>
+          <ul id="fn-log" class="cb-log"></ul>
+          <div id="fn-answer" class="cb-answer" hidden><small>Correct answer</small><b></b></div>
+        </div>
+        <div id="donebox" class="donebox" hidden>
+          <div class="trophy" aria-hidden="true">🏆</div>
+          <h2 id="winner"></h2>
+          <ol id="final-scores" class="final-scores"></ol>
+          <div class="row center">
+            <button type="button" class="btn gold" id="save-img">Save image</button>
+            <button type="button" class="ghost" id="share">Share</button>
+          </div>
+          <button type="button" class="btn wide" id="again" hidden>Play again</button>
+          <p class="note center" id="done-note"></p>
+        </div>
+      </div>
+
+      <!-- Host / judge tools -->
+      <div id="judge" class="judge" hidden>
+        <div class="judge-h">Host tools <small id="judge-sub"></small></div>
+        <ul id="judge-list" class="judge-list"></ul>
+        <div class="row" id="judge-btns">
+          <button type="button" class="ghost sm" id="open-now" hidden>Open buzzers now</button>
+          <button type="button" class="ghost sm" id="skip" hidden>Reveal answer</button>
+          <button type="button" class="ghost sm" id="next-reveal" hidden>Next</button>
+          <label class="tts" id="tts-wrap" hidden><input type="checkbox" id="tts" /> Read clues aloud</label>
+        </div>
+      </div>
+
+      <!-- Phone controls -->
+      <div id="dock" class="dock">
+        <button type="button" id="buzz" class="buzz" disabled><span id="buzz-label">Wait</span><i id="buzz-ring"></i></button>
+        <form id="ansform" class="ansform" hidden autocomplete="off">
+          <div class="timer small" id="ans-timer"><i></i></div>
+          <div class="row">
+            <input id="ans" maxlength="80" placeholder="Your answer" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="send" />
+            <button type="button" class="mic" id="mic" hidden title="Say your answer" aria-label="Say your answer">🎤</button>
+            <button type="submit" class="btn gold">Send</button>
+          </div>
+          <small id="ans-hint" class="hint"></small>
+        </form>
+        <form id="wagerform" class="ansform" hidden autocomplete="off">
+          <div class="timer small" id="wg-timer"><i></i></div>
+          <label class="hint" id="wg-label" for="wager"></label>
+          <div class="row">
+            <input id="wager" type="number" inputmode="numeric" min="0" step="1" />
+            <button type="submit" class="btn gold">Lock it in</button>
+          </div>
+          <div class="row quick-bets" id="quick-bets"></div>
+        </form>
+        <div id="dock-msg" class="dock-msg" hidden></div>
+      </div>
+    </section>
+  </main>
+  <footer class="foot" id="foot"><a href="https://www.youtube.com/@The10CountPod" target="_blank" rel="noopener">Made by The 10 Count Podcast</a></footer>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script>
+// Lenient answer checking. Players can answer in any form ("Rome", "what is rome", "the city of Rome"):
+// we normalize both sides (case, accents, articles, punctuation, question openers, simple plurals,
+// number words) and then allow a few typos, scaled to the length of the right answer.
+(function (root) {
+  "use strict";
+  const SMALL = { zero: 0, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10, eleven: 11, twelve: 12, thirteen: 13, fourteen: 14, fifteen: 15, sixteen: 16, seventeen: 17, eighteen: 18, nineteen: 19 };
+  const TENS = { twenty: 20, thirty: 30, forty: 40, fifty: 50, sixty: 60, seventy: 70, eighty: 80, ninety: 90 };
+  const DROP = new Set(["a", "an", "the", "of"]);
+  const OPENERS = /^(?:(?:what|who|where|when|which|whats|whos|wheres)\s+(?:is|are|was|were|s)?\s*|(?:its|it is|they are|theyre|is it|i think|um|uh|maybe)\s+)+/;
+  function words(s) {
+    let t = String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    t = t.replace(/([a-z])[*.](?=[a-z]\b)/g, "$1"); // M*A*S*H, U.S.A.
+    t = t.replace(/&/g, " and ").replace(/['’`]/g, "").replace(/[^a-z0-9.]+/g, " ").replace(/\.(?!\d)/g, " ").trim();
+    t = t.replace(OPENERS, "").trim();
+    const out = [];
+    const toks = t.split(/\s+/).filter(Boolean);
+    for (let i = 0; i < toks.length; i++) {
+      let w = toks[i];
+      if (DROP.has(w) && toks.length > 1) continue;
+      if (w in TENS) {
+        let n = TENS[w];
+        if (toks[i + 1] in SMALL && SMALL[toks[i + 1]] < 10 && SMALL[toks[i + 1]] > 0) { n += SMALL[toks[i + 1]]; i++; }
+        out.push(String(n));
+        continue;
+      }
+      if (w in SMALL) { out.push(String(SMALL[w])); continue; }
+      if (w === "hundred" && out.length && /^\d+$/.test(out[out.length - 1])) { out[out.length - 1] = String(Number(out[out.length - 1]) * 100); continue; }
+      if (w.length > 3 && /[^s]s$/.test(w) && !/(us|is)$/.test(w)) w = w.slice(0, -1); // plurals: crows -> crow (but not "Achilles"-style -is/-us endings)
+      out.push(w);
+    }
+    return out;
+  }
+  // Edit distance where a swapped pair of letters ("teh") counts as one typo.
+  function lev(a, b, cap) {
+    if (Math.abs(a.length - b.length) > cap) return cap + 1;
+    let pp = null, prev = Array.from({ length: b.length + 1 }, (_, i) => i);
+    for (let i = 1; i <= a.length; i++) {
+      const cur = [i];
+      let best = i;
+      for (let j = 1; j <= b.length; j++) {
+        cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+        if (pp && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) cur[j] = Math.min(cur[j], pp[j - 2] + 1);
+        if (cur[j] < best) best = cur[j];
+      }
+      if (best > cap) return cap + 1;
+      pp = prev;
+      prev = cur;
+    }
+    return prev[b.length];
+  }
+  function allowance(target) {
+    if (/\d/.test(target)) return 0; // numbers and years must be exact
+    const n = target.length;
+    return n <= 4 ? 0 : n <= 7 ? 1 : n <= 11 ? 2 : 3;
+  }
+  function close(a, b, strict) {
+    if (a === b) return true;
+    const cap = Math.max(0, allowance(b) - (strict ? 1 : 0));
+    return cap > 0 && a.length >= 3 && lev(a, b, cap) <= cap;
+  }
+  // Does the response match one accepted answer?
+  function matchOne(resp, acc) {
+    const r = words(resp), a = words(acc);
+    if (!r.length || !a.length) return false;
+    const rj = r.join(""), aj = a.join("");
+    if (close(rj, aj)) return true;
+    // Extra words around the right answer are fine ("the planet jupiter"), within reason.
+    if (r.length > a.length && r.length - a.length <= 3) {
+      for (let i = 0; i + a.length <= r.length; i++) if (close(r.slice(i, i + a.length).join(""), aj, true)) return true;
+    }
+    return false;
+  }
+  function isRight(resp, answer, alts) {
+    const list = [answer, ...(Array.isArray(alts) ? alts : String(alts || "").split("|"))].map((x) => String(x).trim()).filter(Boolean);
+    return list.some((acc) => matchOne(resp, acc));
+  }
+  const api = { isRight, words, lev };
+  if (typeof module !== "undefined" && module.exports) module.exports = api;
+  else root.BB_MATCH = api;
+})(typeof window !== "undefined" ? window : globalThis);
+
+</script>
+<script>
+// Buzz Board clue bank. All clues are original. Each clue: [clue, answer, "alternate|answers"].
+// tag: gen (general knowledge), sports, wrestling, fun (Pokémon / 90s, drawn less often).
+// r1 values 200-1000, r2 values 400-2000; difficulty climbs with value.
+const BB_BANK = {
+r1: [
+{ id: "capitals1", name: "Capital Ideas", tag: "gen", clues: [
+  ["This city on the Tiber River is home to the Colosseum and is Italy's capital.", "Rome", ""],
+  ["Purpose-built as a compromise between Sydney and Melbourne, it's Australia's capital.", "Canberra", ""],
+  ["Canada's capital shares its name with the river it sits on.", "Ottawa", ""],
+  ["Istanbul is far bigger, but this city is Turkey's capital.", "Ankara", ""],
+  ["At roughly 3,600 meters, this Bolivian city is the highest seat of government in the world.", "La Paz", ""],
+]},
+{ id: "science1", name: "Lab Partners", tag: "gen", clues: [
+  ["H2O is the chemical formula for this.", "water", ""],
+  ["Often called the powerhouse of the cell, this organelle makes most of a cell's energy.", "mitochondria", "mitochondrion|mitochondrium"],
+  ["Au is the chemical symbol for this element.", "gold", ""],
+  ["This hardness scale for minerals runs from talc at 1 up to diamond at 10.", "Mohs scale", "Mohs|Moh's scale|Mohs hardness scale"],
+  ["This radioactive noble gas, symbol Rn, can build up in basements.", "radon", ""],
+]},
+{ id: "presidents1", name: "Hail to the Chief", tag: "gen", clues: [
+  ["This president's face appears on the U.S. five-dollar bill.", "Abraham Lincoln", "Lincoln|Abe Lincoln"],
+  ["He's the only U.S. president to resign from office.", "Richard Nixon", "Nixon"],
+  ["The teddy bear takes its name from this president.", "Theodore Roosevelt", "Teddy Roosevelt|Roosevelt|TR"],
+  ["He served the shortest term of any president, dying 31 days after his 1841 inauguration.", "William Henry Harrison", "Harrison|W.H. Harrison"],
+  ["He's the only person to serve as both president and chief justice of the United States.", "William Howard Taft", "Taft"],
+]},
+{ id: "mat1", name: "Squared Circle 101", tag: "wrestling", clues: [
+  ["This \"Stone Cold\" superstar turned \"3:16\" into a catchphrase.", "Steve Austin", "Stone Cold Steve Austin|Stone Cold|Austin"],
+  ["Bret Hart's signature leg submission hold.", "Sharpshooter", "the Sharpshooter|Scorpion Deathlock|Scorpion Death Lock"],
+  ["The first WrestleMania was held in 1985 at this New York City arena.", "Madison Square Garden", "MSG|the Garden"],
+  ["At WrestleMania III, Hulk Hogan body slammed this French-born giant.", "Andre the Giant", "Andre|Andre Roussimoff"],
+  ["At King of the Ring 1998, the Undertaker threw this man off the top of the Hell in a Cell.", "Mankind", "Mick Foley|Foley|Cactus Jack|Dude Love"],
+]},
+{ id: "hockey1", name: "Hockey Night", tag: "sports", clues: [
+  ["Wayne Gretzky's jersey number, retired across the entire NHL.", "99", ""],
+  ["This ice-resurfacing machine is named for its inventor, Frank.", "Zamboni", "Zamboni machine"],
+  ["A goal, an assist and a fight in one game is a hat trick named for this \"Mr. Hockey.\"", "Gordie Howe", "Howe|Gordie Howe hat trick"],
+  ["This trophy goes to the most valuable player of the Stanley Cup playoffs.", "Conn Smythe Trophy", "Conn Smythe|Smythe"],
+  ["In 1959, this Montreal goalie became the first to wear a mask regularly in NHL games.", "Jacques Plante", "Plante"],
+]},
+{ id: "quotes1", name: "Say It Again", tag: "gen", clues: [
+  ["\"May the Force be with you\" comes from this film franchise.", "Star Wars", ""],
+  ["\"Here's looking at you, kid\" is from this 1942 film set in Morocco.", "Casablanca", ""],
+  ["\"Yo, Adrian!\" is the famous cry from this 1976 boxing film.", "Rocky", ""],
+  ["\"I'll have what she's having\" is a line from this 1989 romantic comedy.", "When Harry Met Sally", "When Harry Met Sally..."],
+  ["\"Rosebud\" is the dying word in this 1941 Orson Welles film.", "Citizen Kane", ""],
+]},
+{ id: "groups1", name: "Party Animals", tag: "gen", clues: [
+  ["A group of lions is called this.", "pride", ""],
+  ["A group of crows has this sinister-sounding name.", "murder", ""],
+  ["A group of geese on the ground is called this.", "gaggle", ""],
+  ["A group of owls shares its name with a lawmaking body.", "parliament", ""],
+  ["A group of flamingos is called this, also a word for showy flair.", "flamboyance", ""],
+]},
+{ id: "rivers1", name: "Cry Me a River", tag: "gen", clues: [
+  ["This South American river carries more water than any other river on Earth.", "Amazon", "Amazon River"],
+  ["This river forms much of the border between the United States and Mexico.", "Rio Grande", "Rio Bravo"],
+  ["Vienna, Budapest and Belgrade all sit on this river.", "Danube", ""],
+  ["Baghdad sits on this river, the eastern partner of the Euphrates.", "Tigris", ""],
+  ["Victoria Falls is on this African river.", "Zambezi", "Zambesi"],
+]},
+{ id: "bands1", name: "Name That Band", tag: "gen", clues: [
+  ["John, Paul, George and Ringo.", "The Beatles", ""],
+  ["Freddie Mercury fronted this British band.", "Queen", ""],
+  ["This Seattle band's 1991 album \"Nevermind\" showed a baby swimming on the cover.", "Nirvana", ""],
+  ["Bono's Irish band released \"The Joshua Tree\" in 1987.", "U2", "U 2|U-2"],
+  ["Ozzy Osbourne was the original singer of this heavy metal band from Birmingham, England.", "Black Sabbath", "Sabbath"],
+]},
+{ id: "food1", name: "Kitchen Table", tag: "gen", clues: [
+  ["The main ingredient in guacamole.", "avocado", ""],
+  ["This pasta's name comes from the Italian for \"little strings.\"", "spaghetti", ""],
+  ["Harvested from crocus flowers, it's the world's most expensive spice by weight.", "saffron", ""],
+  ["This Mexican sauce, often made with chiles and chocolate, comes in versions like poblano and negro.", "mole", "mole sauce|mole poblano"],
+  ["Bearnaise is a child of this French mother sauce made with egg yolks and butter.", "Hollandaise", ""],
+]},
+{ id: "tv1", name: "Prime Time", tag: "gen", clues: [
+  ["The coffee shop Central Perk is a hangout in this sitcom.", "Friends", ""],
+  ["Walter White is the chemistry teacher turned kingpin in this AMC drama.", "Breaking Bad", ""],
+  ["This animated family lives at 742 Evergreen Terrace.", "The Simpsons", "Simpsons"],
+  ["Kelsey Grammer's psychiatrist got this spin-off from \"Cheers.\"", "Frasier", "Fraser"],
+  ["On \"The Sopranos,\" Tony's crew does business out of this strip club.", "Bada Bing", "Bada Bing!|the Bing"],
+]},
+{ id: "myth1", name: "Myth Busters", tag: "gen", clues: [
+  ["The king of the Greek gods, who threw thunderbolts.", "Zeus", ""],
+  ["The name of Thor's hammer in Norse myth.", "Mjolnir", "Mjollnir|Mjölnir"],
+  ["This Greek hero's only weak spot was his heel.", "Achilles", ""],
+  ["In Egyptian myth, this jackal-headed god oversaw mummification.", "Anubis", ""],
+  ["Odin rode this eight-legged horse.", "Sleipnir", ""],
+]},
+{ id: "nick1", name: "Call Me By My Nickname", tag: "sports", clues: [
+  ["\"The Great One.\"", "Wayne Gretzky", "Gretzky"],
+  ["\"The Sultan of Swat.\"", "Babe Ruth", "Ruth|George Herman Ruth"],
+  ["\"His Airness.\"", "Michael Jordan", "Jordan|MJ"],
+  ["\"The Iron Horse,\" a Yankees first baseman.", "Lou Gehrig", "Gehrig"],
+  ["\"The Golden Bear,\" winner of 18 golf majors.", "Jack Nicklaus", "Nicklaus"],
+]},
+{ id: "body1", name: "Body of Knowledge", tag: "gen", clues: [
+  ["The largest organ of the human body.", "skin", ""],
+  ["The longest bone in the human body.", "femur", "thigh bone|thighbone"],
+  ["This organ produces insulin.", "pancreas", ""],
+  ["The smallest bone in the body, found in the middle ear.", "stapes", "stirrup"],
+  ["Gas exchange in the lungs happens in these tiny air sacs.", "alveoli", "alveolus"],
+]},
+{ id: "books1", name: "Required Reading", tag: "gen", clues: [
+  ["He wrote \"Romeo and Juliet.\"", "William Shakespeare", "Shakespeare"],
+  ["Ishmael narrates this Herman Melville novel.", "Moby-Dick", "Moby Dick"],
+  ["Big Brother is watching in this George Orwell novel.", "1984", "Nineteen Eighty-Four"],
+  ["Holden Caulfield narrates this 1951 novel.", "The Catcher in the Rye", "Catcher in the Rye"],
+  ["This Colombian author wrote \"One Hundred Years of Solitude.\"", "Gabriel Garcia Marquez", "Garcia Marquez|Marquez|Gabo"],
+]},
+{ id: "invent1", name: "Patent Pending", tag: "gen", clues: [
+  ["Alexander Graham Bell patented this device in 1876.", "telephone", "phone"],
+  ["Johannes Gutenberg's 15th-century invention with movable type.", "printing press", "press|movable type"],
+  ["The Wright brothers made their first powered flights in 1903 near this North Carolina town.", "Kitty Hawk", "Kill Devil Hills"],
+  ["Percy Spencer came up with this appliance after radar equipment melted a candy bar in his pocket.", "microwave oven", "microwave"],
+  ["Tim Berners-Lee proposed this in 1989 while working at CERN.", "World Wide Web", "the web|www|web"],
+]},
+{ id: "poke1", name: "Gotta Catch 'Em All", tag: "fun", clues: [
+  ["Ash's electric partner Pokémon.", "Pikachu", ""],
+  ["The Pokémon listed as number 001 in the original Pokédex.", "Bulbasaur", ""],
+  ["Charmander evolves into this Pokémon.", "Charmeleon", ""],
+  ["She's the gym leader of Cerulean City.", "Misty", ""],
+  ["Pokémon number 132 can transform into any other Pokémon.", "Ditto", ""],
+]},
+{ id: "nineties1", name: "Totally 90s", tag: "fun", clues: [
+  ["Will Smith played a fictionalized version of himself in \"The Fresh Prince of\" this place.", "Bel-Air", "Bel Air|Belair"],
+  ["This egg-shaped Bandai virtual pet was a late-90s craze.", "Tamagotchi", ""],
+  ["This furry, chattering toy was the must-have gift of the 1998 holidays.", "Furby", ""],
+  ["\"Party on, Wayne!\" comes from this 1992 comedy.", "Wayne's World", "Waynes World"],
+  ["Nintendo's 1996 console had a three-pronged controller.", "Nintendo 64", "N64|N 64"],
+]},
+{ id: "baseball1", name: "Ballpark Figures", tag: "sports", clues: [
+  ["The \"Green Monster\" is the left-field wall at this Boston ballpark.", "Fenway Park", "Fenway"],
+  ["In 1947, Jackie Robinson broke Major League Baseball's color barrier with this team.", "Brooklyn Dodgers", "Dodgers"],
+  ["Jackie Robinson's jersey number, retired by every MLB team.", "42", ""],
+  ["A \"golden sombrero\" means striking out this many times in one game.", "4", ""],
+  ["In 1995, Cal Ripken Jr. broke this Yankee's record for consecutive games played.", "Lou Gehrig", "Gehrig"],
+]},
+{ id: "finishers1", name: "Finish Him", tag: "wrestling", clues: [
+  ["The Rock's most electrifying elbow drop.", "People's Elbow", "the People's Elbow|Peoples Elbow"],
+  ["\"Stone Cold\" Steve Austin's finishing move.", "Stunner", "Stone Cold Stunner|Austin Stunner"],
+  ["The Undertaker's signature piledriver.", "Tombstone", "Tombstone Piledriver"],
+  ["Shawn Michaels' superkick goes by this musical name.", "Sweet Chin Music", ""],
+  ["Diamond Dallas Page's signature cutter.", "Diamond Cutter", ""],
+]},
+{ id: "colors1", name: "True Colors", tag: "gen", clues: [
+  ["Mix blue and yellow paint to get this.", "green", ""],
+  ["Long linked with royalty, this color came from costly Tyrian dye.", "purple", "Tyrian purple"],
+  ["Cerulean is a shade of this color.", "blue", ""],
+  ["Vermilion is a bright shade of this color.", "red", "orange-red|red-orange"],
+  ["This greenish-blue color takes its name from a duck.", "teal", ""],
+]},
+{ id: "space1", name: "Space Cadets", tag: "gen", clues: [
+  ["The Red Planet.", "Mars", ""],
+  ["The name of the galaxy we live in.", "Milky Way", "Milky Way Galaxy"],
+  ["The first person to walk on the Moon.", "Neil Armstrong", "Armstrong"],
+  ["Titan is the largest moon of this planet.", "Saturn", ""],
+  ["This dwarf planet is the largest object in the asteroid belt.", "Ceres", ""],
+]},
+{ id: "art1", name: "Museum Pieces", tag: "gen", clues: [
+  ["Leonardo da Vinci's famous portrait in the Louvre.", "Mona Lisa", "La Gioconda|La Joconde"],
+  ["Vincent van Gogh's swirling night sky painting.", "The Starry Night", "Starry Night"],
+  ["Edvard Munch's anguished figure on a bridge.", "The Scream", "Scream"],
+  ["Salvador Dali's painting of melting clocks.", "The Persistence of Memory", "Persistence of Memory"],
+  ["Picasso's 1937 mural depicting the bombing of a Basque town.", "Guernica", ""],
+]},
+{ id: "football1", name: "Gridiron", tag: "sports", clues: [
+  ["The number of points a touchdown is worth.", "6", ""],
+  ["The Super Bowl trophy is named for this Green Bay coach.", "Vince Lombardi", "Lombardi|Lombardi Trophy|Vince Lombardi Trophy"],
+  ["This team won Super Bowl I.", "Green Bay Packers", "Packers|Green Bay"],
+  ["In 1972, this team finished a perfect 17-0 season with a Super Bowl win.", "Miami Dolphins", "Dolphins|Miami"],
+  ["Franco Harris's deflected 1972 playoff catch is known by this name.", "Immaculate Reception", "the Immaculate Reception"],
+]},
+{ id: "words1", name: "Language Arts", tag: "gen", clues: [
+  ["A word that means the same as another word.", "synonym", ""],
+  ["\"Racecar\" reads the same backward, making it one of these.", "palindrome", ""],
+  ["\"Listen\" and \"silent\" are this type of word pair.", "anagram", "anagrams"],
+  ["A word that imitates a sound, like \"buzz\" or \"sizzle.\"", "onomatopoeia", ""],
+  ["This figure of speech uses deliberate understatement, as in \"not bad at all.\"", "litotes", ""],
+]},
+{ id: "ancient1", name: "Ancient History", tag: "gen", clues: [
+  ["The Great Pyramid stands at this site near Cairo.", "Giza", ""],
+  ["This Roman leader was assassinated on the Ides of March, 44 BC.", "Julius Caesar", "Caesar"],
+  ["Mount Vesuvius buried this Roman city in AD 79.", "Pompeii", "Herculaneum"],
+  ["This Macedonian king had conquered the Persian Empire by his late twenties.", "Alexander the Great", "Alexander|Alexander III"],
+  ["This Carthaginian general crossed the Alps with war elephants.", "Hannibal", "Hannibal Barca"],
+]},
+{ id: "animals1", name: "Wild Kingdom", tag: "gen", clues: [
+  ["The fastest land animal.", "cheetah", ""],
+  ["A baby kangaroo is called this.", "joey", ""],
+  ["The only mammal capable of true powered flight.", "bat", ""],
+  ["The largest animal known to have ever lived.", "blue whale", ""],
+  ["Egg-laying mammals like the platypus belong to this group.", "monotremes", "monotreme"],
+]},
+{ id: "boxing1", name: "In This Corner", tag: "sports", clues: [
+  ["\"Float like a butterfly, sting like a bee.\"", "Muhammad Ali", "Ali|Cassius Clay"],
+  ["Ali's opponent in the 1974 \"Rumble in the Jungle.\"", "George Foreman", "Foreman"],
+  ["Muhammad Ali's birth name.", "Cassius Clay", "Cassius Marcellus Clay|Clay"],
+  ["The 1975 \"Thrilla in Manila\" was Ali's third fight against this man.", "Joe Frazier", "Frazier|Smokin' Joe"],
+  ["In 1986, at age 20, he became the youngest heavyweight champion in boxing history.", "Mike Tyson", "Tyson|Iron Mike"],
+]},
+{ id: "islands1", name: "Island Hopping", tag: "gen", clues: [
+  ["Not counting Australia, this is the world's largest island.", "Greenland", ""],
+  ["This island nation off India was called Ceylon until 1972.", "Sri Lanka", ""],
+  ["This island is Australia's southernmost state.", "Tasmania", ""],
+  ["Napoleon was born on this Mediterranean island.", "Corsica", ""],
+  ["The Galapagos Islands belong to this country.", "Ecuador", ""],
+]},
+{ id: "olympics1", name: "Going for Gold", tag: "sports", clues: [
+  ["The number of rings on the Olympic flag.", "5", ""],
+  ["The first modern Olympics were held in 1896 in this city.", "Athens", ""],
+  ["Jesse Owens won four gold medals at the 1936 Games in this city.", "Berlin", ""],
+  ["Michael Phelps won this many gold medals at the 2008 Beijing Games.", "8", ""],
+  ["This French baron founded the modern Olympic movement.", "Pierre de Coubertin", "Coubertin|de Coubertin"],
+]},
+{ id: "tagteams1", name: "Tag, You're It", tag: "wrestling", clues: [
+  ["Brothers Matt and Jeff.", "Hardy Boyz", "Hardy Boys|Hardys|The Hardys"],
+  ["Hawk and Animal, also known as the Legion of Doom.", "Road Warriors", "The Road Warriors"],
+  ["Bubba Ray and D-Von, kings of putting people through tables.", "Dudley Boyz", "Dudley Boys|Dudleys"],
+  ["Shawn Michaels and Triple H founded this rebellious faction in 1997.", "D-Generation X", "DX|Degeneration X"],
+  ["Bret Hart and Jim \"The Anvil\" Neidhart.", "Hart Foundation", "The Hart Foundation"],
+]},
+{ id: "money1", name: "Money Talks", tag: "gen", clues: [
+  ["The currency of Japan.", "yen", ""],
+  ["His portrait is on the U.S. $100 bill.", "Benjamin Franklin", "Franklin|Ben Franklin"],
+  ["The official name of the United Kingdom's currency.", "pound sterling", "pound|sterling|British pound"],
+  ["This country used the drachma before switching to the euro.", "Greece", ""],
+  ["South Africa's currency.", "rand", ""],
+]},
+{ id: "ships1", name: "All Aboard", tag: "gen", clues: [
+  ["This liner sank in 1912 after hitting an iceberg.", "Titanic", "RMS Titanic"],
+  ["The Pilgrims sailed to America on this ship in 1620.", "Mayflower", ""],
+  ["Charles Darwin sailed around the world aboard HMS this.", "Beagle", "HMS Beagle"],
+  ["Columbus's flagship on his 1492 voyage.", "Santa Maria", ""],
+  ["Captain Ahab's whaling ship.", "Pequod", ""],
+]},
+{ id: "games1", name: "Player One", tag: "gen", clues: [
+  ["Nintendo's famous mustachioed plumber.", "Mario", "Super Mario"],
+  ["Sonic the Hedgehog was this company's mascot.", "Sega", ""],
+  ["Soviet engineer Alexey Pajitnov created this falling-block game.", "Tetris", ""],
+  ["Link spends many adventures rescuing this princess.", "Zelda", "Princess Zelda"],
+  ["Pac-Man's ghosts are Blinky, Pinky, Inky and this orange one.", "Clyde", ""],
+]},
+{ id: "promos1", name: "Cut a Promo", tag: "wrestling", clues: [
+  ["\"If you smell what\" this man \"is cooking!\"", "The Rock", "Rock|Dwayne Johnson"],
+  ["\"Snap into a Slim Jim!\" was his famous ad line. Ohhh yeah!", "Randy Savage", "Macho Man|Macho Man Randy Savage|Savage"],
+  ["\"To be the man, you gotta beat the man.\" Woooo!", "Ric Flair", "Flair|Nature Boy"],
+  ["In the 1988 film \"They Live,\" this wrestler was \"all out of bubblegum.\"", "Roddy Piper", "Rowdy Roddy Piper|Piper"],
+  ["\"Oh, you didn't know?\" opened the ring intros of this New Age Outlaws member.", "Road Dogg", "Road Dog|Jesse James|Brian James"],
+]},
+{ id: "hoops1", name: "Nothing but Net", tag: "sports", clues: [
+  ["Michael Jordan won six titles with this Chicago team.", "Bulls", "Chicago Bulls"],
+  ["James Naismith invented basketball in 1891 using these as hoops.", "peach baskets", "baskets|peach basket"],
+  ["Double digits in three stat categories in one game.", "triple-double", "triple double"],
+  ["Kareem Abdul-Jabbar's signature shot.", "skyhook", "sky hook|hook shot"],
+  ["This Celtics center won 11 NBA championships as a player.", "Bill Russell", "Russell"],
+]},
+],
+r2: [
+{ id: "capitals2", name: "Capital Gains", tag: "gen", clues: [
+  ["The capital of Egypt.", "Cairo", ""],
+  ["The capital of Kenya.", "Nairobi", ""],
+  ["The capital of New Zealand.", "Wellington", ""],
+  ["Kazakhstan's capital was renamed Nur-Sultan in 2019, then got this old name back in 2022.", "Astana", ""],
+  ["The capital of Burkina Faso.", "Ouagadougou", ""],
+]},
+{ id: "chem2", name: "Better Living Through Chemistry", tag: "gen", clues: [
+  ["The most abundant gas in Earth's atmosphere.", "nitrogen", "N2"],
+  ["A substance with a pH below 7 is described this way.", "acidic", "acid"],
+  ["K is the chemical symbol for this element.", "potassium", ""],
+  ["Marie Curie named this element after her homeland.", "polonium", ""],
+  ["This Russian chemist published the first widely recognized periodic table in 1869.", "Dmitri Mendeleev", "Mendeleev|Mendeleyev"],
+]},
+{ id: "ushistory2", name: "We the People", tag: "gen", clues: [
+  ["The year the Declaration of Independence was adopted.", "1776", ""],
+  ["This 1803 land deal with France roughly doubled the size of the United States.", "Louisiana Purchase", ""],
+  ["The Civil War began with the 1861 attack on this South Carolina fort.", "Fort Sumter", "Sumter"],
+  ["Ratified in 1920, this amendment guaranteed women the right to vote.", "19th Amendment", "Nineteenth Amendment|19th|nineteenth"],
+  ["This 1787 deal created a two-house Congress with equal Senate seats per state.", "Great Compromise", "Connecticut Compromise"],
+]},
+{ id: "history2w", name: "Monday Night Wars", tag: "wrestling", clues: [
+  ["WCW's flagship Monday show that went head to head with Raw.", "Nitro", "Monday Nitro|WCW Monday Nitro"],
+  ["At Bash at the Beach 1996, Hulk Hogan turned heel to join this faction.", "nWo", "New World Order|N W O"],
+  ["The infamous 1997 Survivor Series finish between Bret Hart and Shawn Michaels.", "Montreal Screwjob", "the Montreal Screwjob|Screwjob"],
+  ["Paul Heyman ran this hardcore promotion out of Philadelphia.", "ECW", "Extreme Championship Wrestling|Eastern Championship Wrestling"],
+  ["The Undertaker's WrestleMania streak stood at this many wins before Brock Lesnar ended it.", "21", ""],
+]},
+{ id: "hockey2", name: "Puck Drop", tag: "sports", clues: [
+  ["The Original Six team from Montreal.", "Canadiens", "Montreal Canadiens|Habs|Canadians"],
+  ["The 1980 \"Miracle on Ice\" happened in this New York village.", "Lake Placid", ""],
+  ["He coached the 1980 U.S. Olympic hockey team.", "Herb Brooks", "Brooks"],
+  ["Bobby Orr's famous flying goal won the 1970 Stanley Cup against this team.", "St. Louis Blues", "Blues|St Louis|Saint Louis Blues"],
+  ["Lord Stanley, who donated the Cup, held this office in Canada at the time.", "Governor General", "Governor General of Canada"],
+]},
+{ id: "directors2", name: "Behind the Camera", tag: "gen", clues: [
+  ["He directed \"Jaws\" and \"E.T.\"", "Steven Spielberg", "Spielberg"],
+  ["He directed \"Pulp Fiction.\"", "Quentin Tarantino", "Tarantino"],
+  ["He directed \"Psycho\" and \"Vertigo.\"", "Alfred Hitchcock", "Hitchcock"],
+  ["He directed \"2001: A Space Odyssey.\"", "Stanley Kubrick", "Kubrick"],
+  ["He directed \"Seven Samurai.\"", "Akira Kurosawa", "Kurosawa"],
+]},
+{ id: "etym2", name: "Word Origins", tag: "gen", clues: [
+  ["This lunch staple is named for an 18th-century English earl.", "sandwich", ""],
+  ["Long before hockey fans tossed caps, this term came from cricket, where a bowler earned a new hat for three straight wickets.", "hat trick", "hattrick"],
+  ["This word for refusing to deal with someone comes from Captain Charles, a land agent shunned by his Irish neighbors in 1880.", "boycott", ""],
+  ["This word for isolation comes from the Venetian for \"forty days.\"", "quarantine", ""],
+  ["Coined by a Swiss medical student in 1688, this word blends the Greek for \"homecoming\" and \"pain.\"", "nostalgia", ""],
+]},
+{ id: "rock2", name: "Rock of Ages", tag: "gen", clues: [
+  ["\"The King of Rock and Roll.\"", "Elvis Presley", "Elvis|Presley"],
+  ["The Rolling Stones' frontman.", "Mick Jagger", "Jagger"],
+  ["He set his guitar on fire at the 1967 Monterey Pop Festival.", "Jimi Hendrix", "Hendrix"],
+  ["This band released \"The Dark Side of the Moon\" in 1973.", "Pink Floyd", "Floyd"],
+  ["The Rock and Roll Hall of Fame is in this city.", "Cleveland", ""],
+]},
+{ id: "borders2", name: "Borderline", tag: "gen", clues: [
+  ["Portugal's only land neighbor.", "Spain", ""],
+  ["Mount Everest sits on the border of China and this country.", "Nepal", ""],
+  ["Tucked in the Pyrenees, this tiny country borders only France and Spain.", "Andorra", ""],
+  ["This mountain kingdom is completely surrounded by South Africa.", "Lesotho", ""],
+  ["One of only two doubly landlocked countries, it's in Europe between Switzerland and Austria.", "Liechtenstein", ""],
+]},
+{ id: "bard2", name: "The Bard", tag: "gen", clues: [
+  ["Shakespeare's Prince of Denmark.", "Hamlet", ""],
+  ["Three witches greet a Scottish thane in this play.", "Macbeth", "the Scottish play"],
+  ["Iago deceives this jealous Moor of Venice.", "Othello", ""],
+  ["In \"The Tempest,\" this sorcerer is Miranda's father.", "Prospero", ""],
+  ["Many of Shakespeare's plays premiered at this London theater, built in 1599.", "The Globe", "Globe|Globe Theatre|Globe Theater"],
+]},
+{ id: "water2", name: "Making Waves", tag: "gen", clues: [
+  ["The largest ocean on Earth.", "Pacific", "Pacific Ocean"],
+  ["Africa's largest lake.", "Lake Victoria", "Victoria"],
+  ["This strait separates Spain from Morocco.", "Strait of Gibraltar", "Gibraltar"],
+  ["The world's deepest lake, in Siberia.", "Lake Baikal", "Baikal"],
+  ["The deepest known point in the ocean, in the Mariana Trench.", "Challenger Deep", ""],
+]},
+{ id: "personas2", name: "Alter Egos", tag: "wrestling", clues: [
+  ["Mick Foley's three faces: Mankind, Dude Love and this one.", "Cactus Jack", ""],
+  ["Before he was The Rock, Dwayne Johnson debuted in 1996 under this name.", "Rocky Maivia", "Maivia"],
+  ["This wrestler and commentator was elected governor of Minnesota in 1998.", "Jesse Ventura", "Ventura|The Body"],
+  ["This 1996 Olympic gold medalist won \"with a broken freakin' neck.\"", "Kurt Angle", "Angle"],
+  ["Ric Flair borrowed his \"Nature Boy\" nickname from this earlier star.", "Buddy Rogers", "Rogers"],
+]},
+{ id: "football2", name: "Gridiron Greats", tag: "sports", clues: [
+  ["Tom Brady won his first six Super Bowls with this team.", "New England Patriots", "Patriots|New England"],
+  ["This trophy goes to college football's most outstanding player.", "Heisman Trophy", "Heisman"],
+  ["Dwight Clark's leaping 1982 playoff grab for the 49ers is known as this.", "The Catch", "Catch"],
+  ["This Bears running back was nicknamed \"Sweetness.\"", "Walter Payton", "Payton"],
+  ["The Super Bowl's name was inspired by this bouncy toy belonging to Lamar Hunt's kids.", "Super Ball", "Superball"],
+]},
+{ id: "royals2", name: "Heavy Is the Head", tag: "gen", clues: [
+  ["She reigned over the United Kingdom for 70 years, until 2022.", "Elizabeth II", "Queen Elizabeth|Elizabeth|Queen Elizabeth II"],
+  ["This English king had six wives.", "Henry VIII", "Henry the Eighth|Henry 8|Henry"],
+  ["\"The Game\" in wrestling, his entrance theme is \"King of Kings.\"", "Triple H", "HHH|Hunter Hearst Helmsley|Paul Levesque"],
+  ["This tsar founded St. Petersburg in 1703.", "Peter the Great", "Peter I|Peter"],
+  ["The last monarch of Hawaii, she wrote the song \"Aloha Oe.\"", "Liliuokalani", "Queen Liliuokalani|Lili'uokalani"],
+]},
+{ id: "pop2", name: "Pop Charts", tag: "gen", clues: [
+  ["The \"Material Girl.\"", "Madonna", ""],
+  ["Michael Jackson's 1982 album, widely cited as the best-selling of all time.", "Thriller", ""],
+  ["\"Purple Rain\" was his 1984 album and film.", "Prince", ""],
+  ["This Swedish group won Eurovision in 1974 with \"Waterloo.\"", "ABBA", ""],
+  ["In 2016, Bob Dylan received this award.", "Nobel Prize in Literature", "Nobel Prize|Nobel|Nobel Prize for Literature"],
+]},
+{ id: "physics2", name: "Let's Get Physical", tag: "gen", clues: [
+  ["The unit of electrical resistance.", "ohm", ""],
+  ["Newton's first law is also called the law of this.", "inertia", ""],
+  ["Light travels at roughly 300,000 of these units per second.", "kilometers", "km|kilometres|kilometer"],
+  ["He formulated the uncertainty principle in 1927.", "Werner Heisenberg", "Heisenberg"],
+  ["The SI unit of magnetic flux density, named for an inventor.", "tesla", ""],
+]},
+{ id: "tennis2", name: "Game, Set, Match", tag: "sports", clues: [
+  ["In tennis, a score of zero.", "love", ""],
+  ["The French Open is played on this surface.", "clay", "red clay"],
+  ["This Grand Slam event is played at Flushing Meadows.", "US Open", "U.S. Open|United States Open"],
+  ["Wimbledon's famous snack of fruit and dairy.", "strawberries and cream", "strawberries|strawberries & cream"],
+  ["This Australian won the calendar Grand Slam in both 1962 and 1969.", "Rod Laver", "Laver"],
+]},
+{ id: "animals2", name: "Creature Features", tag: "gen", clues: [
+  ["This mythical horse is Scotland's national animal.", "unicorn", ""],
+  ["The only birds able to fly backward.", "hummingbirds", "hummingbird"],
+  ["An octopus has this many hearts.", "3", ""],
+  ["The world's largest living lizard.", "Komodo dragon", "Komodo"],
+  ["A female donkey is called this.", "jenny", "jennet"],
+]},
+{ id: "poke2", name: "Poké Master", tag: "fun", clues: [
+  ["This Psychic-type was created through genetic experiments on Mew.", "Mewtwo", "Mew Two|Mew 2"],
+  ["The number of Pokémon in the original Red and Blue Pokédex.", "151", ""],
+  ["This legendary bird is Ice and Flying type.", "Articuno", ""],
+  ["Pokémon number 143 blocks the road until you wake it with the Poké Flute.", "Snorlax", ""],
+  ["Revived from the Helix Fossil, this Pokémon evolves into Omastar.", "Omanyte", ""],
+]},
+{ id: "nineties2", name: "Rewind the Tape", tag: "fun", clues: [
+  ["Leonardo DiCaprio and Kate Winslet starred in this 1997 blockbuster.", "Titanic", ""],
+  ["The Spice Girl known as \"Posh.\"", "Victoria Beckham", "Victoria Adams|Victoria|Posh Spice"],
+  ["This giggling \"Tickle Me\" toy caused 1996 holiday stampedes.", "Elmo", "Tickle Me Elmo"],
+  ["This Spanish duo first recorded \"Macarena.\"", "Los del Rio", "Los del Río"],
+  ["Kramer's rarely used first name on \"Seinfeld.\"", "Cosmo", ""],
+]},
+{ id: "landmarks2", name: "Built to Last", tag: "gen", clues: [
+  ["This Paris landmark was completed in 1889.", "Eiffel Tower", "Eiffel|Tour Eiffel"],
+  ["This Inca citadel sits high in the Peruvian Andes.", "Machu Picchu", "Machu Pichu"],
+  ["This vast temple complex is in Cambodia.", "Angkor Wat", "Angkor"],
+  ["This architect devoted his final decades to Barcelona's Sagrada Familia.", "Antoni Gaudi", "Gaudi"],
+  ["Frank Lloyd Wright built this house over a waterfall in Pennsylvania.", "Fallingwater", "Falling Water"],
+]},
+{ id: "lingo2", name: "Talk the Talk", tag: "wrestling", clues: [
+  ["Wrestling slang for a good guy.", "face", "babyface"],
+  ["Wrestling slang for a bad guy.", "heel", ""],
+  ["The insider term for keeping up the illusion that it's all real.", "kayfabe", ""],
+  ["The spot just behind the entrance curtain is named for this announcer and executive.", "Gorilla Monsoon", "Gorilla|Gorilla Position"],
+  ["A finish where a win gets overturned is named for this \"American Dream.\"", "Dusty Rhodes", "Dusty|Dusty finish"],
+]},
+{ id: "golf2", name: "Fore!", tag: "sports", clues: [
+  ["One under par on a hole.", "birdie", ""],
+  ["The color of the jacket given to the Masters champion.", "green", ""],
+  ["Two under par on a hole.", "eagle", ""],
+  ["The trophy awarded to the winner of The Open Championship.", "Claret Jug", ""],
+  ["Three under par on a hole.", "albatross", "double eagle"],
+]},
+{ id: "explorers2", name: "Off the Map", tag: "gen", clues: [
+  ["With William Clark, he explored the Louisiana Purchase.", "Meriwether Lewis", "Lewis"],
+  ["He led the first expedition to circle the globe but died in the Philippines.", "Ferdinand Magellan", "Magellan"],
+  ["This Norwegian reached the South Pole first, in 1911.", "Roald Amundsen", "Amundsen"],
+  ["In 1498, this Portuguese explorer reached India by sailing around Africa.", "Vasco da Gama", "da Gama"],
+  ["He reached the summit of Everest with Edmund Hillary in 1953.", "Tenzing Norgay", "Tenzing|Sherpa Tenzing"],
+]},
+{ id: "tv2", name: "Classic TV", tag: "gen", clues: [
+  ["Sitcom set in a Boston bar where everybody knows your name.", "Cheers", ""],
+  ["\"M*A*S*H\" was set during this war.", "Korean War", "Korea"],
+  ["He created and hosted \"The Twilight Zone.\"", "Rod Serling", "Serling"],
+  ["The Fonz hung out at this diner on \"Happy Days.\"", "Arnold's", "Arnolds|Arnold's Drive-In"],
+  ["Norm's last name on \"Cheers.\"", "Peterson", "Norm Peterson"],
+]},
+{ id: "cooking2", name: "Chef's Kiss", tag: "gen", clues: [
+  ["Pasta cooked firm \"to the tooth.\"", "al dente", ""],
+  ["To cook quickly in a little fat over high heat.", "saute", "sauté"],
+  ["The Japanese name for the savory fifth taste.", "umami", ""],
+  ["This French phrase means having everything prepped and in its place.", "mise en place", ""],
+  ["Cooking vacuum-sealed food in a water bath; the French means \"under vacuum.\"", "sous vide", ""],
+]},
+{ id: "leaders2", name: "World Leaders", tag: "gen", clues: [
+  ["South Africa's first Black president.", "Nelson Mandela", "Mandela"],
+  ["Britain's \"Iron Lady.\"", "Margaret Thatcher", "Thatcher"],
+  ["India's first prime minister.", "Jawaharlal Nehru", "Nehru"],
+  ["He took power after the Cuban Revolution in 1959.", "Fidel Castro", "Castro"],
+  ["Israel's first female prime minister.", "Golda Meir", "Meir"],
+]},
+{ id: "soccer2", name: "The Beautiful Game", tag: "sports", clues: [
+  ["The number of players each team has on the field in soccer.", "11", ""],
+  ["This Brazilian legend won three World Cups.", "Pele", "Pelé|Edson Arantes do Nascimento"],
+  ["Diego Maradona's 1986 handball goal against England got this nickname.", "Hand of God", "the Hand of God"],
+  ["The first World Cup, in 1930, was hosted and won by this country.", "Uruguay", ""],
+  ["Zinedine Zidane's career ended with a headbutt on this Italian defender in the 2006 final.", "Marco Materazzi", "Materazzi"],
+]},
+{ id: "math2", name: "Do the Math", tag: "gen", clues: [
+  ["The number of sides on a hexagon.", "6", ""],
+  ["The only even prime number.", "2", ""],
+  ["A triangle with three sides of different lengths.", "scalene", "scalene triangle"],
+  ["The highest score possible with three darts.", "180", ""],
+  ["The year written in Roman numerals as MCMLXXXIV.", "1984", ""],
+]},
+{ id: "wm2", name: "Grandest Stage", tag: "wrestling", clues: [
+  ["This \"A-Team\" star teamed with Hulk Hogan in the first WrestleMania main event.", "Mr. T", "Mr T|Mister T"],
+  ["The Ultimate Warrior beat Hulk Hogan at WrestleMania VI in this city.", "Toronto", ""],
+  ["Shawn Michaels and Razor Ramon had a classic match of this type at WrestleMania X.", "ladder match", "ladder"],
+  ["Known as \"The Man,\" she won the first women's WrestleMania main event in 2019.", "Becky Lynch", "Lynch|The Man"],
+  ["Edge won the very first Money in the Bank ladder match at this numbered WrestleMania.", "21", "WrestleMania 21|WrestleMania XXI|XXI"],
+]},
+{ id: "racing2", name: "Off to the Races", tag: "sports", clues: [
+  ["Indianapolis 500 winners traditionally drink this.", "milk", ""],
+  ["NASCAR's \"Great American Race.\"", "Daytona 500", "Daytona"],
+  ["This Formula One race winds through the streets of Monte Carlo.", "Monaco Grand Prix", "Monaco|Monaco GP"],
+  ["In 1973, this horse won the Triple Crown, taking the Belmont by 31 lengths.", "Secretariat", "Big Red"],
+  ["The Kentucky Derby is run at this Louisville track.", "Churchill Downs", ""],
+]},
+{ id: "scientists2", name: "Great Minds", tag: "gen", clues: [
+  ["He developed the theory of relativity.", "Albert Einstein", "Einstein"],
+  ["The first woman to win a Nobel Prize.", "Marie Curie", "Curie|Madame Curie"],
+  ["He discovered penicillin in 1928.", "Alexander Fleming", "Fleming"],
+  ["His 1543 book put the Sun, not Earth, at the center.", "Nicolaus Copernicus", "Copernicus"],
+  ["This Danish astronomer with a metal nose made precise sky measurements before the telescope.", "Tycho Brahe", "Tycho|Brahe"],
+]},
+{ id: "hoops2", name: "Hardwood Legends", tag: "sports", clues: [
+  ["LeBron James began his NBA career with this team.", "Cleveland Cavaliers", "Cavaliers|Cavs|Cleveland"],
+  ["Wilt Chamberlain scored this many points in a single 1962 game.", "100", ""],
+  ["Michael Jordan wore this number when he first returned in 1995.", "45", ""],
+  ["\"The Mailman\" delivered for the Utah Jazz for 18 seasons.", "Karl Malone", "Malone"],
+  ["The NBA logo silhouette is widely said to be this Lakers great.", "Jerry West", "West"],
+]},
+{ id: "states2", name: "State Your Name", tag: "gen", clues: [
+  ["\"The Lone Star State.\"", "Texas", ""],
+  ["\"The Bluegrass State.\"", "Kentucky", ""],
+  ["\"The Beehive State.\"", "Utah", ""],
+  ["\"The Pelican State.\"", "Louisiana", ""],
+  ["\"The Old Line State.\"", "Maryland", ""],
+]},
+{ id: "spacerace2", name: "Space Race", tag: "gen", clues: [
+  ["In 1961, he became the first human in space.", "Yuri Gagarin", "Gagarin"],
+  ["The first artificial satellite, launched in 1957.", "Sputnik", "Sputnik 1"],
+  ["The name of Apollo 11's lunar module.", "Eagle", "the Eagle"],
+  ["In 1983, she became the first American woman in space.", "Sally Ride", "Ride"],
+  ["He orbited the Moon in Columbia while Armstrong and Aldrin walked on it.", "Michael Collins", "Collins"],
+]},
+{ id: "factions2", name: "Stables", tag: "wrestling", clues: [
+  ["Roman Reigns, Seth Rollins and Dean Ambrose.", "The Shield", "Shield"],
+  ["Ric Flair, Triple H, Randy Orton and Batista.", "Evolution", ""],
+  ["The Undertaker's dark late-90s faction.", "Ministry of Darkness", "the Ministry"],
+  ["Bray Wyatt led this group with Luke Harper and Erick Rowan.", "Wyatt Family", "The Wyatt Family|Wyatts"],
+  ["Flair, Arn Anderson, Ole Anderson and Tully Blanchard were the originals in this group.", "Four Horsemen", "The Four Horsemen|Horsemen"],
+]},
+],
+final: [
+  { id: "f-maine", cat: "U.S. States", clue: "It's the only U.S. state whose name is a single syllable.", a: "Maine", alt: "" },
+  { id: "f-rumble", tag: "ring", cat: "Royal Rumble", clue: "He won the Royal Rumble three times: in 1997, 1998 and 2001.", a: "Steve Austin", alt: "Stone Cold Steve Austin|Stone Cold|Austin" },
+  { id: "f-original6", tag: "ring", cat: "The NHL", clue: "The Original Six were Boston, Chicago, Detroit, Montreal, New York and this city.", a: "Toronto", alt: "" },
+  { id: "f-uranus", cat: "Astronomy", clue: "Found by William Herschel in 1781, it was the first planet discovered with a telescope.", a: "Uranus", alt: "" },
+  { id: "f-waterloo", cat: "European History", clue: "This 1815 battle in present-day Belgium ended Napoleon's rule for good.", a: "Waterloo", alt: "Battle of Waterloo" },
+  { id: "f-baker", cat: "Fictional Addresses", clue: "This character's famous home is 221B Baker Street.", a: "Sherlock Holmes", alt: "Holmes|Sherlock" },
+  { id: "f-beauty", cat: "Animated Films", clue: "In 1991, it became the first animated feature nominated for the Best Picture Oscar.", a: "Beauty and the Beast", alt: "" },
+  { id: "f-deion", tag: "ring", cat: "Two-Sport Stars", clue: "He played in the 1992 World Series and later won two Super Bowl rings.", a: "Deion Sanders", alt: "Sanders|Prime Time|Neon Deion" },
+  { id: "f-pantheon", cat: "Word Roots", clue: "From the Greek for \"all\" and \"gods,\" it names a famous domed temple in Rome.", a: "Pantheon", alt: "" },
+  { id: "f-kili", cat: "World Geography", clue: "Africa's highest peak, Mount Kilimanjaro, stands in this country.", a: "Tanzania", alt: "" },
+  { id: "f-hof", tag: "ring", cat: "Hall of Fame", clue: "In 1993, he became the first inductee into the WWF Hall of Fame.", a: "Andre the Giant", alt: "Andre" },
+  { id: "f-ninth", cat: "Classical Music", clue: "He composed his Ninth Symphony after losing his hearing.", a: "Ludwig van Beethoven", alt: "Beethoven" },
+  { id: "f-pavlova", cat: "Desserts", clue: "Australia and New Zealand both claim this meringue dessert named for a Russian ballerina.", a: "pavlova", alt: "" },
+  { id: "f-aaron", tag: "ring", cat: "Baseball", clue: "In 1974, he passed Babe Ruth's career home run record.", a: "Hank Aaron", alt: "Aaron|Henry Aaron" },
+  { id: "f-karman", cat: "Space", clue: "This line, about 100 kilometers up, is often used to mark where space begins.", a: "Karman line", alt: "Kármán line|Karman" },
+  { id: "f-mash", cat: "TV Finales", clue: "This show's finale, \"Goodbye, Farewell and Amen,\" aired in 1983.", a: "M*A*S*H", alt: "MASH" },
+  { id: "f-aew", tag: "ring", cat: "Wrestling Promotions", clue: "This promotion held its first pay-per-view, Double or Nothing, in Las Vegas in 2019.", a: "AEW", alt: "All Elite Wrestling" },
+  { id: "f-rocket", tag: "ring", cat: "Hockey Legends", clue: "In 1944-45, this Montreal winger became the first to score 50 goals in 50 games.", a: "Maurice Richard", alt: "Rocket Richard|Richard|The Rocket" },
+  { id: "f-wall", cat: "The 20th Century", clue: "The Berlin Wall fell in this year.", a: "1989", alt: "" },
+  { id: "f-pearl", cat: "Famous Paintings", clue: "This Dutch master painted \"Girl with a Pearl Earring.\"", a: "Johannes Vermeer", alt: "Vermeer|Jan Vermeer" },
+  { id: "f-vatican", cat: "Small Wonders", clue: "By area, it's the smallest country in the world.", a: "Vatican City", alt: "Vatican|Holy See" },
+],
+};
+if (typeof module !== "undefined" && module.exports) module.exports = BB_BANK;
+
+</script>
+<script>
+/*! Schnorr signing for the PvP relay messages: @noble/curves 1.6.0 + @noble/hashes 1.5.0, MIT License (c) Paul Miller, paulmillr.com */
+(()=>{var De=Object.defineProperty;var Ke=(t,n)=>{for(var e in n)De(t,e,{get:n[e],enumerable:!0})};function pe(t){if(!Number.isSafeInteger(t)||t<0)throw new Error(`positive integer expected, not ${t}`)}function Ye(t){return t instanceof Uint8Array||t!=null&&typeof t=="object"&&t.constructor.name==="Uint8Array"}function at(t,...n){if(!Ye(t))throw new Error("Uint8Array expected");if(n.length>0&&!n.includes(t.length))throw new Error(`Uint8Array expected of length ${n}, not of length=${t.length}`)}function me(t){if(typeof t!="function"||typeof t.create!="function")throw new Error("Hash should be wrapped by utils.wrapConstructor");pe(t.outputLen),pe(t.blockLen)}function bt(t,n=!0){if(t.destroyed)throw new Error("Hash instance has been destroyed");if(n&&t.finished)throw new Error("Hash#digest() has already been called")}function be(t,n){at(t);let e=n.outputLen;if(t.length<e)throw new Error(`digestInto() expects output buffer of length at least ${e}`)}var ut=typeof globalThis=="object"&&"crypto"in globalThis?globalThis.crypto:void 0;var qt=t=>new DataView(t.buffer,t.byteOffset,t.byteLength),K=(t,n)=>t<<32-n|t>>>n;var Rn=new Uint8Array(new Uint32Array([287454020]).buffer)[0]===68;var Ge=Array.from({length:256},(t,n)=>n.toString(16).padStart(2,"0"));function ye(t){at(t);let n="";for(let e=0;e<t.length;e++)n+=Ge[t[e]];return n}function We(t){if(typeof t!="string")throw new Error(`utf8ToBytes expected string, got ${typeof t}`);return new Uint8Array(new TextEncoder().encode(t))}function St(t){return typeof t=="string"&&(t=We(t)),at(t),t}function xe(...t){let n=0;for(let r=0;r<t.length;r++){let s=t[r];at(s),n+=s.length}let e=new Uint8Array(n);for(let r=0,s=0;r<t.length;r++){let o=t[r];e.set(o,s),s+=o.length}return e}var yt=class{clone(){return this._cloneInto()}},Un={}.toString;function Ee(t){let n=r=>t().update(St(r)).digest(),e=t();return n.outputLen=e.outputLen,n.blockLen=e.blockLen,n.create=()=>t(),n}function Lt(t=32){if(ut&&typeof ut.getRandomValues=="function")return ut.getRandomValues(new Uint8Array(t));if(ut&&typeof ut.randomBytes=="function")return ut.randomBytes(t);throw new Error("crypto.getRandomValues must be defined")}function Xe(t,n,e,r){if(typeof t.setBigUint64=="function")return t.setBigUint64(n,e,r);let s=BigInt(32),o=BigInt(4294967295),c=Number(e>>s&o),f=Number(e&o),i=r?4:0,a=r?0:4;t.setUint32(n+i,c,r),t.setUint32(n+a,f,r)}var Be=(t,n,e)=>t&n^~t&e,ve=(t,n,e)=>t&n^t&e^n&e,Nt=class extends yt{constructor(n,e,r,s){super(),this.blockLen=n,this.outputLen=e,this.padOffset=r,this.isLE=s,this.finished=!1,this.length=0,this.pos=0,this.destroyed=!1,this.buffer=new Uint8Array(n),this.view=qt(this.buffer)}update(n){bt(this);let{view:e,buffer:r,blockLen:s}=this;n=St(n);let o=n.length;for(let c=0;c<o;){let f=Math.min(s-this.pos,o-c);if(f===s){let i=qt(n);for(;s<=o-c;c+=s)this.process(i,c);continue}r.set(n.subarray(c,c+f),this.pos),this.pos+=f,c+=f,this.pos===s&&(this.process(e,0),this.pos=0)}return this.length+=n.length,this.roundClean(),this}digestInto(n){bt(this),be(n,this),this.finished=!0;let{buffer:e,view:r,blockLen:s,isLE:o}=this,{pos:c}=this;e[c++]=128,this.buffer.subarray(c).fill(0),this.padOffset>s-c&&(this.process(r,0),c=0);for(let d=c;d<s;d++)e[d]=0;Xe(r,s-8,BigInt(this.length*8),o),this.process(r,0);let f=qt(n),i=this.outputLen;if(i%4)throw new Error("_sha2: outputLen should be aligned to 32bit");let a=i/4,h=this.get();if(a>h.length)throw new Error("_sha2: outputLen bigger than state");for(let d=0;d<a;d++)f.setUint32(4*d,h[d],o)}digest(){let{buffer:n,outputLen:e}=this;this.digestInto(n);let r=n.slice(0,e);return this.destroy(),r}_cloneInto(n){n||(n=new this.constructor),n.set(...this.get());let{blockLen:e,buffer:r,length:s,finished:o,destroyed:c,pos:f}=this;return n.length=s,n.pos=f,n.finished=o,n.destroyed=c,s%e&&n.buffer.set(r),n}};var Qe=new Uint32Array([1116352408,1899447441,3049323471,3921009573,961987163,1508970993,2453635748,2870763221,3624381080,310598401,607225278,1426881987,1925078388,2162078206,2614888103,3248222580,3835390401,4022224774,264347078,604807628,770255983,1249150122,1555081692,1996064986,2554220882,2821834349,2952996808,3210313671,3336571891,3584528711,113926993,338241895,666307205,773529912,1294757372,1396182291,1695183700,1986661051,2177026350,2456956037,2730485921,2820302411,3259730800,3345764771,3516065817,3600352804,4094571909,275423344,430227734,506948616,659060556,883997877,958139571,1322822218,1537002063,1747873779,1955562222,2024104815,2227730452,2361852424,2428436474,2756734187,3204031479,3329325298]),rt=new Uint32Array([1779033703,3144134277,1013904242,2773480762,1359893119,2600822924,528734635,1541459225]),ot=new Uint32Array(64),Mt=class extends Nt{constructor(){super(64,32,8,!1),this.A=rt[0]|0,this.B=rt[1]|0,this.C=rt[2]|0,this.D=rt[3]|0,this.E=rt[4]|0,this.F=rt[5]|0,this.G=rt[6]|0,this.H=rt[7]|0}get(){let{A:n,B:e,C:r,D:s,E:o,F:c,G:f,H:i}=this;return[n,e,r,s,o,c,f,i]}set(n,e,r,s,o,c,f,i){this.A=n|0,this.B=e|0,this.C=r|0,this.D=s|0,this.E=o|0,this.F=c|0,this.G=f|0,this.H=i|0}process(n,e){for(let d=0;d<16;d++,e+=4)ot[d]=n.getUint32(e,!1);for(let d=16;d<64;d++){let l=ot[d-15],E=ot[d-2],N=K(l,7)^K(l,18)^l>>>3,b=K(E,17)^K(E,19)^E>>>10;ot[d]=b+ot[d-7]+N+ot[d-16]|0}let{A:r,B:s,C:o,D:c,E:f,F:i,G:a,H:h}=this;for(let d=0;d<64;d++){let l=K(f,6)^K(f,11)^K(f,25),E=h+l+Be(f,i,a)+Qe[d]+ot[d]|0,b=(K(r,2)^K(r,13)^K(r,22))+ve(r,s,o)|0;h=a,a=i,i=f,f=c+E|0,c=o,o=s,s=r,r=E+b|0}r=r+this.A|0,s=s+this.B|0,o=o+this.C|0,c=c+this.D|0,f=f+this.E|0,i=i+this.F|0,a=a+this.G|0,h=h+this.H|0,this.set(r,s,o,c,f,i,a,h)}roundClean(){ot.fill(0)}destroy(){this.set(0,0,0,0,0,0,0,0),this.buffer.fill(0)}};var xt=Ee(()=>new Mt);var Rt=class extends yt{constructor(n,e){super(),this.finished=!1,this.destroyed=!1,me(n);let r=St(e);if(this.iHash=n.create(),typeof this.iHash.update!="function")throw new Error("Expected instance of class which extends utils.Hash");this.blockLen=this.iHash.blockLen,this.outputLen=this.iHash.outputLen;let s=this.blockLen,o=new Uint8Array(s);o.set(r.length>s?n.create().update(r).digest():r);for(let c=0;c<o.length;c++)o[c]^=54;this.iHash.update(o),this.oHash=n.create();for(let c=0;c<o.length;c++)o[c]^=106;this.oHash.update(o),o.fill(0)}update(n){return bt(this),this.iHash.update(n),this}digestInto(n){bt(this),at(n,this.outputLen),this.finished=!0,this.iHash.digestInto(n),this.oHash.update(n),this.oHash.digestInto(n),this.destroy()}digest(){let n=new Uint8Array(this.oHash.outputLen);return this.digestInto(n),n}_cloneInto(n){n||(n=Object.create(Object.getPrototypeOf(this),{}));let{oHash:e,iHash:r,finished:s,destroyed:o,blockLen:c,outputLen:f}=this;return n=n,n.finished=s,n.destroyed=o,n.blockLen=c,n.outputLen=f,n.oHash=e._cloneInto(n.oHash),n.iHash=r._cloneInto(n.iHash),n}destroy(){this.destroyed=!0,this.oHash.destroy(),this.iHash.destroy()}},Dt=(t,n,e)=>new Rt(t,n).update(e).digest();Dt.create=(t,n)=>new Rt(t,n);var Jt={};Ke(Jt,{aInRange:()=>W,abool:()=>lt,abytes:()=>Et,bitGet:()=>rn,bitLen:()=>Xt,bitMask:()=>At,bitSet:()=>on,bytesToHex:()=>dt,bytesToNumberBE:()=>M,bytesToNumberLE:()=>Ht,concatBytes:()=>Q,createHmacDrbg:()=>Qt,ensureBytes:()=>U,equalBytes:()=>en,hexToBytes:()=>gt,hexToNumber:()=>Wt,inRange:()=>it,isBytes:()=>st,memoized:()=>$t,notImplemented:()=>cn,numberToBytesBE:()=>Y,numberToBytesLE:()=>kt,numberToHexUnpadded:()=>ht,numberToVarBytesBE:()=>tn,utf8ToBytes:()=>nn,validateObject:()=>ct});var Gt=BigInt(0),Ut=BigInt(1),Je=BigInt(2);function st(t){return t instanceof Uint8Array||t!=null&&typeof t=="object"&&t.constructor.name==="Uint8Array"}function Et(t){if(!st(t))throw new Error("Uint8Array expected")}function lt(t,n){if(typeof n!="boolean")throw new Error(`${t} must be valid boolean, got "${n}".`)}var Fe=Array.from({length:256},(t,n)=>n.toString(16).padStart(2,"0"));function dt(t){Et(t);let n="";for(let e=0;e<t.length;e++)n+=Fe[t[e]];return n}function ht(t){let n=t.toString(16);return n.length&1?`0${n}`:n}function Wt(t){if(typeof t!="string")throw new Error("hex string expected, got "+typeof t);return BigInt(t===""?"0":`0x${t}`)}var X={_0:48,_9:57,_A:65,_F:70,_a:97,_f:102};function Se(t){if(t>=X._0&&t<=X._9)return t-X._0;if(t>=X._A&&t<=X._F)return t-(X._A-10);if(t>=X._a&&t<=X._f)return t-(X._a-10)}function gt(t){if(typeof t!="string")throw new Error("hex string expected, got "+typeof t);let n=t.length,e=n/2;if(n%2)throw new Error("padded hex string expected, got unpadded hex of length "+n);let r=new Uint8Array(e);for(let s=0,o=0;s<e;s++,o+=2){let c=Se(t.charCodeAt(o)),f=Se(t.charCodeAt(o+1));if(c===void 0||f===void 0){let i=t[o]+t[o+1];throw new Error('hex string expected, got non-hex character "'+i+'" at index '+o)}r[s]=c*16+f}return r}function M(t){return Wt(dt(t))}function Ht(t){return Et(t),Wt(dt(Uint8Array.from(t).reverse()))}function Y(t,n){return gt(t.toString(16).padStart(n*2,"0"))}function kt(t,n){return Y(t,n).reverse()}function tn(t){return gt(ht(t))}function U(t,n,e){let r;if(typeof n=="string")try{r=gt(n)}catch(o){throw new Error(`${t} must be valid hex string, got "${n}". Cause: ${o}`)}else if(st(n))r=Uint8Array.from(n);else throw new Error(`${t} must be hex string or Uint8Array`);let s=r.length;if(typeof e=="number"&&s!==e)throw new Error(`${t} expected ${e} bytes, got ${s}`);return r}function Q(...t){let n=0;for(let r=0;r<t.length;r++){let s=t[r];Et(s),n+=s.length}let e=new Uint8Array(n);for(let r=0,s=0;r<t.length;r++){let o=t[r];e.set(o,s),s+=o.length}return e}function en(t,n){if(t.length!==n.length)return!1;let e=0;for(let r=0;r<t.length;r++)e|=t[r]^n[r];return e===0}function nn(t){if(typeof t!="string")throw new Error(`utf8ToBytes expected string, got ${typeof t}`);return new Uint8Array(new TextEncoder().encode(t))}var Kt=t=>typeof t=="bigint"&&Gt<=t;function it(t,n,e){return Kt(t)&&Kt(n)&&Kt(e)&&n<=t&&t<e}function W(t,n,e,r){if(!it(n,e,r))throw new Error(`expected valid ${t}: ${e} <= n < ${r}, got ${typeof n} ${n}`)}function Xt(t){let n;for(n=0;t>Gt;t>>=Ut,n+=1);return n}function rn(t,n){return t>>BigInt(n)&Ut}function on(t,n,e){return t|(e?Ut:Gt)<<BigInt(n)}var At=t=>(Je<<BigInt(t-1))-Ut,Yt=t=>new Uint8Array(t),Ae=t=>Uint8Array.from(t);function Qt(t,n,e){if(typeof t!="number"||t<2)throw new Error("hashLen must be a number");if(typeof n!="number"||n<2)throw new Error("qByteLen must be a number");if(typeof e!="function")throw new Error("hmacFn must be a function");let r=Yt(t),s=Yt(t),o=0,c=()=>{r.fill(1),s.fill(0),o=0},f=(...d)=>e(s,r,...d),i=(d=Yt())=>{s=f(Ae([0]),d),r=f(),d.length!==0&&(s=f(Ae([1]),d),r=f())},a=()=>{if(o++>=1e3)throw new Error("drbg: tried 1000 values");let d=0,l=[];for(;d<n;){r=f();let E=r.slice();l.push(E),d+=r.length}return Q(...l)};return(d,l)=>{c(),i(d);let E;for(;!(E=l(a()));)i();return c(),E}}var sn={bigint:t=>typeof t=="bigint",function:t=>typeof t=="function",boolean:t=>typeof t=="boolean",string:t=>typeof t=="string",stringOrUint8Array:t=>typeof t=="string"||st(t),isSafeInteger:t=>Number.isSafeInteger(t),array:t=>Array.isArray(t),field:(t,n)=>n.Fp.isValid(t),hash:t=>typeof t=="function"&&Number.isSafeInteger(t.outputLen)};function ct(t,n,e={}){let r=(s,o,c)=>{let f=sn[o];if(typeof f!="function")throw new Error(`Invalid validator "${o}", expected function`);let i=t[s];if(!(c&&i===void 0)&&!f(i,t))throw new Error(`Invalid param ${String(s)}=${i} (${typeof i}), expected ${o}`)};for(let[s,o]of Object.entries(n))r(s,o,!1);for(let[s,o]of Object.entries(e))r(s,o,!0);return t}var cn=()=>{throw new Error("not implemented")};function $t(t){let n=new WeakMap;return(e,...r)=>{let s=n.get(e);if(s!==void 0)return s;let o=t(e,...r);return n.set(e,o),o}}var k=BigInt(0),R=BigInt(1),wt=BigInt(2),fn=BigInt(3),Ft=BigInt(4),Ie=BigInt(5),Oe=BigInt(8),an=BigInt(9),un=BigInt(16);function H(t,n){let e=t%n;return e>=k?e:n+e}function ln(t,n,e){if(e<=k||n<k)throw new Error("Expected power/modulo > 0");if(e===R)return k;let r=R;for(;n>k;)n&R&&(r=r*t%e),t=t*t%e,n>>=R;return r}function z(t,n,e){let r=t;for(;n-- >k;)r*=r,r%=e;return r}function Ct(t,n){if(t===k||n<=k)throw new Error(`invert: expected positive integers, got n=${t} mod=${n}`);let e=H(t,n),r=n,s=k,o=R,c=R,f=k;for(;e!==k;){let a=r/e,h=r%e,d=s-c*a,l=o-f*a;r=e,e=h,s=c,o=f,c=d,f=l}if(r!==R)throw new Error("invert: does not exist");return H(s,n)}function dn(t){let n=(t-R)/wt,e,r,s;for(e=t-R,r=0;e%wt===k;e/=wt,r++);for(s=wt;s<t&&ln(s,n,t)!==t-R;s++);if(r===1){let c=(t+R)/Ft;return function(i,a){let h=i.pow(a,c);if(!i.eql(i.sqr(h),a))throw new Error("Cannot find square root");return h}}let o=(e+R)/wt;return function(f,i){if(f.pow(i,n)===f.neg(f.ONE))throw new Error("Cannot find square root");let a=r,h=f.pow(f.mul(f.ONE,s),e),d=f.pow(i,o),l=f.pow(i,e);for(;!f.eql(l,f.ONE);){if(f.eql(l,f.ZERO))return f.ZERO;let E=1;for(let b=f.sqr(l);E<a&&!f.eql(b,f.ONE);E++)b=f.sqr(b);let N=f.pow(h,R<<BigInt(a-E-1));h=f.sqr(N),d=f.mul(d,N),l=f.mul(l,h),a=E}return d}}function hn(t){if(t%Ft===fn){let n=(t+R)/Ft;return function(r,s){let o=r.pow(s,n);if(!r.eql(r.sqr(o),s))throw new Error("Cannot find square root");return o}}if(t%Oe===Ie){let n=(t-Ie)/Oe;return function(r,s){let o=r.mul(s,wt),c=r.pow(o,n),f=r.mul(s,c),i=r.mul(r.mul(f,wt),c),a=r.mul(f,r.sub(i,r.ONE));if(!r.eql(r.sqr(a),s))throw new Error("Cannot find square root");return a}}return t%un,dn(t)}var gn=["create","isValid","is0","neg","inv","sqrt","sqr","eql","add","sub","mul","pow","div","addN","subN","mulN","sqrN"];function te(t){let n={ORDER:"bigint",MASK:"bigint",BYTES:"isSafeInteger",BITS:"isSafeInteger"},e=gn.reduce((r,s)=>(r[s]="function",r),n);return ct(t,e)}function wn(t,n,e){if(e<k)throw new Error("Expected power > 0");if(e===k)return t.ONE;if(e===R)return n;let r=t.ONE,s=n;for(;e>k;)e&R&&(r=t.mul(r,s)),s=t.sqr(s),e>>=R;return r}function pn(t,n){let e=new Array(n.length),r=n.reduce((o,c,f)=>t.is0(c)?o:(e[f]=o,t.mul(o,c)),t.ONE),s=t.inv(r);return n.reduceRight((o,c,f)=>t.is0(c)?o:(e[f]=t.mul(o,e[f]),t.mul(o,c)),s),e}function ee(t,n){let e=n!==void 0?n:t.toString(2).length,r=Math.ceil(e/8);return{nBitLength:e,nByteLength:r}}function Zt(t,n,e=!1,r={}){if(t<=k)throw new Error(`Expected Field ORDER > 0, got ${t}`);let{nBitLength:s,nByteLength:o}=ee(t,n);if(o>2048)throw new Error("Field lengths over 2048 bytes are not supported");let c=hn(t),f=Object.freeze({ORDER:t,BITS:s,BYTES:o,MASK:At(s),ZERO:k,ONE:R,create:i=>H(i,t),isValid:i=>{if(typeof i!="bigint")throw new Error(`Invalid field element: expected bigint, got ${typeof i}`);return k<=i&&i<t},is0:i=>i===k,isOdd:i=>(i&R)===R,neg:i=>H(-i,t),eql:(i,a)=>i===a,sqr:i=>H(i*i,t),add:(i,a)=>H(i+a,t),sub:(i,a)=>H(i-a,t),mul:(i,a)=>H(i*a,t),pow:(i,a)=>wn(f,i,a),div:(i,a)=>H(i*Ct(a,t),t),sqrN:i=>i*i,addN:(i,a)=>i+a,subN:(i,a)=>i-a,mulN:(i,a)=>i*a,inv:i=>Ct(i,t),sqrt:r.sqrt||(i=>c(f,i)),invertBatch:i=>pn(f,i),cmov:(i,a,h)=>h?a:i,toBytes:i=>e?kt(i,o):Y(i,o),fromBytes:i=>{if(i.length!==o)throw new Error(`Fp.fromBytes: expected ${o}, got ${i.length}`);return e?Ht(i):M(i)}});return Object.freeze(f)}function Te(t){if(typeof t!="bigint")throw new Error("field order must be bigint");let n=t.toString(2).length;return Math.ceil(n/8)}function ne(t){let n=Te(t);return n+Math.ceil(n/2)}function _e(t,n,e=!1){let r=t.length,s=Te(n),o=ne(n);if(r<16||r<o||r>1024)throw new Error(`expected ${o}-1024 bytes of input, got ${r}`);let c=e?M(t):Ht(t),f=H(c,n-R)+R;return e?kt(f,s):Y(f,s)}var bn=BigInt(0),re=BigInt(1),oe=new WeakMap,qe=new WeakMap;function Le(t,n){let e=(o,c)=>{let f=c.negate();return o?f:c},r=o=>{if(!Number.isSafeInteger(o)||o<=0||o>n)throw new Error(`Wrong window size=${o}, should be [1..${n}]`)},s=o=>{r(o);let c=Math.ceil(n/o)+1,f=2**(o-1);return{windows:c,windowSize:f}};return{constTimeNegate:e,unsafeLadder(o,c){let f=t.ZERO,i=o;for(;c>bn;)c&re&&(f=f.add(i)),i=i.double(),c>>=re;return f},precomputeWindow(o,c){let{windows:f,windowSize:i}=s(c),a=[],h=o,d=h;for(let l=0;l<f;l++){d=h,a.push(d);for(let E=1;E<i;E++)d=d.add(h),a.push(d);h=d.double()}return a},wNAF(o,c,f){let{windows:i,windowSize:a}=s(o),h=t.ZERO,d=t.BASE,l=BigInt(2**o-1),E=2**o,N=BigInt(o);for(let b=0;b<i;b++){let u=b*a,w=Number(f&l);f>>=N,w>a&&(w-=E,f+=re);let y=u,B=u+Math.abs(w)-1,S=b%2!==0,T=w<0;w===0?d=d.add(e(S,c[y])):h=h.add(e(T,c[B]))}return{p:h,f:d}},wNAFCached(o,c,f){let i=qe.get(o)||1,a=oe.get(o);return a||(a=this.precomputeWindow(o,i),i!==1&&oe.set(o,f(a))),this.wNAF(i,a,c)},setWindowSize(o,c){r(c),qe.set(o,c),oe.delete(o)}}}function Ne(t,n,e,r){if(!Array.isArray(e)||!Array.isArray(r)||r.length!==e.length)throw new Error("arrays of points and scalars must have equal length");r.forEach((h,d)=>{if(!n.isValid(h))throw new Error(`wrong scalar at index ${d}`)}),e.forEach((h,d)=>{if(!(h instanceof t))throw new Error(`wrong point at index ${d}`)});let s=Xt(BigInt(e.length)),o=s>12?s-3:s>4?s-2:s?2:1,c=(1<<o)-1,f=new Array(c+1).fill(t.ZERO),i=Math.floor((n.BITS-1)/o)*o,a=t.ZERO;for(let h=i;h>=0;h-=o){f.fill(t.ZERO);for(let l=0;l<r.length;l++){let E=r[l],N=Number(E>>BigInt(h)&BigInt(c));f[N]=f[N].add(e[l])}let d=t.ZERO;for(let l=f.length-1,E=t.ZERO;l>0;l--)E=E.add(f[l]),d=d.add(E);if(a=a.add(d),h!==0)for(let l=0;l<o;l++)a=a.double()}return a}function se(t){return te(t.Fp),ct(t,{n:"bigint",h:"bigint",Gx:"field",Gy:"field"},{nBitLength:"isSafeInteger",nByteLength:"isSafeInteger"}),Object.freeze({...ee(t.n,t.nBitLength),...t,p:t.Fp.ORDER})}function Re(t){t.lowS!==void 0&&lt("lowS",t.lowS),t.prehash!==void 0&&lt("prehash",t.prehash)}function yn(t){let n=se(t);ct(n,{a:"field",b:"field"},{allowedPrivateKeyLengths:"array",wrapPrivateKey:"boolean",isTorsionFree:"function",clearCofactor:"function",allowInfinityPoint:"boolean",fromBytes:"function",toBytes:"function"});let{endo:e,Fp:r,a:s}=n;if(e){if(!r.eql(s,r.ZERO))throw new Error("Endomorphism can only be defined for Koblitz curves that have a=0");if(typeof e!="object"||typeof e.beta!="bigint"||typeof e.splitScalar!="function")throw new Error("Expected endomorphism with beta: bigint and splitScalar: function")}return Object.freeze({...n})}var{bytesToNumberBE:xn,hexToBytes:En}=Jt,J={Err:class extends Error{constructor(n=""){super(n)}},_tlv:{encode:(t,n)=>{let{Err:e}=J;if(t<0||t>256)throw new e("tlv.encode: wrong tag");if(n.length&1)throw new e("tlv.encode: unpadded data");let r=n.length/2,s=ht(r);if(s.length/2&128)throw new e("tlv.encode: long form length too big");let o=r>127?ht(s.length/2|128):"";return`${ht(t)}${o}${s}${n}`},decode(t,n){let{Err:e}=J,r=0;if(t<0||t>256)throw new e("tlv.encode: wrong tag");if(n.length<2||n[r++]!==t)throw new e("tlv.decode: wrong tlv");let s=n[r++],o=!!(s&128),c=0;if(!o)c=s;else{let i=s&127;if(!i)throw new e("tlv.decode(long): indefinite length not supported");if(i>4)throw new e("tlv.decode(long): byte length is too big");let a=n.subarray(r,r+i);if(a.length!==i)throw new e("tlv.decode: length bytes not complete");if(a[0]===0)throw new e("tlv.decode(long): zero leftmost byte");for(let h of a)c=c<<8|h;if(r+=i,c<128)throw new e("tlv.decode(long): not minimal encoding")}let f=n.subarray(r,r+c);if(f.length!==c)throw new e("tlv.decode: wrong value length");return{v:f,l:n.subarray(r+c)}}},_int:{encode(t){let{Err:n}=J;if(t<F)throw new n("integer: negative integers are not allowed");let e=ht(t);if(Number.parseInt(e[0],16)&8&&(e="00"+e),e.length&1)throw new n("unexpected assertion");return e},decode(t){let{Err:n}=J;if(t[0]&128)throw new n("Invalid signature integer: negative");if(t[0]===0&&!(t[1]&128))throw new n("Invalid signature integer: unnecessary leading zero");return xn(t)}},toSig(t){let{Err:n,_int:e,_tlv:r}=J,s=typeof t=="string"?En(t):t;Et(s);let{v:o,l:c}=r.decode(48,s);if(c.length)throw new n("Invalid signature: left bytes after parsing");let{v:f,l:i}=r.decode(2,o),{v:a,l:h}=r.decode(2,i);if(h.length)throw new n("Invalid signature: left bytes after parsing");return{r:e.decode(f),s:e.decode(a)}},hexFromSig(t){let{_tlv:n,_int:e}=J,r=`${n.encode(2,e.encode(t.r))}${n.encode(2,e.encode(t.s))}`;return n.encode(48,r)}},F=BigInt(0),C=BigInt(1),Jn=BigInt(2),Ue=BigInt(3),Fn=BigInt(4);function Bn(t){let n=yn(t),{Fp:e}=n,r=Zt(n.n,n.nBitLength),s=n.toBytes||((b,u,w)=>{let y=u.toAffine();return Q(Uint8Array.from([4]),e.toBytes(y.x),e.toBytes(y.y))}),o=n.fromBytes||(b=>{let u=b.subarray(1),w=e.fromBytes(u.subarray(0,e.BYTES)),y=e.fromBytes(u.subarray(e.BYTES,2*e.BYTES));return{x:w,y}});function c(b){let{a:u,b:w}=n,y=e.sqr(b),B=e.mul(y,b);return e.add(e.add(B,e.mul(b,u)),w)}if(!e.eql(e.sqr(n.Gy),c(n.Gx)))throw new Error("bad generator point: equation left != right");function f(b){return it(b,C,n.n)}function i(b){let{allowedPrivateKeyLengths:u,nByteLength:w,wrapPrivateKey:y,n:B}=n;if(u&&typeof b!="bigint"){if(st(b)&&(b=dt(b)),typeof b!="string"||!u.includes(b.length))throw new Error("Invalid key");b=b.padStart(w*2,"0")}let S;try{S=typeof b=="bigint"?b:M(U("private key",b,w))}catch{throw new Error(`private key must be ${w} bytes, hex or bigint, not ${typeof b}`)}return y&&(S=H(S,B)),W("private key",S,C,B),S}function a(b){if(!(b instanceof l))throw new Error("ProjectivePoint expected")}let h=$t((b,u)=>{let{px:w,py:y,pz:B}=b;if(e.eql(B,e.ONE))return{x:w,y};let S=b.is0();u==null&&(u=S?e.ONE:e.inv(B));let T=e.mul(w,u),A=e.mul(y,u),x=e.mul(B,u);if(S)return{x:e.ZERO,y:e.ZERO};if(!e.eql(x,e.ONE))throw new Error("invZ was invalid");return{x:T,y:A}}),d=$t(b=>{if(b.is0()){if(n.allowInfinityPoint&&!e.is0(b.py))return;throw new Error("bad point: ZERO")}let{x:u,y:w}=b.toAffine();if(!e.isValid(u)||!e.isValid(w))throw new Error("bad point: x or y not FE");let y=e.sqr(w),B=c(u);if(!e.eql(y,B))throw new Error("bad point: equation left != right");if(!b.isTorsionFree())throw new Error("bad point: not in prime-order subgroup");return!0});class l{constructor(u,w,y){if(this.px=u,this.py=w,this.pz=y,u==null||!e.isValid(u))throw new Error("x required");if(w==null||!e.isValid(w))throw new Error("y required");if(y==null||!e.isValid(y))throw new Error("z required");Object.freeze(this)}static fromAffine(u){let{x:w,y}=u||{};if(!u||!e.isValid(w)||!e.isValid(y))throw new Error("invalid affine point");if(u instanceof l)throw new Error("projective point not allowed");let B=S=>e.eql(S,e.ZERO);return B(w)&&B(y)?l.ZERO:new l(w,y,e.ONE)}get x(){return this.toAffine().x}get y(){return this.toAffine().y}static normalizeZ(u){let w=e.invertBatch(u.map(y=>y.pz));return u.map((y,B)=>y.toAffine(w[B])).map(l.fromAffine)}static fromHex(u){let w=l.fromAffine(o(U("pointHex",u)));return w.assertValidity(),w}static fromPrivateKey(u){return l.BASE.multiply(i(u))}static msm(u,w){return Ne(l,r,u,w)}_setWindowSize(u){N.setWindowSize(this,u)}assertValidity(){d(this)}hasEvenY(){let{y:u}=this.toAffine();if(e.isOdd)return!e.isOdd(u);throw new Error("Field doesn't support isOdd")}equals(u){a(u);let{px:w,py:y,pz:B}=this,{px:S,py:T,pz:A}=u,x=e.eql(e.mul(w,A),e.mul(S,B)),v=e.eql(e.mul(y,A),e.mul(T,B));return x&&v}negate(){return new l(this.px,e.neg(this.py),this.pz)}double(){let{a:u,b:w}=n,y=e.mul(w,Ue),{px:B,py:S,pz:T}=this,A=e.ZERO,x=e.ZERO,v=e.ZERO,O=e.mul(B,B),P=e.mul(S,S),L=e.mul(T,T),_=e.mul(B,S);return _=e.add(_,_),v=e.mul(B,T),v=e.add(v,v),A=e.mul(u,v),x=e.mul(y,L),x=e.add(A,x),A=e.sub(P,x),x=e.add(P,x),x=e.mul(A,x),A=e.mul(_,A),v=e.mul(y,v),L=e.mul(u,L),_=e.sub(O,L),_=e.mul(u,_),_=e.add(_,v),v=e.add(O,O),O=e.add(v,O),O=e.add(O,L),O=e.mul(O,_),x=e.add(x,O),L=e.mul(S,T),L=e.add(L,L),O=e.mul(L,_),A=e.sub(A,O),v=e.mul(L,P),v=e.add(v,v),v=e.add(v,v),new l(A,x,v)}add(u){a(u);let{px:w,py:y,pz:B}=this,{px:S,py:T,pz:A}=u,x=e.ZERO,v=e.ZERO,O=e.ZERO,P=n.a,L=e.mul(n.b,Ue),_=e.mul(w,S),j=e.mul(y,T),g=e.mul(B,A),p=e.add(w,y),m=e.add(S,T);p=e.mul(p,m),m=e.add(_,j),p=e.sub(p,m),m=e.add(w,B);let I=e.add(S,A);return m=e.mul(m,I),I=e.add(_,g),m=e.sub(m,I),I=e.add(y,B),x=e.add(T,A),I=e.mul(I,x),x=e.add(j,g),I=e.sub(I,x),O=e.mul(P,m),x=e.mul(L,g),O=e.add(x,O),x=e.sub(j,O),O=e.add(j,O),v=e.mul(x,O),j=e.add(_,_),j=e.add(j,_),g=e.mul(P,g),m=e.mul(L,m),j=e.add(j,g),g=e.sub(_,g),g=e.mul(P,g),m=e.add(m,g),_=e.mul(j,m),v=e.add(v,_),_=e.mul(I,m),x=e.mul(p,x),x=e.sub(x,_),_=e.mul(p,j),O=e.mul(I,O),O=e.add(O,_),new l(x,v,O)}subtract(u){return this.add(u.negate())}is0(){return this.equals(l.ZERO)}wNAF(u){return N.wNAFCached(this,u,l.normalizeZ)}multiplyUnsafe(u){W("scalar",u,F,n.n);let w=l.ZERO;if(u===F)return w;if(u===C)return this;let{endo:y}=n;if(!y)return N.unsafeLadder(this,u);let{k1neg:B,k1:S,k2neg:T,k2:A}=y.splitScalar(u),x=w,v=w,O=this;for(;S>F||A>F;)S&C&&(x=x.add(O)),A&C&&(v=v.add(O)),O=O.double(),S>>=C,A>>=C;return B&&(x=x.negate()),T&&(v=v.negate()),v=new l(e.mul(v.px,y.beta),v.py,v.pz),x.add(v)}multiply(u){let{endo:w,n:y}=n;W("scalar",u,C,y);let B,S;if(w){let{k1neg:T,k1:A,k2neg:x,k2:v}=w.splitScalar(u),{p:O,f:P}=this.wNAF(A),{p:L,f:_}=this.wNAF(v);O=N.constTimeNegate(T,O),L=N.constTimeNegate(x,L),L=new l(e.mul(L.px,w.beta),L.py,L.pz),B=O.add(L),S=P.add(_)}else{let{p:T,f:A}=this.wNAF(u);B=T,S=A}return l.normalizeZ([B,S])[0]}multiplyAndAddUnsafe(u,w,y){let B=l.BASE,S=(A,x)=>x===F||x===C||!A.equals(B)?A.multiplyUnsafe(x):A.multiply(x),T=S(this,w).add(S(u,y));return T.is0()?void 0:T}toAffine(u){return h(this,u)}isTorsionFree(){let{h:u,isTorsionFree:w}=n;if(u===C)return!0;if(w)return w(l,this);throw new Error("isTorsionFree() has not been declared for the elliptic curve")}clearCofactor(){let{h:u,clearCofactor:w}=n;return u===C?this:w?w(l,this):this.multiplyUnsafe(n.h)}toRawBytes(u=!0){return lt("isCompressed",u),this.assertValidity(),s(l,this,u)}toHex(u=!0){return lt("isCompressed",u),dt(this.toRawBytes(u))}}l.BASE=new l(n.Gx,n.Gy,e.ONE),l.ZERO=new l(e.ZERO,e.ONE,e.ZERO);let E=n.nBitLength,N=Le(l,n.endo?Math.ceil(E/2):E);return{CURVE:n,ProjectivePoint:l,normPrivateKeyToScalar:i,weierstrassEquation:c,isWithinCurveOrder:f}}function vn(t){let n=se(t);return ct(n,{hash:"hash",hmac:"function",randomBytes:"function"},{bits2int:"function",bits2int_modN:"function",lowS:"boolean"}),Object.freeze({lowS:!0,...n})}function He(t){let n=vn(t),{Fp:e,n:r}=n,s=e.BYTES+1,o=2*e.BYTES+1;function c(g){return H(g,r)}function f(g){return Ct(g,r)}let{ProjectivePoint:i,normPrivateKeyToScalar:a,weierstrassEquation:h,isWithinCurveOrder:d}=Bn({...n,toBytes(g,p,m){let I=p.toAffine(),q=e.toBytes(I.x),$=Q;return lt("isCompressed",m),m?$(Uint8Array.from([p.hasEvenY()?2:3]),q):$(Uint8Array.from([4]),q,e.toBytes(I.y))},fromBytes(g){let p=g.length,m=g[0],I=g.subarray(1);if(p===s&&(m===2||m===3)){let q=M(I);if(!it(q,C,e.ORDER))throw new Error("Point is not on curve");let $=h(q),Z;try{Z=e.sqrt($)}catch(D){let et=D instanceof Error?": "+D.message:"";throw new Error("Point is not on curve"+et)}let V=(Z&C)===C;return(m&1)===1!==V&&(Z=e.neg(Z)),{x:q,y:Z}}else if(p===o&&m===4){let q=e.fromBytes(I.subarray(0,e.BYTES)),$=e.fromBytes(I.subarray(e.BYTES,2*e.BYTES));return{x:q,y:$}}else throw new Error(`Point of length ${p} was invalid. Expected ${s} compressed bytes or ${o} uncompressed bytes`)}}),l=g=>dt(Y(g,n.nByteLength));function E(g){let p=r>>C;return g>p}function N(g){return E(g)?c(-g):g}let b=(g,p,m)=>M(g.slice(p,m));class u{constructor(p,m,I){this.r=p,this.s=m,this.recovery=I,this.assertValidity()}static fromCompact(p){let m=n.nByteLength;return p=U("compactSignature",p,m*2),new u(b(p,0,m),b(p,m,2*m))}static fromDER(p){let{r:m,s:I}=J.toSig(U("DER",p));return new u(m,I)}assertValidity(){W("r",this.r,C,r),W("s",this.s,C,r)}addRecoveryBit(p){return new u(this.r,this.s,p)}recoverPublicKey(p){let{r:m,s:I,recovery:q}=this,$=A(U("msgHash",p));if(q==null||![0,1,2,3].includes(q))throw new Error("recovery id invalid");let Z=q===2||q===3?m+n.n:m;if(Z>=e.ORDER)throw new Error("recovery id 2 or 3 invalid");let V=q&1?"03":"02",tt=i.fromHex(V+l(Z)),D=f(Z),et=c(-$*D),vt=c(I*D),nt=i.BASE.multiplyAndAddUnsafe(tt,et,vt);if(!nt)throw new Error("point at infinify");return nt.assertValidity(),nt}hasHighS(){return E(this.s)}normalizeS(){return this.hasHighS()?new u(this.r,c(-this.s),this.recovery):this}toDERRawBytes(){return gt(this.toDERHex())}toDERHex(){return J.hexFromSig({r:this.r,s:this.s})}toCompactRawBytes(){return gt(this.toCompactHex())}toCompactHex(){return l(this.r)+l(this.s)}}let w={isValidPrivateKey(g){try{return a(g),!0}catch{return!1}},normPrivateKeyToScalar:a,randomPrivateKey:()=>{let g=ne(n.n);return _e(n.randomBytes(g),n.n)},precompute(g=8,p=i.BASE){return p._setWindowSize(g),p.multiply(BigInt(3)),p}};function y(g,p=!0){return i.fromPrivateKey(g).toRawBytes(p)}function B(g){let p=st(g),m=typeof g=="string",I=(p||m)&&g.length;return p?I===s||I===o:m?I===2*s||I===2*o:g instanceof i}function S(g,p,m=!0){if(B(g))throw new Error("first arg must be private key");if(!B(p))throw new Error("second arg must be public key");return i.fromHex(p).multiply(a(g)).toRawBytes(m)}let T=n.bits2int||function(g){let p=M(g),m=g.length*8-n.nBitLength;return m>0?p>>BigInt(m):p},A=n.bits2int_modN||function(g){return c(T(g))},x=At(n.nBitLength);function v(g){return W(`num < 2^${n.nBitLength}`,g,F,x),Y(g,n.nByteLength)}function O(g,p,m=P){if(["recovered","canonical"].some(ft=>ft in m))throw new Error("sign() legacy options not supported");let{hash:I,randomBytes:q}=n,{lowS:$,prehash:Z,extraEntropy:V}=m;$==null&&($=!0),g=U("msgHash",g),Re(m),Z&&(g=U("prehashed msgHash",I(g)));let tt=A(g),D=a(p),et=[v(D),v(tt)];if(V!=null&&V!==!1){let ft=V===!0?q(e.BYTES):V;et.push(U("extraEntropy",ft))}let vt=Q(...et),nt=tt;function Pt(ft){let pt=T(ft);if(!d(pt))return;let he=f(pt),G=i.BASE.multiply(pt).toAffine(),mt=c(G.x);if(mt===F)return;let _t=c(he*c(nt+mt*D));if(_t===F)return;let ge=(G.x===mt?0:2)|Number(G.y&C),we=_t;return $&&E(_t)&&(we=N(_t),ge^=1),new u(mt,we,ge)}return{seed:vt,k2sig:Pt}}let P={lowS:n.lowS,prehash:!1},L={lowS:n.lowS,prehash:!1};function _(g,p,m=P){let{seed:I,k2sig:q}=O(g,p,m),$=n;return Qt($.hash.outputLen,$.nByteLength,$.hmac)(I,q)}i.BASE._setWindowSize(8);function j(g,p,m,I=L){let q=g;if(p=U("msgHash",p),m=U("publicKey",m),"strict"in I)throw new Error("options.strict was renamed to lowS");Re(I);let{lowS:$,prehash:Z}=I,V,tt;try{if(typeof q=="string"||st(q))try{V=u.fromDER(q)}catch(G){if(!(G instanceof J.Err))throw G;V=u.fromCompact(q)}else if(typeof q=="object"&&typeof q.r=="bigint"&&typeof q.s=="bigint"){let{r:G,s:mt}=q;V=new u(G,mt)}else throw new Error("PARSE");tt=i.fromHex(m)}catch(G){if(G.message==="PARSE")throw new Error("signature must be Signature instance, Uint8Array or hex string");return!1}if($&&V.hasHighS())return!1;Z&&(p=n.hash(p));let{r:D,s:et}=V,vt=A(p),nt=f(et),Pt=c(vt*nt),ft=c(D*nt),pt=i.BASE.multiplyAndAddUnsafe(tt,Pt,ft)?.toAffine();return pt?c(pt.x)===D:!1}return{CURVE:n,getPublicKey:y,getSharedSecret:S,sign:_,verify:j,ProjectivePoint:i,Signature:u,utils:w}}function Sn(t){return{hash:t,hmac:(n,...e)=>Dt(t,n,xe(...e)),randomBytes:Lt}}function ke(t,n){let e=r=>He({...t,...Sn(r)});return Object.freeze({...e(n),create:e})}var Tt=BigInt("0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f"),Vt=BigInt("0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141"),It=BigInt(1),jt=BigInt(2),$e=(t,n)=>(t+n/jt)/n;function Ze(t){let n=Tt,e=BigInt(3),r=BigInt(6),s=BigInt(11),o=BigInt(22),c=BigInt(23),f=BigInt(44),i=BigInt(88),a=t*t*t%n,h=a*a*t%n,d=z(h,e,n)*h%n,l=z(d,e,n)*h%n,E=z(l,jt,n)*a%n,N=z(E,s,n)*E%n,b=z(N,o,n)*N%n,u=z(b,f,n)*b%n,w=z(u,i,n)*u%n,y=z(w,f,n)*b%n,B=z(y,e,n)*h%n,S=z(B,c,n)*N%n,T=z(S,r,n)*a%n,A=z(T,jt,n);if(!ce.eql(ce.sqr(A),t))throw new Error("Cannot find square root");return A}var ce=Zt(Tt,void 0,void 0,{sqrt:Ze}),ue=ke({a:BigInt(0),b:BigInt(7),Fp:ce,n:Vt,Gx:BigInt("55066263022277343669578718895168534326250603453777594175500187360389116729240"),Gy:BigInt("32670510020758816978083085130507043184471273380659243275938904335757337482424"),h:BigInt(1),lowS:!0,endo:{beta:BigInt("0x7ae96a2b657c07106e64479eac3434e99cf0497512f58995c1396c28719501ee"),splitScalar:t=>{let n=Vt,e=BigInt("0x3086d221a7d46bcde86c90e49284eb15"),r=-It*BigInt("0xe4437ed6010e88286f547fa90abfe4c3"),s=BigInt("0x114ca50f7a8e2f3f657c1108d9d44cfd8"),o=e,c=BigInt("0x100000000000000000000000000000000"),f=$e(o*t,n),i=$e(-r*t,n),a=H(t-f*e-i*s,n),h=H(-f*r-i*o,n),d=a>c,l=h>c;if(d&&(a=n-a),l&&(h=n-h),a>c||h>c)throw new Error("splitScalar: Endomorphism failed, k="+t);return{k1neg:d,k1:a,k2neg:l,k2:h}}}},xt),Ve=BigInt(0),Ce={};function zt(t,...n){let e=Ce[t];if(e===void 0){let r=xt(Uint8Array.from(t,s=>s.charCodeAt(0)));e=Q(r,r),Ce[t]=e}return xt(Q(e,...n))}var le=t=>t.toRawBytes(!0).slice(1),fe=t=>Y(t,32),ie=t=>H(t,Tt),Ot=t=>H(t,Vt),de=ue.ProjectivePoint,An=(t,n,e)=>de.BASE.multiplyAndAddUnsafe(t,n,e);function ae(t){let n=ue.utils.normPrivateKeyToScalar(t),e=de.fromPrivateKey(n);return{scalar:e.hasEvenY()?n:Ot(-n),bytes:le(e)}}function je(t){W("x",t,It,Tt);let n=ie(t*t),e=ie(n*t+BigInt(7)),r=Ze(e);r%jt!==Ve&&(r=ie(-r));let s=new de(t,r,It);return s.assertValidity(),s}var Bt=M;function ze(...t){return Ot(Bt(zt("BIP0340/challenge",...t)))}function In(t){return ae(t).bytes}function On(t,n,e=Lt(32)){let r=U("message",t),{bytes:s,scalar:o}=ae(n),c=U("auxRand",e,32),f=fe(o^Bt(zt("BIP0340/aux",c))),i=zt("BIP0340/nonce",f,s,r),a=Ot(Bt(i));if(a===Ve)throw new Error("sign failed: k is zero");let{bytes:h,scalar:d}=ae(a),l=ze(h,s,r),E=new Uint8Array(64);if(E.set(h,0),E.set(fe(Ot(d+l*o)),32),!Pe(E,r,s))throw new Error("sign: Invalid signature produced");return E}function Pe(t,n,e){let r=U("signature",t,64),s=U("message",n),o=U("publicKey",e,32);try{let c=je(Bt(o)),f=Bt(r.subarray(0,32));if(!it(f,It,Tt))return!1;let i=Bt(r.subarray(32,64));if(!it(i,It,Vt))return!1;let a=ze(fe(f),le(c),s),h=An(c,i,Ot(-a));return!(!h||!h.hasEvenY()||h.toAffine().x!==f)}catch{return!1}}var Me={getPublicKey:In,sign:On,verify:Pe,utils:{randomPrivateKey:ue.utils.randomPrivateKey,lift_x:je,pointToBytes:le,numberToBytesBE:Y,bytesToNumberBE:M,taggedHash:zt,mod:H}};window.NOSTR_SIGN={schnorr:Me,sha256:xt,bytesToHex:ye};})();
+
+</script>
+<script>
+// Relay bus: no server, no accounts. Messages are signed with a throwaway key and sent to several free
+// public Nostr relays at once (ephemeral kind, so relays pass them on and don't store them).
+// Adapted from the Pokémon Starting Six PvP Draft.
+(() => {
+  "use strict";
+  const RELAYS = ["wss://relay.damus.io", "wss://nos.lol", "wss://relay.primal.net", "wss://nostr.mom", "wss://nostr-pub.wellorder.net", "wss://relay.nostr.net", "wss://nostr.bitcoiner.social"];
+  const KIND = 25051;
+  const TAG_PREFIX = "buzzboard-v1-";
+  const netLog = [];
+  const SIGN = window.NOSTR_SIGN;
+  const hex = (b) => SIGN.bytesToHex(b);
+  const fromHex = (h) => Uint8Array.from(h.match(/../g), (x) => parseInt(x, 16));
+  const enc = new TextEncoder();
+  function createBus(code, secretHex, onMsg) {
+    const tag = TAG_PREFIX + code;
+    const sk = secretHex ? fromHex(secretHex) : SIGN.schnorr.utils.randomPrivateKey();
+    const pk = hex(SIGN.schnorr.getPublicKey(sk));
+    const seen = new Map();
+    const socks = [];
+    const waiters = [];
+    let closed = false;
+    let backlog = [];
+    const sub = "s" + Math.random().toString(36).slice(2, 8);
+    function sign(content) {
+      const ev = { pubkey: pk, created_at: Math.floor(Date.now() / 1000), kind: KIND, tags: [["t", tag]], content };
+      ev.id = hex(SIGN.sha256(enc.encode(JSON.stringify([0, ev.pubkey, ev.created_at, ev.kind, ev.tags, ev.content]))));
+      ev.sig = hex(SIGN.schnorr.sign(ev.id, sk));
+      return ev;
+    }
+    function open(s) {
+      if (closed) return;
+      let ws;
+      try { ws = new WebSocket(s.url); } catch (_) { retry(s); return; }
+      s.ws = ws;
+      ws.onopen = () => {
+        s.open = true;
+        s.wait = 1000;
+        ws.send(JSON.stringify(["REQ", sub, { kinds: [KIND], "#t": [tag] }]));
+        for (const raw of backlog) ws.send(raw);
+        if (socks.filter((x) => x.open).length >= 1) { while (waiters.length) waiters.shift()(true); }
+      };
+      ws.onmessage = (e) => {
+        let d;
+        try { d = JSON.parse(e.data); } catch (_) { return; }
+        if (d[0] === "OK" && d[2] === false) { netLog.push(`${s.url} refused: ${d[3]}`); if (netLog.length > 30) netLog.shift(); return; }
+        if (d[0] === "NOTICE" || d[0] === "CLOSED") { netLog.push(`${s.url} ${d[0]}: ${d[d.length - 1]}`); if (netLog.length > 30) netLog.shift(); }
+        if (d[0] !== "EVENT" || !d[2]) return;
+        const ev = d[2];
+        if (ev.kind !== KIND || seen.has(ev.id) || ev.pubkey === pk) return;
+        seen.set(ev.id, Date.now());
+        if (seen.size > 3000) { const cut = Date.now() - 120000; for (const [k, t] of seen) if (t < cut) seen.delete(k); }
+        let m;
+        try { m = JSON.parse(ev.content); } catch (_) { return; }
+        if (m && typeof m === "object") onMsg(ev.pubkey, m);
+      };
+      ws.onclose = () => { s.open = false; s.ws = null; retry(s); };
+      ws.onerror = () => { try { ws.close(); } catch (_) { /* closing */ } };
+    }
+    function retry(s) {
+      if (closed) return;
+      clearTimeout(s.timer);
+      s.timer = setTimeout(() => open(s), s.wait);
+      s.wait = Math.min(15000, s.wait * 2);
+    }
+    for (const url of RELAYS) { const s = { url, ws: null, open: false, wait: 1000, timer: 0 }; socks.push(s); open(s); }
+    return {
+      pk,
+      secret: hex(sk),
+      openCount: () => socks.filter((s) => s.open).length,
+      ready(ms) {
+        if (socks.some((s) => s.open)) return Promise.resolve(true);
+        return new Promise((resolve) => { waiters.push(resolve); setTimeout(() => resolve(socks.some((s) => s.open)), ms); });
+      },
+      send(to, m) {
+        if (closed) return;
+        const raw = JSON.stringify(["EVENT", sign(JSON.stringify({ to, ...m }))]);
+        let sent = 0;
+        for (const s of socks) if (s.open) { try { s.ws.send(raw); sent++; } catch (_) { /* closing */ } }
+        // Nothing open right now: keep the last few and send them once a relay comes back.
+        if (!sent) { backlog.push(raw); backlog = backlog.slice(-4); } else backlog = [];
+      },
+      wake() { for (const s of socks) if (!s.open && !closed) { clearTimeout(s.timer); s.wait = 1000; if (!s.ws) open(s); } },
+      close() {
+        closed = true;
+        for (const s of socks) { clearTimeout(s.timer); if (s.ws) { try { s.ws.close(); } catch (_) { /* closing */ } } }
+      },
+    };
+  }
+  window.BB_NET = { createBus, netLog, RELAYS };
+})();
+
+</script>
+<script>
+// Buzz Board: quiz-show trivia for 2 to 6 players, each buzzing in from their own phone.
+// The host's page is the referee. It holds the board (with the answers), runs every clock, decides who
+// buzzed first, judges answers and sends the public state to everyone over the relay bus (net.js).
+// Players only send "here I am", "I pick this clue", "buzz", "my answer" and "my wager".
+(() => {
+  "use strict";
+  const APP_NAME = "Buzz Board"; // rename the game here
+  const $ = (id) => document.getElementById(id);
+  const q = new URLSearchParams(location.search);
+  // Test-only: ?speed=4 runs all host clocks 4x faster.
+  const SPEED = Math.min(10, Math.max(0.2, Number(q.get("speed")) || 1));
+  const T = {
+    readBase: 1200, readPerChar: 38, readMin: 2500, readMax: 8000, // time to read a clue before buzzers open
+    buzz: 7000, rebuzz: 5000, // how long buzzers stay open (first time / after a wrong answer)
+    answer: 10000, grace: 1500, // time to answer after buzzing, plus network slack on the host
+    wrongShow: 2200, reveal: 4000, intro: 2500,
+    wager: 20000, ddAnswer: 15000, finalWager: 30000, finalAnswer: 30000, finalStep: 3500,
+    early: 250, // early-buzz lockout
+  };
+  const sc = (ms) => Math.round(ms / SPEED);
+  const scA = (ms) => Math.max(Math.min(ms, 5000), sc(ms)); // answer and bet clocks never drop under 5 s in fast tests
+  const MIN_PLAYERS = 2, MAX_PLAYERS = 6;
+  const VALUES = { 1: [200, 400, 600, 800, 1000], 2: [400, 800, 1200, 1600, 2000] };
+  const CODE_CHARS = "ABCDEFGHJKMNPQRSTUVWXYZ23456789", CODE_LEN = 5;
+  const HB_MS = 5000, HOST_HB_MS = 2500, DEAD_MS = 20000; // host heartbeat often, so a player who missed an update catches up fast
+  const KEYS = { name: "bb-name-v1", session: "bb-session-v1", host: "bb-host-v1", tokens: "bb-tokens-v1", used: "bb-used-v1", tts: "bb-tts-v1" };
+  const store = {
+    get(k) { try { return JSON.parse(localStorage.getItem(k) || "null"); } catch (_) { return null; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (_) { /* storage off */ } },
+    del(k) { try { localStorage.removeItem(k); } catch (_) { /* storage off */ } },
+  };
+  const randInt = (n) => crypto.getRandomValues(new Uint32Array(1))[0] % n;
+  const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = randInt(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const newCode = () => Array.from({ length: CODE_LEN }, () => CODE_CHARS[randInt(CODE_CHARS.length)]).join("");
+  const newToken = () => Array.from(crypto.getRandomValues(new Uint32Array(3)), (x) => x.toString(36)).join("");
+  const cleanCode = (s) => String(s || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, CODE_LEN);
+  const validCode = (s) => new RegExp(`^[${CODE_CHARS}]{${CODE_LEN}}$`).test(s);
+  const cleanName = (s) => String(s || "").replace(/[\u0000-\u001f<>]/g, "").replace(/\s+/g, " ").trim().slice(0, 16);
+  const cleanText = (s) => String(s || "").replace(/[\u0000-\u001f]/g, " ").trim().slice(0, 80);
+  const sameName = (a, b) => a.toLowerCase() === b.toLowerCase();
+  const pageUrl = () => location.href.split("#")[0].split("?")[0];
+  const inviteUrl = (code) => `${pageUrl()}#room=${code}`;
+  const fmt = (n) => (n < 0 ? "-" : "") + Math.abs(n).toLocaleString("en-US");
+  let toastT = 0;
+  function toast(msg) { const t = $("toast"); t.textContent = msg; t.classList.add("on"); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove("on"), 2600); }
+  document.title = `${APP_NAME} · Trivia with friends`;
+  $("app-name").textContent = APP_NAME;
+  $("hero-name").textContent = APP_NAME;
+
+  // ---------- Category draw ----------
+  // Standard: mostly general knowledge, about one sports or wrestling category per round (one of each
+  // across a full game), sometimes a second; Pokémon / 90s packs turn up now and then.
+  // Fight Night: half of each board is sports and wrestling. No sports: general only.
+  // A category isn't reused on this device until its group has been used up.
+  function drawFrom(pool, n, used, avoid) {
+    let open = pool.filter((c) => !used.has(c.id) && !avoid.has(c.id));
+    if (open.length < n) { for (const c of pool) used.delete(c.id); open = pool.filter((c) => !avoid.has(c.id)); }
+    const out = shuffle(open.slice()).slice(0, n);
+    for (const c of out) { used.add(c.id); avoid.add(c.id); }
+    return out;
+  }
+  function planRound(bank, mix, ringFirst, funHere, used, avoid) {
+    const by = (f) => bank.filter(f);
+    const gen = by((c) => c.tag === "gen"), fun = by((c) => c.tag === "fun");
+    const sports = by((c) => c.tag === "sports"), wrest = by((c) => c.tag === "wrestling");
+    let cats = [];
+    if (mix === "fight") {
+      cats = [...drawFrom(sports, ringFirst === "wrestling" ? 1 : 2, used, avoid), ...drawFrom(wrest, ringFirst === "wrestling" ? 2 : 1, used, avoid)];
+    } else if (mix === "standard") {
+      cats = drawFrom(ringFirst === "wrestling" ? wrest : sports, 1, used, avoid);
+      if (Math.random() < 0.25) cats.push(...drawFrom(ringFirst === "wrestling" ? sports : wrest, 1, used, avoid));
+    }
+    if (funHere && mix !== "fight") cats.push(...drawFrom(fun, 1, used, avoid));
+    cats.push(...drawFrom(gen, 6 - cats.length, used, avoid));
+    return shuffle(cats);
+  }
+  function drawGame(mix, quick) {
+    const used = new Set(store.get(KEYS.used) || []);
+    const avoid = new Set();
+    const first = Math.random() < 0.5 ? "sports" : "wrestling";
+    const funRound = Math.random() < 0.3 ? (quick ? 1 : 1 + randInt(2)) : 0;
+    const r1 = planRound(BB_BANK.r1, mix, first, funRound === 1, used, avoid);
+    const r2 = quick ? null : planRound(BB_BANK.r2, mix, first === "sports" ? "wrestling" : "sports", funRound === 2, used, avoid);
+    const pool = BB_BANK.final.filter((f) => (mix === "fight" ? f.tag === "ring" : mix === "general" ? f.tag !== "ring" : true));
+    let finals = pool.filter((f) => !used.has(f.id));
+    if (!finals.length) { for (const f of pool) used.delete(f.id); finals = pool.slice(); }
+    const fin = finals[randInt(finals.length)];
+    used.add(fin.id);
+    store.set(KEYS.used, [...used]);
+    return { r1, r2, fin };
+  }
+  function wagerSpots(n) {
+    // Wager clues hide in rows 2 to 5 (more often lower down), each in a different category.
+    const cols = shuffle([0, 1, 2, 3, 4, 5]).slice(0, n);
+    return cols.map((c) => `${c},${[1, 2, 2, 3, 3, 4][randInt(6)]}`);
+  }
+
+  // ---------- Session ----------
+  let me = null; // { role: "host" | "player", code, name, token, tv }
+  let view = null; // the room as this page last saw it
+  let mySeat = -1;
+  let netState = "idle", netMsg = "";
+  const tokens = store.get(KEYS.tokens) || {};
+  function tokenFor(code) { if (!tokens[code]) { tokens[code] = newToken(); store.set(KEYS.tokens, tokens); } return tokens[code]; }
+  const saveSession = () => store.set(KEYS.session, { ...me, ts: Date.now() });
+  const loadSession = () => { const s = store.get(KEYS.session); return s && validCode(s.code) && (s.tv || cleanName(s.name)) && Date.now() - s.ts < 6 * 3600e3 ? s : null; };
+  let bus = null;
+  const dropBus = () => { if (bus) bus.close(); bus = null; };
+
+  // ======================================================================
+  // Host (referee)
+  // ======================================================================
+  let room = null; // full public state
+  let priv = null; // host-only: answers, wager spots, final bets
+  const links = new Map(); // player key -> { seat, last, rtt }
+  let hostTick = 0, hbTick = 0, probeReplies = 0, lastFull = 0;
+  let pending = null; // buzzes being collected: { until, list: [{seat, rt, at}] }
+  const buzzLog = []; // arrival times, for the latency test
+
+  function newRoom(code, name, token, tv) {
+    return { v: 1, code, seq: 0, phase: "lobby", tv, hostName: name, opts: { mix: "standard", quick: false },
+      players: tv ? [] : [{ name, token, host: true, connected: true, score: 0 }],
+      round: 0, cats: [], vals: [], used: [], control: -1, clue: null, final: null, last: null, deadline: 0, cid: 0 };
+  }
+  const saveRoom = () => { if (room) store.set(KEYS.host, { room, priv, key: bus && bus.secret, ts: Date.now() }); };
+  function publicRoom() {
+    return { ...room, players: room.players.map((p) => ({ name: p.name, host: p.host, connected: p.connected, score: p.score })), deadline: 0 };
+  }
+  function updateConnected() {
+    room.players.forEach((p, seat) => { p.connected = p.host || [...links.values()].some((l) => l.seat === seat); });
+  }
+  function broadcast() {
+    updateConnected();
+    room.seq++;
+    saveRoom();
+    const pub = publicRoom();
+    const left = room.deadline ? Math.max(0, room.deadline - Date.now()) : 0;
+    const seats = {};
+    for (const [pk, l] of links) seats[pk] = l.seat;
+    if (bus) bus.send("*", { t: "state", room: pub, seats, left });
+    lastFull = Date.now();
+    applyState(pub, room.tv ? -1 : 0, left);
+  }
+  function onHostBus(from, m) {
+    if (m.t === "here" && m.to === "host") { probeReplies++; return; }
+    if (m.to !== "host" && m.to !== bus.pk) return;
+    if (m.t === "probe") { if (room) bus.send(from, { t: "here" }); return; }
+    if (!room) return;
+    let link = links.get(from);
+    if (m.t === "hello" && !link) { link = { seat: -2, last: Date.now(), rtt: 0 }; links.set(from, link); }
+    if (!link && m.t === "leave" && room.phase === "lobby") {
+      const seat = room.players.findIndex((p) => !p.host && m.token && p.token === String(m.token));
+      if (seat >= 0) { removeSeat(seat); broadcast(); }
+      return;
+    }
+    if (!link) { if (m.t !== "bye" && m.t !== "leave") bus.send(from, { t: "who" }); return; }
+    link.last = Date.now();
+    onClientMsg(from, link, m);
+  }
+  async function hostRoom(name, tv, resume) {
+    const saved = resume ? store.get(KEYS.host) : null;
+    me = { role: "host", code: saved ? saved.room.code : newCode(), name, tv, token: newToken() };
+    if (saved) { const hp = saved.room.players.find((p) => p.host); if (hp) me.token = hp.token; }
+    setNet("connecting", saved ? "Reopening your game…" : "Setting up your game…");
+    for (let attempt = 0; attempt < 4; attempt++) {
+      dropBus();
+      bus = BB_NET.createBus(me.code, saved ? saved.key : null, onHostBus);
+      if (!(await bus.ready(10000))) { dropBus(); setNet("error", "Couldn't reach the game servers. Check your connection and try again."); me = null; return; }
+      if (saved) break;
+      probeReplies = 0;
+      bus.send("host", { t: "probe" });
+      await new Promise((r) => setTimeout(r, 1200));
+      if (!probeReplies) break;
+      me.code = newCode();
+    }
+    if (saved) {
+      room = saved.room; priv = saved.priv;
+      room.players.forEach((p) => { if (!p.host) p.connected = false; });
+      if (room.deadline) room.deadline = Math.max(room.deadline, Date.now()) + 6000; // grace after a reload
+      pending = null;
+    } else { room = newRoom(me.code, name, me.token, tv); priv = null; }
+    mySeat = room.tv ? -1 : 0;
+    saveSession();
+    setHash(me.code);
+    clearInterval(hostTick); clearInterval(hbTick);
+    hostTick = setInterval(hostClock, 100);
+    hbTick = setInterval(heartbeat, HOST_HB_MS);
+    setNet("open", "");
+    broadcast();
+    if (saved) bus.send("*", { t: "who" });
+  }
+  function reject(pk, msg) { bus.send(pk, { t: "err", msg }); links.delete(pk); }
+  function onClientMsg(pk, link, m) {
+    if (m.t === "hello") {
+      const name = cleanName(m.name);
+      const token = String(m.token || "").slice(0, 40);
+      if (!name) { reject(pk, "Enter a name first."); return; }
+      let seat = room.players.findIndex((p) => !p.host && token && p.token === token);
+      if (seat < 0) seat = room.players.findIndex((p) => !p.host && !p.connected && sameName(p.name, name));
+      if (seat < 0) {
+        if (room.players.some((p) => sameName(p.name, name))) { reject(pk, `Someone in this game is already called ${name}. Pick another name.`); broadcast(); return; }
+        if (room.phase !== "lobby") seat = -1; // game already running: watch only
+        else if (room.players.length >= MAX_PLAYERS) { reject(pk, `This game is full (${MAX_PLAYERS} players).`); broadcast(); return; }
+        else { room.players.push({ name, token, host: false, connected: true, score: 0 }); seat = room.players.length - 1; }
+      }
+      if (seat >= 0) {
+        room.players[seat].token = token;
+        if (room.phase === "lobby") room.players[seat].name = name;
+        for (const [k, other] of links) if (k !== pk && other.seat === seat) links.delete(k);
+      }
+      link.seat = seat;
+      broadcast();
+      return;
+    }
+    if (m.t === "hb") { link.rtt = Math.max(0, Math.min(3000, Number(m.rtt) || 0)); bus.send(pk, { t: "pong", n: m.n, seq: room.seq }); return; }
+    if (m.t === "leave" || m.t === "bye") {
+      if (m.t === "leave" && link.seat >= 0 && room.phase === "lobby") removeSeat(link.seat);
+      links.delete(pk);
+      broadcast();
+      return;
+    }
+    if (link.seat < 0) return;
+    const err = act(link.seat, m);
+    if (err) bus.send(pk, { t: "nack", msg: err });
+  }
+  function removeSeat(seat) {
+    const p = room.players[seat];
+    if (!p || p.host || room.phase !== "lobby") return;
+    room.players.splice(seat, 1);
+    for (const [k, l] of links) { if (l.seat === seat) links.delete(k); else if (l.seat > seat) l.seat -= 1; }
+  }
+  function kickSeat(seat) {
+    for (const [k, l] of links) if (l.seat === seat) bus.send(k, { t: "err", msg: "The host removed you from the game." });
+    removeSeat(seat);
+    broadcast();
+  }
+  // Every player action (local host-player or remote) goes through here.
+  function act(seat, m) {
+    if (m.t === "pick") return hostPick(seat, Number(m.c), Number(m.r));
+    if (m.t === "buzz") return hostBuzz(seat, Number(m.cid), Number(m.rt));
+    if (m.t === "ans") return hostAnswer(seat, Number(m.cid), cleanText(m.text));
+    if (m.t === "wager") return hostWager(seat, Number(m.cid), Number(m.amt));
+    if (m.t === "fwager") return hostFinalWager(seat, Number(m.amt));
+    if (m.t === "fans") return hostFinalAnswer(seat, cleanText(m.text));
+    return null;
+  }
+  // ----- game flow -----
+  function hostStart() {
+    if (!room || room.phase !== "lobby") return;
+    if (room.players.length < MIN_PLAYERS) { toast(`You need at least ${MIN_PLAYERS} players`); return; }
+    const g = drawGame(room.opts.mix, room.opts.quick);
+    priv = { r1: g.r1, r2: g.r2, fin: g.fin, dd: [], fw: {}, fa: {} };
+    room.players.forEach((p) => { p.score = 0; });
+    room.final = null; room.last = null; room.clue = null; room.note = "";
+    room.control = randInt(room.players.length);
+    setupRound(1);
+  }
+  function setupRound(n) {
+    const cats = n === 1 ? priv.r1 : priv.r2;
+    room.round = n;
+    room.cats = cats.map((c) => c.name);
+    room.vals = VALUES[n];
+    room.used = cats.map(() => [false, false, false, false, false]);
+    priv.board = cats.map((c) => c.clues);
+    priv.dd = wagerSpots(n === 1 ? 1 : 2);
+    room.phase = "board";
+    room.clue = null;
+    room.last = null;
+    room.intro = n; // clients show a round banner
+    room.deadline = 0;
+    broadcast();
+  }
+  const readMs = (text) => sc(Math.max(T.readMin, Math.min(T.readMax, T.readBase + text.length * T.readPerChar)));
+  const roundTop = () => VALUES[room.round][4];
+  function hostPick(seat, c, r) {
+    if (room.phase !== "board" || room.clue) return "Hang on, a clue is still in play.";
+    if (!(c >= 0 && c < 6 && r >= 0 && r < 5) || room.used[c][r]) return "That clue is gone.";
+    const ctl = room.players[room.control];
+    const anyone = !ctl || !ctl.connected;
+    if (seat !== room.control && seat !== "judge" && !anyone) return `It's ${ctl.name}'s pick.`;
+    const by = seat === "judge" || anyone ? room.control : seat;
+    room.used[c][r] = true;
+    room.intro = 0;
+    const [text, answer, alt] = priv.board[c][r];
+    priv.cur = { answer, alt, text };
+    const v = room.vals[r];
+    room.cid += 1;
+    const dd = priv.dd.includes(`${c},${r}`);
+    room.clue = { id: room.cid, c, r, v, cat: room.cats[c], kind: dd ? "wager" : "normal", text: dd ? null : text, stage: dd ? "wager" : "reading", seat: dd ? by : -1, tried: [], log: [], answer: null, wager: null, maxWager: dd ? Math.max(room.players[by].score, roundTop()) : 0, openN: 0 };
+    pending = null;
+    room.deadline = Date.now() + (dd ? scA(T.wager) : readMs(text));
+    broadcast();
+    return null;
+  }
+  function hostWager(seat, cid, amt) {
+    const cl = room.clue;
+    if (!cl || cl.id !== cid || cl.stage !== "wager" || seat !== cl.seat) return "Too late to wager.";
+    if (!Number.isFinite(amt)) return "Enter a number.";
+    cl.wager = Math.round(Math.max(5, Math.min(cl.maxWager, amt)));
+    cl.text = priv.cur.text;
+    cl.stage = "answer";
+    cl.ansMs = scA(T.ddAnswer);
+    room.deadline = Date.now() + scA(T.ddAnswer) + T.grace;
+    broadcast();
+    return null;
+  }
+  function hostBuzz(seat, cid, rt) {
+    const cl = room.clue;
+    if (!cl || cl.id !== cid || cl.kind !== "normal") return null;
+    // A phone's own countdown can beat this page's 100 ms clock tick: open now if the reading time is up.
+    if (cl.stage === "reading" && Date.now() >= room.deadline - 20) openBuzzers(sc(T.buzz));
+    if (cl.stage !== "open" || cl.tried.includes(seat)) return null;
+    if (!pending) {
+      // Collect buzzes for a short window so a player on a slower connection isn't beaten by network
+      // lag alone. The fastest reaction (timed on each phone from the moment its own buzzers opened) wins.
+      let worst = 0;
+      for (const l of links.values()) if (l.seat >= 0) worst = Math.max(worst, l.rtt || 0);
+      pending = { until: Date.now() + Math.max(250, Math.min(700, worst * 1.2 + 80)), list: [] };
+    }
+    if (pending.list.some((b) => b.seat === seat)) return null;
+    pending.list.push({ seat, rt: Math.max(80, Number.isFinite(rt) ? rt : 9999), at: Date.now() });
+    buzzLog.push({ seat, cid, at: Date.now() });
+    if (buzzLog.length > 50) buzzLog.shift();
+    return null;
+  }
+  function resolveBuzz() {
+    const cl = room.clue;
+    const list = pending.list.slice().sort((a, b) => a.rt - b.rt || a.at - b.at);
+    pending = null;
+    if (!cl || cl.stage !== "open" || !list.length) return;
+    cl.stage = "answer";
+    cl.seat = list[0].seat;
+    cl.buzzes = list.map((b) => ({ seat: b.seat, rt: Math.round(b.rt) }));
+    cl.ansMs = scA(T.answer);
+    room.deadline = Date.now() + scA(T.answer) + T.grace;
+    broadcast();
+  }
+  function hostAnswer(seat, cid, text) {
+    const cl = room.clue;
+    if (!cl || cl.id !== cid || cl.stage !== "answer" || seat !== cl.seat) return "Too late.";
+    judge(seat, text);
+    return null;
+  }
+  function judge(seat, text) {
+    const cl = room.clue;
+    const ok = Boolean(text) && BB_MATCH.isRight(text, priv.cur.answer, priv.cur.alt);
+    const amt = cl.kind === "wager" ? cl.wager : cl.v;
+    room.players[seat].score += ok ? amt : -amt;
+    cl.log.push({ seat, text, ok, amt });
+    cl.tried.push(seat);
+    if (ok) { room.control = seat; revealClue(); return; }
+    const left = room.players.some((p, s) => !cl.tried.includes(s) && p.connected);
+    if (cl.kind === "wager" || !left) { revealClue(); return; }
+    cl.stage = "result";
+    cl.seat = -1;
+    room.deadline = Date.now() + sc(T.wrongShow);
+    broadcast();
+  }
+  function revealClue() {
+    const cl = room.clue;
+    cl.stage = "reveal";
+    cl.seat = -1;
+    cl.answer = priv.cur.answer;
+    if (!cl.text) cl.text = priv.cur.text;
+    pending = null;
+    room.deadline = Date.now() + sc(T.reveal);
+    broadcast();
+  }
+  function endClue() {
+    const cl = room.clue;
+    room.last = { id: cl.id, c: cl.c, r: cl.r, cat: cl.cat, v: cl.v, kind: cl.kind, answer: cl.answer, log: cl.log };
+    room.clue = null;
+    room.deadline = 0;
+    if (room.used.every((col) => col.every(Boolean))) {
+      if (room.round === 1 && !room.opts.quick) {
+        let lo = 0;
+        room.players.forEach((p, s) => { if (p.score < room.players[lo].score) lo = s; });
+        room.control = lo;
+        setupRound(2);
+      } else startFinal();
+      return;
+    }
+    broadcast();
+  }
+  function startFinal() {
+    const inSeats = room.players.map((p, s) => (p.score > 0 ? s : -1)).filter((s) => s >= 0);
+    room.phase = "final";
+    room.intro = 0;
+    priv.fw = {}; priv.fa = {};
+    room.final = { cat: priv.fin.cat, stage: "wager", text: null, inSeats, wagered: [], answered: [], reveals: [], order: [], answer: null };
+    if (!inSeats.length) { finish("Nobody finished in the black, so there's no Final Clue."); return; }
+    room.deadline = Date.now() + scA(T.finalWager);
+    broadcast();
+  }
+  function hostFinalWager(seat, amt) {
+    const f = room.final;
+    if (!f || f.stage !== "wager" || !f.inSeats.includes(seat)) return "Too late to wager.";
+    if (!Number.isFinite(amt)) return "Enter a number.";
+    priv.fw[seat] = Math.round(Math.max(0, Math.min(room.players[seat].score, amt)));
+    if (!f.wagered.includes(seat)) f.wagered.push(seat);
+    if (f.inSeats.every((s) => f.wagered.includes(s))) finalClue(); else broadcast();
+    return null;
+  }
+  function finalClue() {
+    const f = room.final;
+    for (const s of f.inSeats) if (!(s in priv.fw)) priv.fw[s] = 0;
+    f.stage = "clue";
+    f.text = priv.fin.clue;
+    room.deadline = Date.now() + scA(T.finalAnswer);
+    broadcast();
+  }
+  function hostFinalAnswer(seat, text) {
+    const f = room.final;
+    if (!f || f.stage !== "clue" || !f.inSeats.includes(seat)) return "Time's up.";
+    priv.fa[seat] = text;
+    if (!f.answered.includes(seat)) f.answered.push(seat);
+    if (f.inSeats.every((s) => f.answered.includes(s))) finalReveal(); else broadcast();
+    return null;
+  }
+  function finalReveal() {
+    const f = room.final;
+    f.stage = "reveal";
+    f.order = f.inSeats.slice().sort((a, b) => room.players[a].score - room.players[b].score || a - b);
+    f.answer = priv.fin.a;
+    room.deadline = Date.now() + sc(T.finalStep);
+    broadcast();
+  }
+  function finalStep() {
+    const f = room.final;
+    if (f.reveals.length >= f.order.length) { finish(""); return; }
+    const seat = f.order[f.reveals.length];
+    const text = priv.fa[seat] || "";
+    const ok = Boolean(text) && BB_MATCH.isRight(text, priv.fin.a, priv.fin.alt);
+    const amt = priv.fw[seat] || 0;
+    room.players[seat].score += ok ? amt : -amt;
+    f.reveals.push({ seat, text, ok, amt });
+    room.deadline = Date.now() + sc(T.finalStep) + (f.reveals.length >= f.order.length ? sc(1500) : 0);
+    broadcast();
+  }
+  function finish(note) {
+    room.phase = "done";
+    room.clue = null;
+    room.deadline = 0;
+    room.note = note || "";
+    broadcast();
+  }
+  // Host overrule: flip a call. where = "clue" (clue in play), "last" (the clue just played) or "final".
+  function overrule(where, i) {
+    if (!room) return;
+    const list = where === "clue" ? room.clue && room.clue.log : where === "last" ? room.last && room.last.log : room.final && room.final.reveals;
+    const e = list && list[i];
+    if (!e) return;
+    e.ok = !e.ok;
+    e.over = !e.over;
+    room.players[e.seat].score += (e.ok ? 2 : -2) * e.amt;
+    if (e.ok && where !== "final") room.control = e.seat;
+    toast(`${room.players[e.seat].name}: marked ${e.ok ? "right" : "wrong"}`);
+    if (where === "clue" && e.ok && room.clue.stage !== "reveal") { revealClue(); return; }
+    broadcast();
+  }
+  function hostClock() {
+    if (!room) return;
+    const now = Date.now();
+    if (pending && now >= pending.until) { resolveBuzz(); return; }
+    if (!room.deadline || now < room.deadline) return;
+    room.deadline = 0;
+    if (room.phase === "board" && room.clue) {
+      const cl = room.clue;
+      if (cl.stage === "wager") { hostWager(cl.seat, cl.id, 5); return; }
+      if (cl.stage === "reading") { openBuzzers(sc(T.buzz)); return; }
+      if (cl.stage === "open") { if (pending) { room.deadline = pending.until + 50; return; } revealClue(); return; }
+      if (cl.stage === "answer") { judge(cl.seat, ""); return; }
+      if (cl.stage === "result") { openBuzzers(sc(T.rebuzz)); return; }
+      if (cl.stage === "reveal") { endClue(); return; }
+    }
+    if (room.phase === "final" && room.final) {
+      const f = room.final;
+      if (f.stage === "wager") { finalClue(); return; }
+      if (f.stage === "clue") { finalReveal(); return; }
+      if (f.stage === "reveal") { finalStep(); return; }
+    }
+  }
+  function openBuzzers(ms) {
+    const cl = room.clue;
+    if (!cl || (cl.stage !== "reading" && cl.stage !== "result")) return;
+    cl.stage = "open";
+    cl.openN += 1;
+    cl.openMs = ms;
+    room.deadline = Date.now() + ms;
+    broadcast();
+  }
+  function heartbeat() {
+    if (!room || !bus) return;
+    const now = Date.now();
+    let changed = false;
+    for (const [k, l] of links) if (now - l.last > DEAD_MS) { links.delete(k); changed = true; }
+    if (changed || now - lastFull > 15000) broadcast();
+    else bus.send("*", { t: "hb", seq: room.seq });
+  }
+  function hostAgain() {
+    if (!room || room.phase !== "done") return;
+    Object.assign(room, { phase: "lobby", round: 0, cats: [], vals: [], used: [], clue: null, final: null, last: null, deadline: 0, intro: 0, note: "" });
+    room.players.forEach((p) => { p.score = 0; });
+    for (let s = room.players.length - 1; s >= 0; s--) if (!room.players[s].connected) removeSeat(s);
+    broadcast();
+  }
+  function hostClose() {
+    if (bus) bus.send("*", { t: "closed" });
+    clearInterval(hostTick); clearInterval(hbTick);
+    const b = bus; bus = null;
+    setTimeout(() => b && b.close(), 600);
+    links.clear();
+    room = null; priv = null;
+    store.del(KEYS.host);
+  }
+
+  // ======================================================================
+  // Player
+  // ======================================================================
+  let hostKey = null, lastHost = 0, joined = false;
+  let helloTimer = 0, watchTimer = 0, hbTimer = 0, lostAt = 0, joinStarted = 0;
+  const rtts = [];
+  let pingN = 0;
+  const pings = new Map();
+  const rttNow = () => { if (!rtts.length) return 0; const s = rtts.slice().sort((a, b) => a - b); return s[Math.floor(s.length / 2)]; };
+
+  async function joinRoom(code, name) {
+    stopPlayer(false, true);
+    me = { role: "player", code, name, token: tokenFor(code) };
+    joined = false; lostAt = 0; hostKey = null;
+    saveSession();
+    setHash(code);
+    setNet("connecting", `Joining game ${code}…`);
+    bus = BB_NET.createBus(code, null, onPlayerBus);
+    if (!(await bus.ready(10000))) {
+      if (!me || me.role !== "player") return;
+      setNet("error", "Couldn't reach the game servers. Check your connection and try again.");
+      stopPlayer(false, true);
+      return;
+    }
+    if (!me || me.role !== "player") return;
+    joinStarted = Date.now();
+    sayHello();
+    clearInterval(helloTimer); helloTimer = setInterval(() => { if (!joined || netState === "lost") sayHello(); }, 2500);
+    clearInterval(watchTimer); watchTimer = setInterval(watchHost, 1000);
+    clearInterval(hbTimer); hbTimer = setInterval(sendHb, HB_MS);
+  }
+  function sendHb() {
+    if (!bus || !joined) return;
+    const n = ++pingN;
+    pings.set(n, performance.now());
+    if (pings.size > 20) pings.delete(pings.keys().next().value);
+    bus.send(hostKey || "host", { t: "hb", n, rtt: Math.round(rttNow()) });
+  }
+  function sayHello() {
+    if (!bus || !me) return;
+    bus.send(netState === "lost" ? "host" : hostKey || "host", { t: "hello", name: me.name, token: me.token });
+    if (!joined && Date.now() - joinStarted > 12000) {
+      setNet("error", `Couldn't find game ${me.code}. Check the code, and make sure the host still has the game open.`);
+      stopPlayer(false, true);
+    }
+  }
+  function onPlayerBus(from, m) {
+    if (!me || me.role !== "player") return;
+    if (m.to !== "*" && m.to !== bus.pk) return;
+    if (m.t === "probe" || m.t === "here") return;
+    if (hostKey && from !== hostKey && netState !== "lost") {
+      if (!(m.t === "state" && m.seats && Object.prototype.hasOwnProperty.call(m.seats, bus.pk))) return;
+    }
+    if (m.t === "who") { if (joined) { hostKey = from; sayHello(); } return; }
+    if (m.t === "state") {
+      if (!m.seats || !Object.prototype.hasOwnProperty.call(m.seats, bus.pk)) return;
+      if (view && view.code === m.room.code && hostKey === from && m.room.seq < view.seq) return; // an older update arriving late
+      hostKey = from;
+      lastHost = Date.now();
+      const first = !joined;
+      joined = true; lostAt = 0;
+      if (netState !== "open") setNet("open", "");
+      applyState(m.room, m.seats[bus.pk], m.left);
+      if (first) setTimeout(sendHb, 300);
+      return;
+    }
+    if (from !== hostKey && hostKey) return;
+    if (m.t === "hb" || m.t === "pong") {
+      if (!joined) return;
+      lastHost = Date.now();
+      if (m.t === "pong" && pings.has(m.n)) { rtts.push(performance.now() - pings.get(m.n)); pings.delete(m.n); if (rtts.length > 15) rtts.shift(); }
+      if (view && m.seq > view.seq) sayHello(); // missed an update: hello makes the host resend
+    } else if (m.t === "nack") {
+      toast(m.msg || "That didn't go through");
+      busy = false; render();
+    } else if (m.t === "err") {
+      setNet("error", String(m.msg || "Couldn't join that game."));
+      stopPlayer(false, true);
+    } else if (m.t === "closed") {
+      if (!joined) return;
+      setNet("error", "The host ended the game.");
+      stopPlayer(true, true);
+    }
+  }
+  function watchHost() {
+    if (!me || me.role !== "player" || !joined) return;
+    if (Date.now() - lastHost < DEAD_MS) return;
+    if (!lostAt) lostAt = Date.now();
+    const gone = Date.now() - lostAt;
+    const hn = view ? view.hostName : "the host";
+    const msg = gone < 25000 ? `Lost touch with ${hn}. Reconnecting…` : `Can't reach ${hn}. The game only runs while the host has it open, so ask them to reopen it. You'll get your seat and score back automatically.`;
+    if (netState !== "lost" || netMsg !== msg) setNet("lost", msg);
+    if (bus) bus.wake();
+  }
+  function stopPlayer(clearSession, keepMsg) {
+    clearInterval(helloTimer); clearInterval(watchTimer); clearInterval(hbTimer);
+    if (bus && me && me.role === "player" && joined) bus.send(hostKey || "host", { t: "bye" });
+    const b = bus; bus = null;
+    if (b) setTimeout(() => b.close(), 1500);
+    if (clearSession) store.del(KEYS.session);
+    me = null; view = null; mySeat = -1; joined = false; hostKey = null;
+    if (!keepMsg) netState = "idle";
+    render();
+  }
+  // Send an action to the referee (or run it directly when this page is the referee).
+  let busy = false;
+  function send(m) {
+    if (me && me.role === "host") {
+      const err = act(mySeat, m);
+      if (err) { toast(err); busy = false; render(); }
+      return;
+    }
+    if (!bus || netState !== "open") { toast("Reconnecting to the host…"); busy = false; return; }
+    bus.send(hostKey || "host", m);
+    if (m.t === "ans" || m.t === "wager" || m.t === "fans" || m.t === "fwager") {
+      // Relays occasionally drop one message: send it again shortly (the host ignores repeats).
+      setTimeout(() => { if (busy && bus) bus.send(hostKey || "host", m); }, 1500);
+    }
+  }
+
+  // ======================================================================
+  // State in, screen out
+  // ======================================================================
+  let endsAt = 0; // performance.now() when the current clock runs out
+  let openAt = Infinity; // when this phone's buzzers open for the current clue
+  let openKey = "";
+  let lockUntil = 0, buzzedKey = "", earlyFlash = 0;
+  let lastIntro = 0, lastClueId = 0, spokenKey = "";
+  function applyState(r, you, left) {
+    const prev = view;
+    view = r;
+    mySeat = you;
+    const now = performance.now();
+    endsAt = left ? now + left : 0;
+    const cl = r.clue;
+    if (cl) {
+      if (cl.id !== lastClueId) {
+        lastClueId = cl.id;
+        busy = false; buzzedKey = ""; lockUntil = 0; earlyFlash = 0;
+        $("ans").value = ""; $("wager").value = "";
+      }
+      if (cl.stage === "reading" && openKey !== `${cl.id}:0`) { openKey = `${cl.id}:0`; openAt = now + left; }
+      else if (cl.stage === "open" && openKey !== `${cl.id}:${cl.openN}`) {
+        // First opening: we already counted down locally from the clue's arrival; use whichever came first.
+        openAt = cl.openN === 1 && openKey === `${cl.id}:0` ? Math.min(openAt, now) : now;
+        openKey = `${cl.id}:${cl.openN}`;
+      }
+      if (cl.stage === "answer" && cl.seat === mySeat && !(prev && prev.clue && prev.clue.id === cl.id && prev.clue.stage === "answer" && prev.clue.seat === mySeat)) {
+        busy = false; $("ans").value = "";
+        buzzFx(true);
+        setTimeout(() => { if (!$("ansform").hidden) $("ans").focus(); }, 60);
+      }
+      if (cl.text && r.tv && me && me.role === "host" && $("tts").checked && spokenKey !== `c${cl.id}`) { spokenKey = `c${cl.id}`; speak(cl.text); }
+    } else { openAt = Infinity; openKey = ""; }
+    if (r.final && (!prev || !prev.final || prev.final.stage !== r.final.stage)) { busy = false; $("ans").value = ""; $("wager").value = ""; }
+    if (r.final && r.final.stage === "clue" && r.tv && me && me.role === "host" && $("tts").checked && spokenKey !== "final") { spokenKey = "final"; speak(r.final.text); }
+    if (r.phase === "board" && r.intro && r.intro !== lastIntro) toast(r.intro === 1 ? "Round 1. Good luck!" : "Round 2: values double!");
+    if (r.intro) lastIntro = r.intro;
+    if (r.phase === "lobby") { lastIntro = 0; lastClueId = 0; spokenKey = ""; myFinal.wager = null; myFinal.answer = null; }
+    wakeLock(r.phase !== "lobby" && r.phase !== "done");
+    render();
+  }
+  function speak(text) {
+    try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.rate = 1.05; speechSynthesis.speak(u); } catch (_) { /* no speech */ }
+  }
+  function buzzFx(won) {
+    if (navigator.vibrate) { try { navigator.vibrate(won ? [80, 40, 160] : 60); } catch (_) { /* none */ } }
+  }
+  function setNet(state, msg) { netState = state; netMsg = msg; render(); }
+  function setHash(code) { const want = `#room=${code}`; if (location.hash !== want) history.replaceState(null, "", location.pathname + location.search + want); }
+  function clearHash() { if (location.hash) history.replaceState(null, "", location.pathname + location.search); }
+  let lock = null;
+  async function wakeLock(on) {
+    try {
+      if (on && !lock && navigator.wakeLock && document.visibilityState === "visible") { lock = await navigator.wakeLock.request("screen"); lock.addEventListener("release", () => { lock = null; }); }
+      else if (!on && lock) { lock.release(); lock = null; }
+    } catch (_) { /* not allowed */ }
+  }
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState !== "visible") return;
+    if (view && view.phase !== "lobby") { lock = null; wakeLock(true); }
+    if (bus) bus.wake();
+    if (me && me.role === "player" && joined) sayHello();
+  });
+
+  // ---------- Home ----------
+  const nameIn = $("name"), codeIn = $("code");
+  nameIn.value = cleanName(store.get(KEYS.name) || "");
+  nameIn.addEventListener("change", () => store.set(KEYS.name, cleanName(nameIn.value)));
+  codeIn.addEventListener("input", () => { const v = cleanCode(codeIn.value); if (codeIn.value !== v) codeIn.value = v; });
+  codeIn.addEventListener("keydown", (e) => { if (e.key === "Enter") $("join").click(); });
+  function needName() {
+    const n = cleanName(nameIn.value);
+    if (!n) { toast("Enter your name first"); nameIn.focus(); return null; }
+    store.set(KEYS.name, n);
+    return n;
+  }
+  $("host-play").addEventListener("click", () => { const n = needName(); if (!n) return; store.del(KEYS.host); hostRoom(n, false, false); });
+  $("host-tv").addEventListener("click", () => { const n = cleanName(nameIn.value) || "The host"; store.del(KEYS.host); hostRoom(n, true, false); });
+  $("join").addEventListener("click", () => {
+    const n = needName(); if (!n) return;
+    const code = cleanCode(codeIn.value);
+    if (!validCode(code)) { toast(`Room codes are ${CODE_LEN} letters and numbers`); codeIn.focus(); return; }
+    joinRoom(code, n);
+  });
+  $("rejoin").addEventListener("click", () => resume(loadSession()));
+  $("retry").addEventListener("click", () => {
+    const n = cleanName(nameIn.value) || (me && me.name);
+    const code = cleanCode(codeIn.value) || (me && me.code);
+    setNet("idle", "");
+    if (n && validCode(code)) joinRoom(code, n);
+  });
+  $("home-btn").addEventListener("click", () => { if (me && me.role === "player") stopPlayer(true); if (me && me.role === "host" && !room) me = null; setNet("idle", ""); clearHash(); });
+  $("leave").addEventListener("click", () => {
+    if (!me) return;
+    if (me.role === "host") {
+      if (room && room.phase !== "done" && room.players.length > 1 && !confirm("End the game for everyone?")) return;
+      hostClose();
+      me = null; view = null; mySeat = -1;
+      store.del(KEYS.session);
+    } else {
+      if (view && view.phase !== "lobby" && view.phase !== "done" && !confirm("Leave the game? You can rejoin with the same name.")) return;
+      if (bus) { const b = bus, to = hostKey || "host", token = me.token; b.send(to, { t: "leave", token }); setTimeout(() => b.send(to, { t: "leave", token }), 700); }
+      joined = false;
+      stopPlayer(true);
+    }
+    netState = "idle";
+    clearHash();
+    render();
+  });
+  function resume(s) {
+    if (!s) return;
+    if (s.role === "host") {
+      const saved = store.get(KEYS.host);
+      if (saved && saved.room && saved.room.code === s.code) { hostRoom(s.name, s.tv, true); return; }
+      store.del(KEYS.session); render(); return;
+    }
+    nameIn.value = s.name;
+    joinRoom(s.code, s.name);
+  }
+
+  // ---------- Lobby ----------
+  $("start").addEventListener("click", hostStart);
+  $("again").addEventListener("click", () => { if (me && me.role === "host") hostAgain(); });
+  for (const i of document.querySelectorAll('input[name="mix"]')) i.addEventListener("change", () => { if (i.checked && room && room.phase === "lobby") { room.opts.mix = i.value; broadcast(); } });
+  for (const i of document.querySelectorAll('input[name="len"]')) i.addEventListener("change", () => { if (i.checked && room && room.phase === "lobby") { room.opts.quick = i.value === "quick"; broadcast(); } });
+  async function copyInvite() {
+    if (!view) return;
+    const url = inviteUrl(view.code);
+    try { await navigator.clipboard.writeText(url); toast("Invite link copied!"); } catch (_) { window.prompt("Copy this link:", url); }
+  }
+  $("copy").addEventListener("click", copyInvite);
+  $("invite").addEventListener("click", async () => {
+    if (!view) return;
+    const url = inviteUrl(view.code);
+    if (navigator.share && window.matchMedia("(pointer: coarse)").matches) {
+      try { await navigator.share({ title: APP_NAME, text: `Trivia night! Join my ${APP_NAME} game, room ${view.code}`, url }); return; } catch (err) { if (err && err.name === "AbortError") return; }
+    }
+    copyInvite();
+  });
+
+  // ---------- Game controls ----------
+  function pressBuzz() {
+    const cl = view && view.clue;
+    if (!cl || mySeat < 0 || cl.kind !== "normal") return;
+    const now = performance.now();
+    if (cl.tried.includes(mySeat) || buzzedKey === openKey || (cl.stage === "reading" && buzzedKey === `${cl.id}:1`)) return;
+    // This phone counts down to the opening itself (from when the clue reached it), so a slow connection
+    // doesn't cost anyone time; the host's "open" message opens it too if that arrives first.
+    const isOpen = (cl.stage === "open" || (cl.stage === "reading" && openKey === `${cl.id}:0`)) && now >= openAt;
+    if (!isOpen || now < lockUntil) {
+      // Too early: locked out for a quarter second.
+      if (!isOpen) { lockUntil = Math.max(lockUntil, now + T.early); earlyFlash = now + 600; buzzFx(false); }
+      renderDock();
+      setTimeout(renderDock, T.early + 20);
+      setTimeout(renderDock, 620);
+      return;
+    }
+    buzzedKey = cl.stage === "reading" ? `${cl.id}:1` : openKey;
+    send({ t: "buzz", cid: cl.id, rt: Math.round(now - openAt) });
+    renderDock();
+  }
+  const buzzBtn = $("buzz");
+  buzzBtn.addEventListener("pointerdown", (e) => { e.preventDefault(); pressBuzz(); });
+  buzzBtn.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); pressBuzz(); } });
+  document.addEventListener("keydown", (e) => {
+    if (e.code === "Space" && !(document.activeElement && /INPUT|TEXTAREA/.test(document.activeElement.tagName)) && view && view.clue) { e.preventDefault(); pressBuzz(); }
+  });
+  const myFinal = { wager: null, answer: null };
+  $("ansform").addEventListener("submit", (e) => {
+    e.preventDefault();
+    if (busy || !view) return;
+    const text = cleanText($("ans").value);
+    if (view.phase === "final") {
+      if (!text) { toast("Type an answer first"); return; }
+      busy = true; myFinal.answer = text; send({ t: "fans", text }); render(); return;
+    }
+    const cl = view.clue;
+    if (!cl || cl.stage !== "answer" || cl.seat !== mySeat) return;
+    busy = true;
+    send({ t: "ans", cid: cl.id, text });
+    render();
+  });
+  function wagerRange() {
+    if (!view) return [0, 0];
+    if (view.phase === "final") return [0, Math.max(0, view.players[mySeat] ? view.players[mySeat].score : 0)];
+    return [5, view.clue ? view.clue.maxWager : 5];
+  }
+  $("wagerform").addEventListener("submit", (e) => {
+    e.preventDefault();
+    if (busy || !view) return;
+    const raw = $("wager").value;
+    const amt = Math.round(Number(raw));
+    if (raw === "" || !Number.isFinite(amt)) { toast("Enter a wager"); return; }
+    const [lo, hi] = wagerRange();
+    if (amt < lo || amt > hi) { toast(`Wager between ${fmt(lo)} and ${fmt(hi)}`); return; }
+    busy = true;
+    if (view.phase === "final") { myFinal.wager = amt; send({ t: "fwager", amt }); }
+    else send({ t: "wager", cid: view.clue.id, amt });
+    render();
+  });
+  $("quick-bets").addEventListener("click", (e) => { const b = e.target.closest("button[data-v]"); if (b) $("wager").value = b.dataset.v; });
+  // Voice answers where the browser supports speech recognition (Chrome, Safari); typing otherwise.
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let rec = null;
+  if (SR) {
+    $("mic").hidden = false;
+    $("mic").addEventListener("click", () => {
+      if (rec) { try { rec.stop(); } catch (_) { /* stopped */ } return; }
+      try {
+        rec = new SR();
+        rec.lang = "en-US"; rec.interimResults = true; rec.maxAlternatives = 1;
+        $("mic").classList.add("on");
+        rec.onresult = (ev) => {
+          let t = "", fin = false;
+          for (const r of ev.results) { t += r[0].transcript; if (r.isFinal) fin = true; }
+          $("ans").value = cleanText(t);
+          if (fin && view && view.phase !== "final") $("ansform").requestSubmit();
+        };
+        rec.onend = () => { rec = null; $("mic").classList.remove("on"); };
+        rec.onerror = () => { rec = null; $("mic").classList.remove("on"); toast("Couldn't hear that. Type your answer instead."); };
+        rec.start();
+      } catch (_) { rec = null; $("mic").classList.remove("on"); toast("Voice isn't available here, so type your answer"); }
+    });
+  }
+  $("open-now").addEventListener("click", () => { if (room && room.clue && room.clue.stage === "reading") openBuzzers(sc(T.buzz)); });
+  $("skip").addEventListener("click", () => { if (room && room.clue && room.clue.stage !== "reveal" && room.clue.stage !== "wager") revealClue(); });
+  $("next-reveal").addEventListener("click", () => {
+    const f = room && room.final;
+    if (!f) return;
+    if (f.stage === "wager") finalClue(); else if (f.stage === "clue") finalReveal(); else finalStep();
+  });
+  $("tts").checked = Boolean(store.get(KEYS.tts));
+  $("tts").addEventListener("change", () => store.set(KEYS.tts, $("tts").checked));
+
+  // ---------- Render ----------
+  const show = (id, on) => { $(id).hidden = !on; };
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+  const nameOf = (s) => (view && view.players[s] ? view.players[s].name : "?");
+  const isHost = () => Boolean(me && me.role === "host" && room);
+  function render() {
+    const inRoom = Boolean(view && me && (netState === "open" || netState === "lost"));
+    const phase = inRoom ? view.phase : null;
+    const busyNet = netState === "connecting" || netState === "error" || (netState === "lost" && !inRoom);
+    document.body.classList.toggle("tv", Boolean(inRoom && view.tv && me.role === "host"));
+    document.body.classList.toggle("ingame", Boolean(inRoom && phase !== "lobby"));
+    show("home", !inRoom && !busyNet);
+    show("wait", busyNet || netState === "lost");
+    show("lobby", phase === "lobby");
+    show("game", Boolean(phase && phase !== "lobby"));
+    show("leave", Boolean(me) && (inRoom || netState === "lost"));
+    show("foot", !phase || phase === "lobby" || phase === "done");
+    $("top-code").hidden = !inRoom;
+    if (inRoom) $("top-code").textContent = view.code;
+    $("net-dot").hidden = !inRoom;
+    $("net-dot").className = `net-dot ${netState}`;
+    $("wait-msg").textContent = netMsg;
+    show("wait-spin", netState === "connecting" || netState === "lost");
+    show("wait-btns", netState === "error");
+    show("retry", netState === "error" && !(me && me.role === "host"));
+    if (!inRoom) {
+      const s = loadSession();
+      $("rejoin").hidden = !s || busyNet;
+      if (s) $("rejoin").textContent = `Rejoin game ${s.code}${s.role === "host" ? " as host" : ` as ${s.name}`}`;
+      return;
+    }
+    if (phase === "lobby") renderLobby();
+    else renderGame();
+  }
+  function renderLobby() {
+    const host = isHost();
+    $("code-big").textContent = view.code;
+    $("lobby-url").textContent = inviteUrl(view.code).replace(/^https?:\/\//, "");
+    const ul = $("players");
+    ul.replaceChildren(...view.players.map((p, seat) => {
+      const li = document.createElement("li");
+      li.className = `${p.connected ? "on" : "off"}${seat === mySeat ? " me" : ""}`;
+      li.innerHTML = `<i class="dot"></i><span class="nm">${esc(p.name)}</span><span class="tags">${[p.host ? "Host" : "", seat === mySeat ? "You" : "", p.connected ? "" : "Offline"].filter(Boolean).join(" · ")}</span>`;
+      if (host && !p.host) {
+        const x = document.createElement("button");
+        x.type = "button"; x.className = "linkbtn"; x.textContent = "Remove";
+        x.addEventListener("click", () => kickSeat(seat));
+        li.appendChild(x);
+      }
+      return li;
+    }));
+    for (let k = view.players.length; k < Math.max(MIN_PLAYERS, Math.min(MAX_PLAYERS, view.players.length + 1)); k++) {
+      const li = document.createElement("li"); li.className = "empty"; li.textContent = "Waiting for a player…"; ul.appendChild(li);
+    }
+    $("pcount").textContent = `${view.players.length} of ${MAX_PLAYERS}`;
+    for (const i of document.querySelectorAll('input[name="mix"]')) { i.checked = i.value === view.opts.mix; i.disabled = !host; }
+    for (const i of document.querySelectorAll('input[name="len"]')) { i.checked = (i.value === "quick") === view.opts.quick; i.disabled = !host; }
+    $("settings").classList.toggle("locked", !host);
+    $("opt-note").textContent = ({ standard: "Mostly general knowledge, with a sports or pro wrestling category in each round.", fight: "Half of every board is sports and pro wrestling.", general: "General knowledge only, no sports or wrestling categories." })[view.opts.mix] +
+      (view.opts.quick ? " Quick game: one round, then the Final Clue (about 20 minutes)." : " Full game: two rounds, then the Final Clue (about 40 minutes).");
+    const n = view.players.length;
+    const st = $("start");
+    st.hidden = !host;
+    st.disabled = n < MIN_PLAYERS;
+    st.textContent = n < MIN_PLAYERS ? "Waiting for players…" : `Start game (${n} players)`;
+    $("lobby-note").textContent = host ? (view.tv ? "This screen shows the board. Players join on their phones with the code or the link." : "Keep this page open while you play. You're also the referee.") : `Waiting for ${view.hostName} to start the game.`;
+  }
+  let boardKey = "";
+  function renderGame() {
+    const r = view, cl = r.clue;
+    const sb = $("scores");
+    sb.replaceChildren(...r.players.map((p, s) => {
+      const d = document.createElement("div");
+      const answering = cl && cl.stage === "answer" && cl.seat === s;
+      d.className = `score${s === mySeat ? " me" : ""}${r.phase === "board" && s === r.control ? " ctl" : ""}${answering ? " ans" : ""}${p.connected ? "" : " off"}${p.score < 0 ? " neg" : ""}`;
+      d.innerHTML = `<span class="nm">${esc(p.name)}</span><b>${fmt(p.score)}</b>`;
+      return d;
+    }));
+    let ban = "";
+    if (r.phase === "board" && !cl) {
+      const ctl = r.players[r.control];
+      const anyone = ctl && !ctl.connected;
+      ban = `Round ${r.round}${r.opts.quick ? "" : " of 2"} · ` + (anyone ? `${esc(ctl.name)} is offline, anyone can pick` : r.control === mySeat ? "Your pick! Choose a clue" : `${esc(ctl ? ctl.name : "?")} picks next`);
+    } else if (cl) ban = `Round ${r.round} · ${esc(cl.cat)}`;
+    else if (r.phase === "final") ban = "Final Clue";
+    else if (r.phase === "done") ban = "Game over";
+    $("banner").innerHTML = ban;
+    $("banner").classList.toggle("mine", r.phase === "board" && !cl && r.control === mySeat);
+    show("board", r.phase === "board");
+    if (r.phase === "board") renderBoard();
+    renderClue();
+    renderFinal();
+    renderDone();
+    renderJudge();
+    renderDock();
+    document.title = r.phase === "board" && !cl && r.control === mySeat ? `Your pick! · ${APP_NAME}` : cl && cl.stage === "answer" && cl.seat === mySeat ? `Answer now! · ${APP_NAME}` : APP_NAME;
+  }
+  function renderBoard() {
+    const r = view;
+    const ctl = r.players[r.control];
+    const canPick = !r.clue && (r.control === mySeat || isHost() || (ctl && !ctl.connected && mySeat >= 0));
+    const key = JSON.stringify([r.cats, r.used, r.round, canPick, r.clue && [r.clue.c, r.clue.r]]);
+    if (key === boardKey) return;
+    boardKey = key;
+    const b = $("board");
+    b.className = `board${canPick ? " can" : ""}`;
+    const out = [];
+    r.cats.forEach((name) => out.push(`<div class="cat"><span>${esc(name)}</span></div>`));
+    for (let row = 0; row < 5; row++) for (let c = 0; c < 6; c++) {
+      const used = r.used[c][row];
+      const live = r.clue && r.clue.c === c && r.clue.r === row;
+      out.push(`<button type="button" class="cell${used ? " used" : ""}${live ? " live" : ""}" data-c="${c}" data-r="${row}" aria-label="${esc(r.cats[c])} for ${r.vals[row]}" ${used || !canPick ? "disabled" : ""}>${used ? "" : fmt(r.vals[row])}</button>`);
+    }
+    b.innerHTML = out.join("");
+  }
+  $("board").addEventListener("click", (e) => {
+    const btn = e.target.closest(".cell");
+    if (!btn || btn.disabled || !view) return;
+    const c = Number(btn.dataset.c), r = Number(btn.dataset.r);
+    if (isHost() && view.control !== mySeat) { const err = hostPick("judge", c, r); if (err) toast(err); return; }
+    send({ t: "pick", c, r });
+  });
+  function setTimer(id, total) {
+    const el = $(id);
+    const left = Math.max(0, endsAt - performance.now());
+    el.hidden = !endsAt || !total;
+    if (el.hidden) return;
+    const bar = el.firstElementChild;
+    bar.style.transition = "none";
+    bar.style.width = `${Math.min(100, (left / total) * 100)}%`;
+    void bar.offsetWidth;
+    bar.style.transition = `width ${left}ms linear`;
+    bar.style.width = "0%";
+  }
+  function logHtml(list) {
+    return list.map((e) => `<li class="${e.ok ? "ok" : "no"}"><span class="nm">${esc(nameOf(e.seat))}</span><q>${e.text ? esc(e.text) : "<i>no answer</i>"}</q><b>${e.ok ? "+" : "-"}${fmt(e.amt)}</b>${e.over ? '<small class="over">overruled</small>' : ""}</li>`).join("");
+  }
+  let clueKey = "";
+  function renderClue() {
+    const cl = view.clue;
+    show("cluebox", Boolean(cl));
+    if (!cl) { clueKey = ""; return; }
+    $("cb-cat").textContent = cl.cat;
+    $("cb-val").textContent = cl.kind === "wager" ? (cl.wager ? `Wager ${fmt(cl.wager)}` : "Wager clue") : fmt(cl.v);
+    $("cluebox").classList.toggle("dd", cl.kind === "wager" && !cl.text);
+    $("cb-text").textContent = cl.text || "WAGER CLUE!";
+    let st = "";
+    if (cl.stage === "wager") st = cl.seat === mySeat ? "You found a Wager clue! Only you answer it. Place your bet." : `${nameOf(cl.seat)} found a Wager clue and is placing a bet…`;
+    else if (cl.stage === "reading") st = "Read along. Buzzers open soon…";
+    else if (cl.stage === "open") st = cl.tried.length ? "Buzzers are open again!" : "Buzzers open!";
+    else if (cl.stage === "answer") st = cl.seat === mySeat ? "You're up! Answer now" : `${nameOf(cl.seat)} ${cl.kind === "wager" ? "is answering" : "buzzed in"}…`;
+    else if (cl.stage === "result") st = "Wrong! Others, get ready to buzz…";
+    else if (cl.stage === "reveal") { const w = cl.log.find((e) => e.ok); st = w ? `${nameOf(w.seat)} got it!` : cl.log.length ? "Nobody got it" : "Time's up. Nobody buzzed in"; }
+    $("cb-status").textContent = st;
+    $("cb-status").className = `cb-status ${cl.stage}`;
+    $("cb-log").innerHTML = logHtml(cl.log);
+    show("cb-answer", Boolean(cl.answer));
+    if (cl.answer) $("cb-answer").querySelector("b").textContent = cl.answer;
+    const k = `${cl.id}:${cl.stage}:${cl.openN}:${Math.round(endsAt)}`;
+    if (k !== clueKey) {
+      clueKey = k;
+      const total = cl.stage === "reading" ? Math.max(1, endsAt - performance.now()) : cl.stage === "open" ? cl.openMs : cl.stage === "answer" ? cl.ansMs : cl.stage === "wager" ? scA(T.wager) : 0;
+      setTimer("cb-timer", total);
+      $("cb-timer").classList.toggle("reading", cl.stage === "reading");
+    }
+  }
+  let finalKey = "";
+  function renderFinal() {
+    const f = view.phase === "final" ? view.final : null;
+    show("finalbox", Boolean(f));
+    if (!f) { finalKey = ""; return; }
+    $("fn-cat").textContent = f.cat;
+    $("fn-text").textContent = f.stage === "wager" ? f.cat : f.text;
+    $("finalbox").classList.toggle("dd", f.stage === "wager");
+    const inIt = f.inSeats.includes(mySeat);
+    let st = "";
+    if (f.stage === "wager") st = (inIt ? (f.wagered.includes(mySeat) ? `Bet locked in: ${fmt(myFinal.wager || 0)}. ` : "Here's the category. Place your secret bet. ") : mySeat >= 0 ? "You need a score above zero to play the Final. " : "") + `${f.wagered.length} of ${f.inSeats.length} bets are in.`;
+    else if (f.stage === "clue") st = (inIt ? (f.answered.includes(mySeat) ? "Answer locked in. " : "Write your answer. 30 seconds! ") : "") + `${f.answered.length} of ${f.inSeats.length} answers are in.`;
+    else st = f.reveals.length < f.order.length ? `Next up: ${nameOf(f.order[f.reveals.length])}` : "All answers are in. Final scores coming up…";
+    $("fn-status").textContent = st;
+    $("fn-log").innerHTML = logHtml(f.reveals);
+    show("fn-answer", Boolean(f.answer) && f.reveals.length > 0);
+    if (f.answer) $("fn-answer").querySelector("b").textContent = f.answer;
+    const k = `${f.stage}:${Math.round(endsAt)}`;
+    if (k !== finalKey) { finalKey = k; setTimer("fn-timer", f.stage === "wager" ? scA(T.finalWager) : f.stage === "clue" ? scA(T.finalAnswer) : 0); }
+  }
+  function standings() {
+    return view.players.map((p, seat) => ({ seat, name: p.name, score: p.score })).sort((a, b) => b.score - a.score || a.seat - b.seat);
+  }
+  function winnerText() {
+    const st = standings();
+    const ties = st.filter((x) => x.score === st[0].score);
+    return ties.length > 1 ? `It's a tie: ${ties.map((x) => x.name).join(" & ")}!` : `${st[0].name} wins!`;
+  }
+  function renderDone() {
+    const on = view.phase === "done";
+    show("donebox", on);
+    if (!on) return;
+    $("winner").textContent = winnerText();
+    $("final-scores").innerHTML = standings().map((x, i) => `<li class="${x.seat === mySeat ? "me" : ""}${i === 0 ? " top" : ""}"><span>${esc(x.name)}</span><b>${fmt(x.score)}</b></li>`).join("");
+    show("again", isHost());
+    $("done-note").textContent = (view.note ? view.note + " " : "") + (isHost() ? "" : `Waiting for ${view.hostName} to start another game.`);
+  }
+  // Host tools: overrule calls, open buzzers early, reveal, read aloud (big screen).
+  function renderJudge() {
+    const host = isHost();
+    show("judge", host && view.phase !== "done");
+    if (!host) return;
+    const cl = view.clue, f = view.final;
+    let where = null, list = [];
+    if (cl && cl.log.length) { where = "clue"; list = cl.log; }
+    else if (view.phase === "final" && f && f.reveals.length) { where = "final"; list = f.reveals; }
+    else if (!cl && view.phase === "board" && view.last && view.last.log.length) { where = "last"; list = view.last.log; }
+    $("judge-sub").textContent = where === "last" ? `Last clue: ${view.last.answer}` : where ? "Tap to overrule a call" : view.tv ? "Overrule calls here if there's a dispute" : "You're the referee and can overrule calls";
+    $("judge-list").innerHTML = list.map((e, i) => `<li><span>${esc(nameOf(e.seat))}: <q>${e.text ? esc(e.text) : "no answer"}</q> ${e.ok ? "✓" : "✗"}</span><button type="button" class="linkbtn" data-w="${where}" data-i="${i}">Mark ${e.ok ? "wrong" : "right"}</button></li>`).join("");
+    show("open-now", Boolean(cl && cl.stage === "reading"));
+    show("skip", Boolean(cl && cl.stage !== "reveal" && cl.stage !== "wager"));
+    show("next-reveal", Boolean(view.phase === "final" && f));
+    $("next-reveal").textContent = f && f.stage === "wager" ? "Close betting" : f && f.stage === "clue" ? "Close answers" : "Next reveal";
+    show("tts-wrap", Boolean(view.tv && "speechSynthesis" in window));
+  }
+  $("judge-list").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-w]");
+    if (b) overrule(b.dataset.w, Number(b.dataset.i));
+  });
+  function renderDock() {
+    if (!view || view.phase === "lobby" || !me) return;
+    const cl = view.clue, f = view.phase === "final" ? view.final : null;
+    const playing = mySeat >= 0;
+    const now = performance.now();
+    let showBuzz = false, ansOn = false, wagerOn = false, msg = "";
+    if (!playing) msg = (view.tv && isHost()) || view.phase === "done" ? "" : "The game had already started, so you're watching.";
+    else if (cl) {
+      if (cl.stage === "wager" && cl.seat === mySeat) wagerOn = true;
+      else if (cl.stage === "answer" && cl.seat === mySeat) ansOn = true;
+      else if (cl.kind === "normal" && ["reading", "open", "result", "answer"].includes(cl.stage)) showBuzz = true;
+    } else if (f && f.inSeats.includes(mySeat)) {
+      if (f.stage === "wager" && !f.wagered.includes(mySeat)) wagerOn = true;
+      else if (f.stage === "clue" && !f.answered.includes(mySeat)) ansOn = true;
+    }
+    show("buzz", showBuzz);
+    show("ansform", ansOn);
+    show("wagerform", wagerOn);
+    $("dock-msg").hidden = !msg;
+    $("dock-msg").textContent = msg;
+    $("dock").hidden = !(showBuzz || ansOn || wagerOn || msg);
+    if (showBuzz) {
+      const tried = cl.tried.includes(mySeat);
+      const mine = buzzedKey === openKey || (cl.stage === "reading" && buzzedKey === `${cl.id}:1`);
+      const early = now < earlyFlash;
+      const open = (cl.stage === "open" || cl.stage === "reading") && now >= openAt && now >= lockUntil && !tried;
+      let label = "Wait…", cls = "wait";
+      if (tried) { label = "Locked out"; cls = "out"; }
+      else if (cl.stage === "answer") { label = `${nameOf(cl.seat)} buzzed`; cls = "out"; }
+      else if (early) { label = "Too early!"; cls = "early"; }
+      else if (mine) { label = "Buzzed!"; cls = "sent"; }
+      else if (open) { label = "BUZZ!"; cls = "live"; }
+      buzzBtn.className = `buzz ${cls}`;
+      $("buzz-label").textContent = label;
+      buzzBtn.disabled = false;
+      if (openAt > now && openAt < Infinity) { clearTimeout(renderDock.t); renderDock.t = setTimeout(renderDock, openAt - now + 5); }
+    }
+    if (ansOn) {
+      const final = Boolean(f);
+      $("ans-hint").textContent = busy ? "Sent! Checking…" : final ? "Answer in any form. Nobody sees it until the reveal." : "Any form works: \"Rome\" is as good as \"What is Rome?\"";
+      $("ansform").classList.toggle("busy", busy);
+      const k = final ? `f:${Math.round(endsAt)}` : `${cl.id}:${Math.round(endsAt)}`;
+      if ($("ansform").dataset.k !== k) { $("ansform").dataset.k = k; setTimer("ans-timer", final ? scA(T.finalAnswer) : cl.ansMs); }
+    }
+    if (wagerOn) {
+      const [lo, hi] = wagerRange();
+      const w = $("wager");
+      w.min = lo; w.max = hi;
+      $("wg-label").textContent = f ? `Final bet: 0 to ${fmt(hi)}` : `Your bet: ${fmt(lo)} to ${fmt(hi)}`;
+      const qb = $("quick-bets");
+      const opts = [...new Set([lo, Math.round(hi / 4), Math.round(hi / 2), hi])].filter((x) => x >= lo && x <= hi);
+      const qk = opts.join(",");
+      if (qb.dataset.k !== qk) { qb.dataset.k = qk; qb.innerHTML = opts.map((x) => `<button type="button" class="ghost sm" data-v="${x}">${x === hi ? "All " : ""}${fmt(x)}</button>`).join(""); }
+      $("wagerform").classList.toggle("busy", busy);
+      const k = f ? `f:${Math.round(endsAt)}` : `${cl.id}:${Math.round(endsAt)}`;
+      if ($("wagerform").dataset.k !== k) { $("wagerform").dataset.k = k; setTimer("wg-timer", f ? scA(T.finalWager) : scA(T.wager)); }
+    }
+  }
+
+  // ---------- Save / share the final scores ----------
+  function scoreCard() {
+    const st = standings();
+    const W = 1080, H = 560 + st.length * 96;
+    const cv = document.createElement("canvas");
+    cv.width = W; cv.height = H;
+    const g = cv.getContext("2d");
+    const grd = g.createLinearGradient(0, 0, 0, H);
+    grd.addColorStop(0, "#161b3a"); grd.addColorStop(1, "#07080f");
+    g.fillStyle = grd; g.fillRect(0, 0, W, H);
+    g.textAlign = "center";
+    g.fillStyle = "#f5c542"; g.font = "900 88px system-ui, sans-serif";
+    g.fillText(APP_NAME.toUpperCase(), W / 2, 140);
+    g.fillStyle = "#c9cff5"; g.font = "500 36px system-ui, sans-serif";
+    g.fillText(`Final scores · ${new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`, W / 2, 200);
+    g.font = "800 60px system-ui, sans-serif"; g.fillStyle = "#fff";
+    g.fillText(winnerText(), W / 2, 310);
+    st.forEach((x, i) => {
+      const y = 420 + i * 96;
+      g.fillStyle = i === 0 ? "rgba(245,197,66,.2)" : "rgba(255,255,255,.07)";
+      g.fillRect(120, y - 58, W - 240, 80);
+      g.textAlign = "left"; g.fillStyle = "#fff"; g.font = "600 44px system-ui, sans-serif";
+      g.fillText(`${i + 1}. ${x.name}`, 150, y);
+      g.textAlign = "right"; g.fillStyle = x.score < 0 ? "#ff8080" : "#f5c542"; g.font = "800 48px system-ui, sans-serif";
+      g.fillText(fmt(x.score), W - 150, y);
+    });
+    g.textAlign = "center"; g.fillStyle = "#8f97c7"; g.font = "500 28px system-ui, sans-serif";
+    g.fillText(pageUrl().replace(/^https?:\/\//, ""), W / 2, H - 46);
+    return cv;
+  }
+  function saveImage() {
+    scoreCard().toBlob((blob) => {
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "buzz-board-scores.png";
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+      toast("Image saved!");
+    }, "image/png");
+  }
+  $("save-img").addEventListener("click", saveImage);
+  $("share").addEventListener("click", () => {
+    const text = `${APP_NAME} final scores: ${standings().map((x) => `${x.name} ${fmt(x.score)}`).join(", ")}. Play at ${pageUrl()}`;
+    scoreCard().toBlob(async (blob) => {
+      const file = new File([blob], "buzz-board-scores.png", { type: "image/png" });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) { try { await navigator.share({ files: [file], text }); return; } catch (err) { if (err && err.name === "AbortError") return; } }
+      try { await navigator.clipboard.writeText(text); toast("Scores copied!"); } catch (_) { saveImage(); }
+    }, "image/png");
+  });
+
+  // ---------- Start up ----------
+  setInterval(() => { if (view && view.clue && (view.clue.stage === "reading" || view.clue.stage === "open")) renderDock(); }, 200);
+  window.addEventListener("pagehide", () => { if (me && me.role === "player" && bus && joined) bus.send(hostKey || "host", { t: "bye" }); });
+  const hashCode = cleanCode((location.hash.match(/room=([A-Za-z0-9]+)/) || [])[1]);
+  const sess = loadSession();
+  if (hashCode && sess && sess.code === hashCode) resume(sess);
+  else if (hashCode) { codeIn.value = hashCode; render(); setTimeout(() => (nameIn.value ? $("join") : nameIn).focus(), 50); }
+  else render();
+  // Test hooks
+  window.__bb = {
+    get view() { return view; }, get seat() { return mySeat; }, get net() { return netState; }, get msg() { return netMsg; },
+    get relays() { return bus ? bus.openCount() : 0; }, get rtt() { return rttNow(); }, get rtts() { return rtts.slice(); },
+    get room() { return room; }, netLog: BB_NET.netLog, get priv() { return priv; }, overrule, T, SPEED, drawGame, buzzLog,
+    get buzzState() { return { openAt, lockUntil, buzzed: buzzedKey !== "" && (buzzedKey === openKey || buzzedKey.endsWith(":1")), now: performance.now() }; },
+  };
+})();
+
+</script>
+</body>
+</html>
