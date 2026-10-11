@@ -228,6 +228,9 @@ body.tv .final-scores li { font-size: clamp(18px, 2vw, 36px); }
 body.tv .dock { display: none; }
 body.tv .judge { position: fixed; right: 12px; bottom: 12px; max-width: 420px; background: rgba(10,12,24,.92); z-index: 20; }
 body.tv .top { padding: 1.2vh 3vw; }
+.mic-status { color: var(--gold, #f5c542); font-weight: 600; }
+.mic-status.bad { color: #ff8a8a; }
+.mic[aria-pressed="true"] { outline: 2px solid #fff3; }
 
 </style>
 </head>
@@ -371,6 +374,7 @@ body.tv .top { padding: 1.2vh 3vw; }
             <button type="button" class="mic" id="mic" hidden title="Say your answer" aria-label="Say your answer">🎤</button>
             <button type="submit" class="btn gold">Send</button>
           </div>
+          <small id="mic-status" class="hint mic-status" hidden aria-live="polite"></small>
           <small id="ans-hint" class="hint"></small>
         </form>
         <form id="wagerform" class="ansform" hidden autocomplete="off">
@@ -470,6 +474,121 @@ body.tv .top { padding: 1.2vh 3vw; }
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.BB_MATCH = api;
 })(typeof window !== "undefined" ? window : globalThis);
+
+</script>
+<script>
+// Buzz Board voice answers: one listening session per mic tap, built to survive browser quirks.
+// iOS Safari in particular can: send interim text and then an empty final result, end without
+// ever sending a final result, repeat earlier text in later results, fire onend before or
+// without onerror, or never fire onend after stop(). Rules here:
+//  - remember the best non-empty transcript heard so far; an empty result never wipes it
+//  - when the session ends for any reason, hand back that text (if any) exactly once
+//  - only if nothing at all was heard, report a friendly error
+// Works in the browser (window.BB_VOICE) and in node for tests (module.exports).
+(function () {
+  const clean = (s) => String(s || "").replace(/[\u0000-\u001f]/g, " ").replace(/\s+/g, " ").trim().slice(0, 80);
+
+  // Pull the text out of a SpeechRecognitionEvent-like object.
+  function transcriptOf(results) {
+    const parts = [];
+    let anyFinal = false;
+    for (let i = 0; i < (results ? results.length : 0); i++) {
+      const r = results[i];
+      if (!r) continue;
+      if (r.isFinal) anyFinal = true;
+      const alt = r[0] || (typeof r.item === "function" ? r.item(0) : null);
+      const t = clean(alt && alt.transcript);
+      if (!t) continue;
+      const prev = parts.length ? parts[parts.length - 1] : "";
+      const lt = t.toLowerCase(), lp = prev.toLowerCase();
+      // Some engines resend the growing phrase as a new result: keep the fuller one, don't double it.
+      if (prev && lt.startsWith(lp)) parts[parts.length - 1] = t;
+      else if (prev && lp.startsWith(lt)) continue;
+      else parts.push(t);
+    }
+    return { text: clean(parts.join(" ")), anyFinal };
+  }
+
+  const MESSAGES = {
+    "not-allowed": "Mic is blocked for this site. Allow the microphone in your browser settings, or type your answer.",
+    "service-not-allowed": "Voice isn't available in this browser right now. Type your answer.",
+    "audio-capture": "No microphone found. Type your answer.",
+    "network": "Voice needs a connection to work. Try again or type your answer.",
+    "language-not-supported": "Voice isn't available in this browser right now. Type your answer.",
+    default: "Didn't catch that. Tap the mic and try again, or type it.",
+  };
+
+  // opts: { SR, lang, onStart(), onText(text, isFinal), onDone(text), onFail(message, code),
+  //         settleMs, maxMs, stopWaitMs, setTimeout, clearTimeout }
+  function createSession(opts) {
+    const st = opts.setTimeout || setTimeout, ct = opts.clearTimeout || clearTimeout;
+    const settleMs = opts.settleMs == null ? 350 : opts.settleMs; // after a non-empty final, wait briefly for more words
+    const maxMs = opts.maxMs == null ? 9000 : opts.maxMs; // never listen forever
+    const stopWaitMs = opts.stopWaitMs == null ? 1500 : opts.stopWaitMs; // iOS sometimes never fires onend after stop()
+    let rec = null, best = "", done = false, errCode = "", stopping = false;
+    const timers = { settle: 0, max: 0, stop: 0 };
+    const clear = () => { ct(timers.settle); ct(timers.max); ct(timers.stop); };
+
+    function finish() {
+      if (done) return;
+      done = true;
+      clear();
+      const r = rec;
+      rec = null;
+      if (r) { r.onresult = r.onend = r.onerror = r.onstart = r.onnomatch = null; try { r.abort(); } catch (_) { /* already over */ } }
+      if (best) { if (opts.onDone) opts.onDone(best); }
+      else if (opts.onFail) opts.onFail(MESSAGES[errCode] || MESSAGES.default, errCode || "no-speech");
+    }
+    function stop() {
+      if (done || !rec) return;
+      if (!stopping) {
+        stopping = true;
+        try { rec.stop(); } catch (_) { finish(); return; }
+        timers.stop = st(finish, stopWaitMs);
+      }
+    }
+    function cancel() { // the answer window closed: drop everything quietly
+      if (done) return;
+      done = true;
+      clear();
+      const r = rec;
+      rec = null;
+      if (r) { r.onresult = r.onend = r.onerror = r.onstart = r.onnomatch = null; try { r.abort(); } catch (_) { /* over */ } }
+    }
+    function start() {
+      try {
+        rec = new opts.SR();
+        rec.lang = opts.lang || "en-US";
+        rec.interimResults = true;
+        rec.continuous = false;
+        rec.maxAlternatives = 1;
+      } catch (_) { rec = null; errCode = "service-not-allowed"; finish(); return; }
+      const mine = rec;
+      rec.onresult = (ev) => {
+        if (done || rec !== mine) return;
+        const { text, anyFinal } = transcriptOf(ev && ev.results);
+        if (text) { best = text; if (opts.onText) opts.onText(best, anyFinal); }
+        if (anyFinal && best) { ct(timers.settle); timers.settle = st(() => { stop(); finish(); }, settleMs); }
+      };
+      rec.onerror = (ev) => {
+        if (done || rec !== mine) return;
+        const code = (ev && ev.error) || "unknown";
+        if (code === "aborted" && best) { finish(); return; }
+        if (code !== "aborted" || !errCode) errCode = code;
+        finish();
+      };
+      rec.onend = () => { if (!done && rec === mine) finish(); };
+      timers.max = st(stop, maxMs);
+      try { rec.start(); if (opts.onStart) opts.onStart(); } catch (_) { errCode = errCode || "service-not-allowed"; finish(); }
+    }
+    start();
+    return { stop, cancel, get text() { return best; }, get active() { return !done; } };
+  }
+
+  const api = { createSession, transcriptOf, MESSAGES, clean };
+  if (typeof module !== "undefined" && module.exports) module.exports = api;
+  if (typeof window !== "undefined") window.BB_VOICE = api;
+})();
 
 </script>
 <script>
@@ -1125,9 +1244,10 @@ if (typeof module !== "undefined" && module.exports) module.exports = BB_BANK;
   const T = {
     readBase: 1200, readPerChar: 38, readMin: 2500, readMax: 8000, // time to read a clue before buzzers open
     buzz: 7000, rebuzz: 5000, // how long buzzers stay open (first time / after a wrong answer)
-    answer: 10000, grace: 1500, // time to answer after buzzing, plus network slack on the host
+    answer: 13000, grace: 1500, // time to answer after buzzing, plus network slack on the host
+    micGrace: 2500, // one-time extra time when the clock runs out while the answerer's mic is still working
     wrongShow: 2200, reveal: 4000, intro: 2500,
-    wager: 20000, ddAnswer: 15000, finalWager: 30000, finalAnswer: 30000, finalStep: 3500,
+    wager: 20000, ddAnswer: 18000, finalWager: 30000, finalAnswer: 30000, finalStep: 3500,
     early: 250, // early-buzz lockout
   };
   const sc = (ms) => Math.round(ms / SPEED);
@@ -1355,6 +1475,7 @@ if (typeof module !== "undefined" && module.exports) module.exports = BB_BANK;
     if (m.t === "wager") return hostWager(seat, Number(m.cid), Number(m.amt));
     if (m.t === "fwager") return hostFinalWager(seat, Number(m.amt));
     if (m.t === "fans") return hostFinalAnswer(seat, cleanText(m.text));
+    if (m.t === "mic") { hostMic(seat, Number(m.cid), Boolean(m.on)); return null; }
     return null;
   }
   // ----- game flow -----
@@ -1405,6 +1526,14 @@ if (typeof module !== "undefined" && module.exports) module.exports = BB_BANK;
     broadcast();
     return null;
   }
+  // A player's mic is listening or processing. If their clock runs out mid-sentence, they get one short extension.
+  function hostMic(seat, cid, on) {
+    if (!priv) return;
+    if (!priv.mic) priv.mic = {};
+    const key = room.phase === "final" ? `f:${seat}` : `${cid}:${seat}`;
+    if (on) priv.mic[key] = Date.now(); else delete priv.mic[key];
+  }
+  function micBusy(key) { const t = priv && priv.mic && priv.mic[key]; return Boolean(t && Date.now() - t < 15000); }
   function hostWager(seat, cid, amt) {
     const cl = room.clue;
     if (!cl || cl.id !== cid || cl.stage !== "wager" || seat !== cl.seat) return "Too late to wager.";
@@ -1582,14 +1711,20 @@ if (typeof module !== "undefined" && module.exports) module.exports = BB_BANK;
       if (cl.stage === "wager") { hostWager(cl.seat, cl.id, 5); return; }
       if (cl.stage === "reading") { openBuzzers(sc(T.buzz)); return; }
       if (cl.stage === "open") { if (pending) { room.deadline = pending.until + 50; return; } revealClue(); return; }
-      if (cl.stage === "answer") { judge(cl.seat, ""); return; }
+      if (cl.stage === "answer") {
+        if (!cl.micExt && micBusy(`${cl.id}:${cl.seat}`)) { cl.micExt = true; room.deadline = now + T.micGrace; return; }
+        judge(cl.seat, ""); return;
+      }
       if (cl.stage === "result") { openBuzzers(sc(T.rebuzz)); return; }
       if (cl.stage === "reveal") { endClue(); return; }
     }
     if (room.phase === "final" && room.final) {
       const f = room.final;
       if (f.stage === "wager") { finalClue(); return; }
-      if (f.stage === "clue") { finalReveal(); return; }
+      if (f.stage === "clue") {
+        if (!f.micExt && f.inSeats.some((s) => !f.answered.includes(s) && micBusy(`f:${s}`))) { f.micExt = true; room.deadline = now + T.micGrace; return; }
+        finalReveal(); return;
+      }
       if (f.stage === "reveal") { finalStep(); return; }
     }
   }
@@ -1775,13 +1910,13 @@ if (typeof module !== "undefined" && module.exports) module.exports = BB_BANK;
         openKey = `${cl.id}:${cl.openN}`;
       }
       if (cl.stage === "answer" && cl.seat === mySeat && !(prev && prev.clue && prev.clue.id === cl.id && prev.clue.stage === "answer" && prev.clue.seat === mySeat)) {
-        busy = false; $("ans").value = "";
+        busy = false; $("ans").value = ""; resetVoice();
         buzzFx(true);
         setTimeout(() => { if (!$("ansform").hidden) $("ans").focus(); }, 60);
       }
       if (cl.text && r.tv && me && me.role === "host" && $("tts").checked && spokenKey !== `c${cl.id}`) { spokenKey = `c${cl.id}`; speak(cl.text); }
     } else { openAt = Infinity; openKey = ""; }
-    if (r.final && (!prev || !prev.final || prev.final.stage !== r.final.stage)) { busy = false; $("ans").value = ""; $("wager").value = ""; }
+    if (r.final && (!prev || !prev.final || prev.final.stage !== r.final.stage)) { busy = false; $("ans").value = ""; $("wager").value = ""; resetVoice(); }
     if (r.final && r.final.stage === "clue" && r.tv && me && me.role === "host" && $("tts").checked && spokenKey !== "final") { spokenKey = "final"; speak(r.final.text); }
     if (r.phase === "board" && r.intro && r.intro !== lastIntro) toast(r.intro === 1 ? "Round 1. Good luck!" : "Round 2: values double!");
     if (r.intro) lastIntro = r.intro;
@@ -1920,6 +2055,9 @@ if (typeof module !== "undefined" && module.exports) module.exports = BB_BANK;
     e.preventDefault();
     if (busy || !view) return;
     const text = cleanText($("ans").value);
+    clearTimeout(voiceAuto); voiceAuto = 0;
+    if (voice && voice.active) { voice.cancel(); micOff(); sendMic(false); }
+    if (text) micStatus("");
     if (view.phase === "final") {
       if (!text) { toast("Type an answer first"); return; }
       busy = true; myFinal.answer = text; send({ t: "fans", text }); render(); return;
@@ -1949,28 +2087,87 @@ if (typeof module !== "undefined" && module.exports) module.exports = BB_BANK;
     render();
   });
   $("quick-bets").addEventListener("click", (e) => { const b = e.target.closest("button[data-v]"); if (b) $("wager").value = b.dataset.v; });
-  // Voice answers where the browser supports speech recognition (Chrome, Safari); typing otherwise.
+  // Voice answers where the browser supports speech recognition (Chrome, Safari); typing always works.
+  // The tricky browser cases (empty final results, sessions that end early) live in voice.js.
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  let rec = null;
-  if (SR) {
+  let voice = null, voiceAuto = 0, editedSinceVoice = false;
+  function micStatus(text, bad) {
+    const el = $("mic-status");
+    el.textContent = text || "";
+    el.hidden = !text;
+    el.classList.toggle("bad", Boolean(bad));
+  }
+  function sendMic(on) {
+    const cid = view && view.clue ? view.clue.id : 0;
+    const m = { t: "mic", cid, on };
+    if (me && me.role === "host") { act(mySeat, m); return; }
+    if (bus && netState === "open") bus.send(hostKey || "host", m); // quiet: no "reconnecting" toast for this hint
+  }
+  function micOff() { $("mic").classList.remove("on"); $("mic").setAttribute("aria-pressed", "false"); }
+  function resetVoice() { // a new answer turn (or the turn ended): stop listening, clear messages
+    clearTimeout(voiceAuto); voiceAuto = 0;
+    if (voice && voice.active) { voice.cancel(); sendMic(false); }
+    voice = null; micOff(); micStatus("");
+  }
+  function answerTurnOpen() {
+    if (!view || busy || $("ansform").hidden) return false;
+    if (view.phase === "final") return Boolean(view.final && view.final.stage === "clue");
+    return Boolean(view.clue && view.clue.stage === "answer" && view.clue.seat === mySeat);
+  }
+  if (SR && window.BB_VOICE) {
     $("mic").hidden = false;
+    $("ans").addEventListener("input", () => { editedSinceVoice = true; clearTimeout(voiceAuto); voiceAuto = 0; if (!voice || !voice.active) micStatus(""); });
     $("mic").addEventListener("click", () => {
-      if (rec) { try { rec.stop(); } catch (_) { /* stopped */ } return; }
-      try {
-        rec = new SR();
-        rec.lang = "en-US"; rec.interimResults = true; rec.maxAlternatives = 1;
-        $("mic").classList.add("on");
-        rec.onresult = (ev) => {
-          let t = "", fin = false;
-          for (const r of ev.results) { t += r[0].transcript; if (r.isFinal) fin = true; }
-          $("ans").value = cleanText(t);
-          if (fin && view && view.phase !== "final") $("ansform").requestSubmit();
-        };
-        rec.onend = () => { rec = null; $("mic").classList.remove("on"); };
-        rec.onerror = () => { rec = null; $("mic").classList.remove("on"); toast("Couldn't hear that. Type your answer instead."); };
-        rec.start();
-      } catch (_) { rec = null; $("mic").classList.remove("on"); toast("Voice isn't available here, so type your answer"); }
+      if (voice && voice.active) { voice.stop(); micStatus("Got it, one sec…"); return; } // tap again = done talking
+      if (!answerTurnOpen()) return;
+      clearTimeout(voiceAuto); voiceAuto = 0;
+      editedSinceVoice = false;
+      const final = view.phase === "final";
+      // iOS: drop the keyboard first so it doesn't fight the mic for the audio session or cover the status line.
+      try { if (document.activeElement === $("ans")) $("ans").blur(); } catch (_) { /* fine */ }
+      voice = window.BB_VOICE.createSession({
+        SR, settleMs: 600,
+        onStart() { $("mic").classList.add("on"); $("mic").setAttribute("aria-pressed", "true"); micStatus("Listening… say your answer"); sendMic(true); },
+        onText(t) { if (!editedSinceVoice) $("ans").value = t; },
+        onDone(t) {
+          micOff(); sendMic(false);
+          if (!answerTurnOpen()) { micStatus(""); return; }
+          if (!editedSinceVoice) $("ans").value = t;
+          if (final) { micStatus("Got it. Fix it if needed, then tap Send."); return; }
+          micStatus(`Sending "${t}"… tap the box to change it`);
+          voiceAuto = setTimeout(() => {
+            voiceAuto = 0;
+            if (answerTurnOpen() && !editedSinceVoice && cleanText($("ans").value)) $("ansform").requestSubmit();
+          }, 900);
+        },
+        onFail(msg) { micOff(); sendMic(false); if (answerTurnOpen()) micStatus(msg, true); },
+      });
     });
+    // Touching the box means "let me fix it": hold the auto-send. (Not on focus: the page focuses the box itself.)
+    $("ans").addEventListener("pointerdown", () => { if (voiceAuto) { clearTimeout(voiceAuto); voiceAuto = 0; editedSinceVoice = true; micStatus("Tap Send when ready"); } });
+  }
+  // When the answer clock is about to run out, send whatever is in the box instead of letting it go blank.
+  let lastCallTimer = 0, lastCallKey = "";
+  function armLastCall(k) {
+    if (lastCallKey === k) return;
+    lastCallKey = k;
+    clearTimeout(lastCallTimer);
+    // The host's deadline includes network slack (T.grace) for buzzer and wager clues; fire when the visible clock hits zero.
+    const slack = view && view.phase === "final" ? 1200 : T.grace;
+    const ms = endsAt - performance.now() - slack;
+    if (ms <= 0) return;
+    const sendBox = () => {
+      if (!answerTurnOpen()) return;
+      if (voice && voice.active && voice.text && !editedSinceVoice) $("ans").value = voice.text;
+      else if (!cleanText($("ans").value) && voice && voice.text) $("ans").value = voice.text;
+      if (cleanText($("ans").value)) { clearTimeout(voiceAuto); voiceAuto = 0; $("ansform").requestSubmit(); }
+    };
+    lastCallTimer = setTimeout(() => {
+      if (!answerTurnOpen()) return;
+      // Still talking? The host adds T.micGrace once while the mic is busy, so give the words a moment to land.
+      if (voice && voice.active) { lastCallTimer = setTimeout(sendBox, T.grace + T.micGrace - 800); return; }
+      sendBox();
+    }, ms);
   }
   $("open-now").addEventListener("click", () => { if (room && room.clue && room.clue.stage === "reading") openBuzzers(sc(T.buzz)); });
   $("skip").addEventListener("click", () => { if (room && room.clue && room.clue.stage !== "reveal" && room.clue.stage !== "wager") revealClue(); });
@@ -2224,6 +2421,7 @@ if (typeof module !== "undefined" && module.exports) module.exports = BB_BANK;
     }
     show("buzz", showBuzz);
     show("ansform", ansOn);
+    if (!ansOn && (voice || voiceAuto)) resetVoice();
     show("wagerform", wagerOn);
     $("dock-msg").hidden = !msg;
     $("dock-msg").textContent = msg;
@@ -2246,10 +2444,11 @@ if (typeof module !== "undefined" && module.exports) module.exports = BB_BANK;
     }
     if (ansOn) {
       const final = Boolean(f);
-      $("ans-hint").textContent = busy ? "Sent! Checking…" : final ? "Answer in any form. Nobody sees it until the reveal." : "Any form works: \"Rome\" is as good as \"What is Rome?\"";
+      $("ans-hint").textContent = busy ? "Sent! Checking…" : (final ? "Answer in any form. Nobody sees it until the reveal." : "Any form works: \"Rome\" is as good as \"What is Rome?\"") + ($("mic").hidden ? "" : " Tap the mic to say it.");
       $("ansform").classList.toggle("busy", busy);
       const k = final ? `f:${Math.round(endsAt)}` : `${cl.id}:${Math.round(endsAt)}`;
       if ($("ansform").dataset.k !== k) { $("ansform").dataset.k = k; setTimer("ans-timer", final ? scA(T.finalAnswer) : cl.ansMs); }
+      if (!busy) armLastCall(k);
     }
     if (wagerOn) {
       const [lo, hi] = wagerRange();
@@ -2328,7 +2527,7 @@ if (typeof module !== "undefined" && module.exports) module.exports = BB_BANK;
   window.__bb = {
     get view() { return view; }, get seat() { return mySeat; }, get net() { return netState; }, get msg() { return netMsg; },
     get relays() { return bus ? bus.openCount() : 0; }, get rtt() { return rttNow(); }, get rtts() { return rtts.slice(); },
-    get room() { return room; }, netLog: BB_NET.netLog, get priv() { return priv; }, overrule, T, SPEED, drawGame, buzzLog,
+    get room() { return room; }, netLog: BB_NET.netLog, get priv() { return priv; }, overrule, T, SPEED, drawGame, buzzLog, get voice() { return voice; },
     get buzzState() { return { openAt, lockUntil, buzzed: buzzedKey !== "" && (buzzedKey === openKey || buzzedKey.endsWith(":1")), now: performance.now() }; },
   };
 })();
