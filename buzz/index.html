@@ -231,6 +231,23 @@ body.tv .top { padding: 1.2vh 3vw; }
 .mic-status { color: var(--gold, #f5c542); font-weight: 600; }
 .mic-status.bad { color: #ff8a8a; }
 .mic[aria-pressed="true"] { outline: 2px solid #fff3; }
+/* Category splash before each clue */
+.cluebox.flash { display: flex; flex-direction: column; justify-content: center; }
+.cluebox.flash .cb-head, .cluebox.flash #cb-timer, .cluebox.flash .cb-status, .cluebox.flash .cb-log { visibility: hidden; }
+.cluebox.flash .cb-text { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 4px; min-height: 6em; }
+.fl-cat { font-size: 30px; font-weight: 900; line-height: 1.1; color: #fff; animation: flIn .45s cubic-bezier(.2,1.4,.4,1) both; }
+.fl-for { font-size: 16px; font-weight: 700; color: var(--dim); text-transform: lowercase; animation: flFade .3s .3s both; }
+.fl-val { font-size: 54px; font-weight: 900; color: var(--gold); text-shadow: 0 3px 0 #8a6510, 0 0 30px rgba(245,197,66,.45); animation: flIn .45s .45s cubic-bezier(.2,1.6,.4,1) both; }
+body.tv .fl-cat { font-size: clamp(36px, 6vw, 120px); }
+body.tv .fl-for { font-size: clamp(18px, 2vw, 40px); }
+body.tv .fl-val { font-size: clamp(60px, 9vw, 180px); }
+@keyframes flIn { from { opacity: 0; transform: scale(.4); } to { opacity: 1; transform: none; } }
+@keyframes flFade { from { opacity: 0; } to { opacity: 1; } }
+.cluebox:not(.flash) .cb-text { animation: clueIn .3s ease-out; }
+@keyframes clueIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .fl-cat, .fl-for, .fl-val, .cluebox:not(.flash) .cb-text, .cluebox { animation: none !important; }
+}
 
 </style>
 </head>
@@ -592,546 +609,6 @@ body.tv .top { padding: 1.2vh 3vw; }
 
 </script>
 <script>
-// Buzz Board clue bank. All clues are original. Each clue: [clue, answer, "alternate|answers"].
-// tag: gen (general knowledge), sports, wrestling, fun (Pokémon / 90s, drawn less often).
-// r1 values 200-1000, r2 values 400-2000; difficulty climbs with value.
-const BB_BANK = {
-r1: [
-{ id: "capitals1", name: "Capital Ideas", tag: "gen", clues: [
-  ["This city on the Tiber River is home to the Colosseum and is Italy's capital.", "Rome", ""],
-  ["Purpose-built as a compromise between Sydney and Melbourne, it's Australia's capital.", "Canberra", ""],
-  ["Canada's capital shares its name with the river it sits on.", "Ottawa", ""],
-  ["Istanbul is far bigger, but this city is Turkey's capital.", "Ankara", ""],
-  ["At roughly 3,600 meters, this Bolivian city is the highest seat of government in the world.", "La Paz", ""],
-]},
-{ id: "science1", name: "Lab Partners", tag: "gen", clues: [
-  ["H2O is the chemical formula for this.", "water", ""],
-  ["Often called the powerhouse of the cell, this organelle makes most of a cell's energy.", "mitochondria", "mitochondrion|mitochondrium"],
-  ["Au is the chemical symbol for this element.", "gold", ""],
-  ["This hardness scale for minerals runs from talc at 1 up to diamond at 10.", "Mohs scale", "Mohs|Moh's scale|Mohs hardness scale"],
-  ["This radioactive noble gas, symbol Rn, can build up in basements.", "radon", ""],
-]},
-{ id: "presidents1", name: "Hail to the Chief", tag: "gen", clues: [
-  ["This president's face appears on the U.S. five-dollar bill.", "Abraham Lincoln", "Lincoln|Abe Lincoln"],
-  ["He's the only U.S. president to resign from office.", "Richard Nixon", "Nixon"],
-  ["The teddy bear takes its name from this president.", "Theodore Roosevelt", "Teddy Roosevelt|Roosevelt|TR"],
-  ["He served the shortest term of any president, dying 31 days after his 1841 inauguration.", "William Henry Harrison", "Harrison|W.H. Harrison"],
-  ["He's the only person to serve as both president and chief justice of the United States.", "William Howard Taft", "Taft"],
-]},
-{ id: "mat1", name: "Squared Circle 101", tag: "wrestling", clues: [
-  ["This \"Stone Cold\" superstar turned \"3:16\" into a catchphrase.", "Steve Austin", "Stone Cold Steve Austin|Stone Cold|Austin"],
-  ["Bret Hart's signature leg submission hold.", "Sharpshooter", "the Sharpshooter|Scorpion Deathlock|Scorpion Death Lock"],
-  ["The first WrestleMania was held in 1985 at this New York City arena.", "Madison Square Garden", "MSG|the Garden"],
-  ["At WrestleMania III, Hulk Hogan body slammed this French-born giant.", "Andre the Giant", "Andre|Andre Roussimoff"],
-  ["At King of the Ring 1998, the Undertaker threw this man off the top of the Hell in a Cell.", "Mankind", "Mick Foley|Foley|Cactus Jack|Dude Love"],
-]},
-{ id: "hockey1", name: "Hockey Night", tag: "sports", clues: [
-  ["Wayne Gretzky's jersey number, retired across the entire NHL.", "99", ""],
-  ["This ice-resurfacing machine is named for its inventor, Frank.", "Zamboni", "Zamboni machine"],
-  ["A goal, an assist and a fight in one game is a hat trick named for this \"Mr. Hockey.\"", "Gordie Howe", "Howe|Gordie Howe hat trick"],
-  ["This trophy goes to the most valuable player of the Stanley Cup playoffs.", "Conn Smythe Trophy", "Conn Smythe|Smythe"],
-  ["In 1959, this Montreal goalie became the first to wear a mask regularly in NHL games.", "Jacques Plante", "Plante"],
-]},
-{ id: "quotes1", name: "Say It Again", tag: "gen", clues: [
-  ["\"May the Force be with you\" comes from this film franchise.", "Star Wars", ""],
-  ["\"Here's looking at you, kid\" is from this 1942 film set in Morocco.", "Casablanca", ""],
-  ["\"Yo, Adrian!\" is the famous cry from this 1976 boxing film.", "Rocky", ""],
-  ["\"I'll have what she's having\" is a line from this 1989 romantic comedy.", "When Harry Met Sally", "When Harry Met Sally..."],
-  ["\"Rosebud\" is the dying word in this 1941 Orson Welles film.", "Citizen Kane", ""],
-]},
-{ id: "groups1", name: "Party Animals", tag: "gen", clues: [
-  ["A group of lions is called this.", "pride", ""],
-  ["A group of crows has this sinister-sounding name.", "murder", ""],
-  ["A group of geese on the ground is called this.", "gaggle", ""],
-  ["A group of owls shares its name with a lawmaking body.", "parliament", ""],
-  ["A group of flamingos is called this, also a word for showy flair.", "flamboyance", ""],
-]},
-{ id: "rivers1", name: "Cry Me a River", tag: "gen", clues: [
-  ["This South American river carries more water than any other river on Earth.", "Amazon", "Amazon River"],
-  ["This river forms much of the border between the United States and Mexico.", "Rio Grande", "Rio Bravo"],
-  ["Vienna, Budapest and Belgrade all sit on this river.", "Danube", ""],
-  ["Baghdad sits on this river, the eastern partner of the Euphrates.", "Tigris", ""],
-  ["Victoria Falls is on this African river.", "Zambezi", "Zambesi"],
-]},
-{ id: "bands1", name: "Name That Band", tag: "gen", clues: [
-  ["John, Paul, George and Ringo.", "The Beatles", ""],
-  ["Freddie Mercury fronted this British band.", "Queen", ""],
-  ["This Seattle band's 1991 album \"Nevermind\" showed a baby swimming on the cover.", "Nirvana", ""],
-  ["Bono's Irish band released \"The Joshua Tree\" in 1987.", "U2", "U 2|U-2"],
-  ["Ozzy Osbourne was the original singer of this heavy metal band from Birmingham, England.", "Black Sabbath", "Sabbath"],
-]},
-{ id: "food1", name: "Kitchen Table", tag: "gen", clues: [
-  ["The main ingredient in guacamole.", "avocado", ""],
-  ["This pasta's name comes from the Italian for \"little strings.\"", "spaghetti", ""],
-  ["Harvested from crocus flowers, it's the world's most expensive spice by weight.", "saffron", ""],
-  ["This Mexican sauce, often made with chiles and chocolate, comes in versions like poblano and negro.", "mole", "mole sauce|mole poblano"],
-  ["Bearnaise is a child of this French mother sauce made with egg yolks and butter.", "Hollandaise", ""],
-]},
-{ id: "tv1", name: "Prime Time", tag: "gen", clues: [
-  ["The coffee shop Central Perk is a hangout in this sitcom.", "Friends", ""],
-  ["Walter White is the chemistry teacher turned kingpin in this AMC drama.", "Breaking Bad", ""],
-  ["This animated family lives at 742 Evergreen Terrace.", "The Simpsons", "Simpsons"],
-  ["Kelsey Grammer's psychiatrist got this spin-off from \"Cheers.\"", "Frasier", "Fraser"],
-  ["On \"The Sopranos,\" Tony's crew does business out of this strip club.", "Bada Bing", "Bada Bing!|the Bing"],
-]},
-{ id: "myth1", name: "Myth Busters", tag: "gen", clues: [
-  ["The king of the Greek gods, who threw thunderbolts.", "Zeus", ""],
-  ["The name of Thor's hammer in Norse myth.", "Mjolnir", "Mjollnir|Mjölnir"],
-  ["This Greek hero's only weak spot was his heel.", "Achilles", ""],
-  ["In Egyptian myth, this jackal-headed god oversaw mummification.", "Anubis", ""],
-  ["Odin rode this eight-legged horse.", "Sleipnir", ""],
-]},
-{ id: "nick1", name: "Call Me By My Nickname", tag: "sports", clues: [
-  ["\"The Great One.\"", "Wayne Gretzky", "Gretzky"],
-  ["\"The Sultan of Swat.\"", "Babe Ruth", "Ruth|George Herman Ruth"],
-  ["\"His Airness.\"", "Michael Jordan", "Jordan|MJ"],
-  ["\"The Iron Horse,\" a Yankees first baseman.", "Lou Gehrig", "Gehrig"],
-  ["\"The Golden Bear,\" winner of 18 golf majors.", "Jack Nicklaus", "Nicklaus"],
-]},
-{ id: "body1", name: "Body of Knowledge", tag: "gen", clues: [
-  ["The largest organ of the human body.", "skin", ""],
-  ["The longest bone in the human body.", "femur", "thigh bone|thighbone"],
-  ["This organ produces insulin.", "pancreas", ""],
-  ["The smallest bone in the body, found in the middle ear.", "stapes", "stirrup"],
-  ["Gas exchange in the lungs happens in these tiny air sacs.", "alveoli", "alveolus"],
-]},
-{ id: "books1", name: "Required Reading", tag: "gen", clues: [
-  ["He wrote \"Romeo and Juliet.\"", "William Shakespeare", "Shakespeare"],
-  ["Ishmael narrates this Herman Melville novel.", "Moby-Dick", "Moby Dick"],
-  ["Big Brother is watching in this George Orwell novel.", "1984", "Nineteen Eighty-Four"],
-  ["Holden Caulfield narrates this 1951 novel.", "The Catcher in the Rye", "Catcher in the Rye"],
-  ["This Colombian author wrote \"One Hundred Years of Solitude.\"", "Gabriel Garcia Marquez", "Garcia Marquez|Marquez|Gabo"],
-]},
-{ id: "invent1", name: "Patent Pending", tag: "gen", clues: [
-  ["Alexander Graham Bell patented this device in 1876.", "telephone", "phone"],
-  ["Johannes Gutenberg's 15th-century invention with movable type.", "printing press", "press|movable type"],
-  ["The Wright brothers made their first powered flights in 1903 near this North Carolina town.", "Kitty Hawk", "Kill Devil Hills"],
-  ["Percy Spencer came up with this appliance after radar equipment melted a candy bar in his pocket.", "microwave oven", "microwave"],
-  ["Tim Berners-Lee proposed this in 1989 while working at CERN.", "World Wide Web", "the web|www|web"],
-]},
-{ id: "poke1", name: "Gotta Catch 'Em All", tag: "fun", clues: [
-  ["Ash's electric partner Pokémon.", "Pikachu", ""],
-  ["The Pokémon listed as number 001 in the original Pokédex.", "Bulbasaur", ""],
-  ["Charmander evolves into this Pokémon.", "Charmeleon", ""],
-  ["She's the gym leader of Cerulean City.", "Misty", ""],
-  ["Pokémon number 132 can transform into any other Pokémon.", "Ditto", ""],
-]},
-{ id: "nineties1", name: "Totally 90s", tag: "fun", clues: [
-  ["Will Smith played a fictionalized version of himself in \"The Fresh Prince of\" this place.", "Bel-Air", "Bel Air|Belair"],
-  ["This egg-shaped Bandai virtual pet was a late-90s craze.", "Tamagotchi", ""],
-  ["This furry, chattering toy was the must-have gift of the 1998 holidays.", "Furby", ""],
-  ["\"Party on, Wayne!\" comes from this 1992 comedy.", "Wayne's World", "Waynes World"],
-  ["Nintendo's 1996 console had a three-pronged controller.", "Nintendo 64", "N64|N 64"],
-]},
-{ id: "baseball1", name: "Ballpark Figures", tag: "sports", clues: [
-  ["The \"Green Monster\" is the left-field wall at this Boston ballpark.", "Fenway Park", "Fenway"],
-  ["In 1947, Jackie Robinson broke Major League Baseball's color barrier with this team.", "Brooklyn Dodgers", "Dodgers"],
-  ["Jackie Robinson's jersey number, retired by every MLB team.", "42", ""],
-  ["A \"golden sombrero\" means striking out this many times in one game.", "4", ""],
-  ["In 1995, Cal Ripken Jr. broke this Yankee's record for consecutive games played.", "Lou Gehrig", "Gehrig"],
-]},
-{ id: "finishers1", name: "Finish Him", tag: "wrestling", clues: [
-  ["The Rock's most electrifying elbow drop.", "People's Elbow", "the People's Elbow|Peoples Elbow"],
-  ["\"Stone Cold\" Steve Austin's finishing move.", "Stunner", "Stone Cold Stunner|Austin Stunner"],
-  ["The Undertaker's signature piledriver.", "Tombstone", "Tombstone Piledriver"],
-  ["Shawn Michaels' superkick goes by this musical name.", "Sweet Chin Music", ""],
-  ["Diamond Dallas Page's signature cutter.", "Diamond Cutter", ""],
-]},
-{ id: "colors1", name: "True Colors", tag: "gen", clues: [
-  ["Mix blue and yellow paint to get this.", "green", ""],
-  ["Long linked with royalty, this color came from costly Tyrian dye.", "purple", "Tyrian purple"],
-  ["Cerulean is a shade of this color.", "blue", ""],
-  ["Vermilion is a bright shade of this color.", "red", "orange-red|red-orange"],
-  ["This greenish-blue color takes its name from a duck.", "teal", ""],
-]},
-{ id: "space1", name: "Space Cadets", tag: "gen", clues: [
-  ["The Red Planet.", "Mars", ""],
-  ["The name of the galaxy we live in.", "Milky Way", "Milky Way Galaxy"],
-  ["The first person to walk on the Moon.", "Neil Armstrong", "Armstrong"],
-  ["Titan is the largest moon of this planet.", "Saturn", ""],
-  ["This dwarf planet is the largest object in the asteroid belt.", "Ceres", ""],
-]},
-{ id: "art1", name: "Museum Pieces", tag: "gen", clues: [
-  ["Leonardo da Vinci's famous portrait in the Louvre.", "Mona Lisa", "La Gioconda|La Joconde"],
-  ["Vincent van Gogh's swirling night sky painting.", "The Starry Night", "Starry Night"],
-  ["Edvard Munch's anguished figure on a bridge.", "The Scream", "Scream"],
-  ["Salvador Dali's painting of melting clocks.", "The Persistence of Memory", "Persistence of Memory"],
-  ["Picasso's 1937 mural depicting the bombing of a Basque town.", "Guernica", ""],
-]},
-{ id: "football1", name: "Gridiron", tag: "sports", clues: [
-  ["The number of points a touchdown is worth.", "6", ""],
-  ["The Super Bowl trophy is named for this Green Bay coach.", "Vince Lombardi", "Lombardi|Lombardi Trophy|Vince Lombardi Trophy"],
-  ["This team won Super Bowl I.", "Green Bay Packers", "Packers|Green Bay"],
-  ["In 1972, this team finished a perfect 17-0 season with a Super Bowl win.", "Miami Dolphins", "Dolphins|Miami"],
-  ["Franco Harris's deflected 1972 playoff catch is known by this name.", "Immaculate Reception", "the Immaculate Reception"],
-]},
-{ id: "words1", name: "Language Arts", tag: "gen", clues: [
-  ["A word that means the same as another word.", "synonym", ""],
-  ["\"Racecar\" reads the same backward, making it one of these.", "palindrome", ""],
-  ["\"Listen\" and \"silent\" are this type of word pair.", "anagram", "anagrams"],
-  ["A word that imitates a sound, like \"buzz\" or \"sizzle.\"", "onomatopoeia", ""],
-  ["This figure of speech uses deliberate understatement, as in \"not bad at all.\"", "litotes", ""],
-]},
-{ id: "ancient1", name: "Ancient History", tag: "gen", clues: [
-  ["The Great Pyramid stands at this site near Cairo.", "Giza", ""],
-  ["This Roman leader was assassinated on the Ides of March, 44 BC.", "Julius Caesar", "Caesar"],
-  ["Mount Vesuvius buried this Roman city in AD 79.", "Pompeii", "Herculaneum"],
-  ["This Macedonian king had conquered the Persian Empire by his late twenties.", "Alexander the Great", "Alexander|Alexander III"],
-  ["This Carthaginian general crossed the Alps with war elephants.", "Hannibal", "Hannibal Barca"],
-]},
-{ id: "animals1", name: "Wild Kingdom", tag: "gen", clues: [
-  ["The fastest land animal.", "cheetah", ""],
-  ["A baby kangaroo is called this.", "joey", ""],
-  ["The only mammal capable of true powered flight.", "bat", ""],
-  ["The largest animal known to have ever lived.", "blue whale", ""],
-  ["Egg-laying mammals like the platypus belong to this group.", "monotremes", "monotreme"],
-]},
-{ id: "boxing1", name: "In This Corner", tag: "sports", clues: [
-  ["\"Float like a butterfly, sting like a bee.\"", "Muhammad Ali", "Ali|Cassius Clay"],
-  ["Ali's opponent in the 1974 \"Rumble in the Jungle.\"", "George Foreman", "Foreman"],
-  ["Muhammad Ali's birth name.", "Cassius Clay", "Cassius Marcellus Clay|Clay"],
-  ["The 1975 \"Thrilla in Manila\" was Ali's third fight against this man.", "Joe Frazier", "Frazier|Smokin' Joe"],
-  ["In 1986, at age 20, he became the youngest heavyweight champion in boxing history.", "Mike Tyson", "Tyson|Iron Mike"],
-]},
-{ id: "islands1", name: "Island Hopping", tag: "gen", clues: [
-  ["Not counting Australia, this is the world's largest island.", "Greenland", ""],
-  ["This island nation off India was called Ceylon until 1972.", "Sri Lanka", ""],
-  ["This island is Australia's southernmost state.", "Tasmania", ""],
-  ["Napoleon was born on this Mediterranean island.", "Corsica", ""],
-  ["The Galapagos Islands belong to this country.", "Ecuador", ""],
-]},
-{ id: "olympics1", name: "Going for Gold", tag: "sports", clues: [
-  ["The number of rings on the Olympic flag.", "5", ""],
-  ["The first modern Olympics were held in 1896 in this city.", "Athens", ""],
-  ["Jesse Owens won four gold medals at the 1936 Games in this city.", "Berlin", ""],
-  ["Michael Phelps won this many gold medals at the 2008 Beijing Games.", "8", ""],
-  ["This French baron founded the modern Olympic movement.", "Pierre de Coubertin", "Coubertin|de Coubertin"],
-]},
-{ id: "tagteams1", name: "Tag, You're It", tag: "wrestling", clues: [
-  ["Brothers Matt and Jeff.", "Hardy Boyz", "Hardy Boys|Hardys|The Hardys"],
-  ["Hawk and Animal, also known as the Legion of Doom.", "Road Warriors", "The Road Warriors"],
-  ["Bubba Ray and D-Von, kings of putting people through tables.", "Dudley Boyz", "Dudley Boys|Dudleys"],
-  ["Shawn Michaels and Triple H founded this rebellious faction in 1997.", "D-Generation X", "DX|Degeneration X"],
-  ["Bret Hart and Jim \"The Anvil\" Neidhart.", "Hart Foundation", "The Hart Foundation"],
-]},
-{ id: "money1", name: "Money Talks", tag: "gen", clues: [
-  ["The currency of Japan.", "yen", ""],
-  ["His portrait is on the U.S. $100 bill.", "Benjamin Franklin", "Franklin|Ben Franklin"],
-  ["The official name of the United Kingdom's currency.", "pound sterling", "pound|sterling|British pound"],
-  ["This country used the drachma before switching to the euro.", "Greece", ""],
-  ["South Africa's currency.", "rand", ""],
-]},
-{ id: "ships1", name: "All Aboard", tag: "gen", clues: [
-  ["This liner sank in 1912 after hitting an iceberg.", "Titanic", "RMS Titanic"],
-  ["The Pilgrims sailed to America on this ship in 1620.", "Mayflower", ""],
-  ["Charles Darwin sailed around the world aboard HMS this.", "Beagle", "HMS Beagle"],
-  ["Columbus's flagship on his 1492 voyage.", "Santa Maria", ""],
-  ["Captain Ahab's whaling ship.", "Pequod", ""],
-]},
-{ id: "games1", name: "Player One", tag: "gen", clues: [
-  ["Nintendo's famous mustachioed plumber.", "Mario", "Super Mario"],
-  ["Sonic the Hedgehog was this company's mascot.", "Sega", ""],
-  ["Soviet engineer Alexey Pajitnov created this falling-block game.", "Tetris", ""],
-  ["Link spends many adventures rescuing this princess.", "Zelda", "Princess Zelda"],
-  ["Pac-Man's ghosts are Blinky, Pinky, Inky and this orange one.", "Clyde", ""],
-]},
-{ id: "promos1", name: "Cut a Promo", tag: "wrestling", clues: [
-  ["\"If you smell what\" this man \"is cooking!\"", "The Rock", "Rock|Dwayne Johnson"],
-  ["\"Snap into a Slim Jim!\" was his famous ad line. Ohhh yeah!", "Randy Savage", "Macho Man|Macho Man Randy Savage|Savage"],
-  ["\"To be the man, you gotta beat the man.\" Woooo!", "Ric Flair", "Flair|Nature Boy"],
-  ["In the 1988 film \"They Live,\" this wrestler was \"all out of bubblegum.\"", "Roddy Piper", "Rowdy Roddy Piper|Piper"],
-  ["\"Oh, you didn't know?\" opened the ring intros of this New Age Outlaws member.", "Road Dogg", "Road Dog|Jesse James|Brian James"],
-]},
-{ id: "hoops1", name: "Nothing but Net", tag: "sports", clues: [
-  ["Michael Jordan won six titles with this Chicago team.", "Bulls", "Chicago Bulls"],
-  ["James Naismith invented basketball in 1891 using these as hoops.", "peach baskets", "baskets|peach basket"],
-  ["Double digits in three stat categories in one game.", "triple-double", "triple double"],
-  ["Kareem Abdul-Jabbar's signature shot.", "skyhook", "sky hook|hook shot"],
-  ["This Celtics center won 11 NBA championships as a player.", "Bill Russell", "Russell"],
-]},
-],
-r2: [
-{ id: "capitals2", name: "Capital Gains", tag: "gen", clues: [
-  ["The capital of Egypt.", "Cairo", ""],
-  ["The capital of Kenya.", "Nairobi", ""],
-  ["The capital of New Zealand.", "Wellington", ""],
-  ["Kazakhstan's capital was renamed Nur-Sultan in 2019, then got this old name back in 2022.", "Astana", ""],
-  ["The capital of Burkina Faso.", "Ouagadougou", ""],
-]},
-{ id: "chem2", name: "Better Living Through Chemistry", tag: "gen", clues: [
-  ["The most abundant gas in Earth's atmosphere.", "nitrogen", "N2"],
-  ["A substance with a pH below 7 is described this way.", "acidic", "acid"],
-  ["K is the chemical symbol for this element.", "potassium", ""],
-  ["Marie Curie named this element after her homeland.", "polonium", ""],
-  ["This Russian chemist published the first widely recognized periodic table in 1869.", "Dmitri Mendeleev", "Mendeleev|Mendeleyev"],
-]},
-{ id: "ushistory2", name: "We the People", tag: "gen", clues: [
-  ["The year the Declaration of Independence was adopted.", "1776", ""],
-  ["This 1803 land deal with France roughly doubled the size of the United States.", "Louisiana Purchase", ""],
-  ["The Civil War began with the 1861 attack on this South Carolina fort.", "Fort Sumter", "Sumter"],
-  ["Ratified in 1920, this amendment guaranteed women the right to vote.", "19th Amendment", "Nineteenth Amendment|19th|nineteenth"],
-  ["This 1787 deal created a two-house Congress with equal Senate seats per state.", "Great Compromise", "Connecticut Compromise"],
-]},
-{ id: "history2w", name: "Monday Night Wars", tag: "wrestling", clues: [
-  ["WCW's flagship Monday show that went head to head with Raw.", "Nitro", "Monday Nitro|WCW Monday Nitro"],
-  ["At Bash at the Beach 1996, Hulk Hogan turned heel to join this faction.", "nWo", "New World Order|N W O"],
-  ["The infamous 1997 Survivor Series finish between Bret Hart and Shawn Michaels.", "Montreal Screwjob", "the Montreal Screwjob|Screwjob"],
-  ["Paul Heyman ran this hardcore promotion out of Philadelphia.", "ECW", "Extreme Championship Wrestling|Eastern Championship Wrestling"],
-  ["The Undertaker's WrestleMania streak stood at this many wins before Brock Lesnar ended it.", "21", ""],
-]},
-{ id: "hockey2", name: "Puck Drop", tag: "sports", clues: [
-  ["The Original Six team from Montreal.", "Canadiens", "Montreal Canadiens|Habs|Canadians"],
-  ["The 1980 \"Miracle on Ice\" happened in this New York village.", "Lake Placid", ""],
-  ["He coached the 1980 U.S. Olympic hockey team.", "Herb Brooks", "Brooks"],
-  ["Bobby Orr's famous flying goal won the 1970 Stanley Cup against this team.", "St. Louis Blues", "Blues|St Louis|Saint Louis Blues"],
-  ["Lord Stanley, who donated the Cup, held this office in Canada at the time.", "Governor General", "Governor General of Canada"],
-]},
-{ id: "directors2", name: "Behind the Camera", tag: "gen", clues: [
-  ["He directed \"Jaws\" and \"E.T.\"", "Steven Spielberg", "Spielberg"],
-  ["He directed \"Pulp Fiction.\"", "Quentin Tarantino", "Tarantino"],
-  ["He directed \"Psycho\" and \"Vertigo.\"", "Alfred Hitchcock", "Hitchcock"],
-  ["He directed \"2001: A Space Odyssey.\"", "Stanley Kubrick", "Kubrick"],
-  ["He directed \"Seven Samurai.\"", "Akira Kurosawa", "Kurosawa"],
-]},
-{ id: "etym2", name: "Word Origins", tag: "gen", clues: [
-  ["This lunch staple is named for an 18th-century English earl.", "sandwich", ""],
-  ["Long before hockey fans tossed caps, this term came from cricket, where a bowler earned a new hat for three straight wickets.", "hat trick", "hattrick"],
-  ["This word for refusing to deal with someone comes from Captain Charles, a land agent shunned by his Irish neighbors in 1880.", "boycott", ""],
-  ["This word for isolation comes from the Venetian for \"forty days.\"", "quarantine", ""],
-  ["Coined by a Swiss medical student in 1688, this word blends the Greek for \"homecoming\" and \"pain.\"", "nostalgia", ""],
-]},
-{ id: "rock2", name: "Rock of Ages", tag: "gen", clues: [
-  ["\"The King of Rock and Roll.\"", "Elvis Presley", "Elvis|Presley"],
-  ["The Rolling Stones' frontman.", "Mick Jagger", "Jagger"],
-  ["He set his guitar on fire at the 1967 Monterey Pop Festival.", "Jimi Hendrix", "Hendrix"],
-  ["This band released \"The Dark Side of the Moon\" in 1973.", "Pink Floyd", "Floyd"],
-  ["The Rock and Roll Hall of Fame is in this city.", "Cleveland", ""],
-]},
-{ id: "borders2", name: "Borderline", tag: "gen", clues: [
-  ["Portugal's only land neighbor.", "Spain", ""],
-  ["Mount Everest sits on the border of China and this country.", "Nepal", ""],
-  ["Tucked in the Pyrenees, this tiny country borders only France and Spain.", "Andorra", ""],
-  ["This mountain kingdom is completely surrounded by South Africa.", "Lesotho", ""],
-  ["One of only two doubly landlocked countries, it's in Europe between Switzerland and Austria.", "Liechtenstein", ""],
-]},
-{ id: "bard2", name: "The Bard", tag: "gen", clues: [
-  ["Shakespeare's Prince of Denmark.", "Hamlet", ""],
-  ["Three witches greet a Scottish thane in this play.", "Macbeth", "the Scottish play"],
-  ["Iago deceives this jealous Moor of Venice.", "Othello", ""],
-  ["In \"The Tempest,\" this sorcerer is Miranda's father.", "Prospero", ""],
-  ["Many of Shakespeare's plays premiered at this London theater, built in 1599.", "The Globe", "Globe|Globe Theatre|Globe Theater"],
-]},
-{ id: "water2", name: "Making Waves", tag: "gen", clues: [
-  ["The largest ocean on Earth.", "Pacific", "Pacific Ocean"],
-  ["Africa's largest lake.", "Lake Victoria", "Victoria"],
-  ["This strait separates Spain from Morocco.", "Strait of Gibraltar", "Gibraltar"],
-  ["The world's deepest lake, in Siberia.", "Lake Baikal", "Baikal"],
-  ["The deepest known point in the ocean, in the Mariana Trench.", "Challenger Deep", ""],
-]},
-{ id: "personas2", name: "Alter Egos", tag: "wrestling", clues: [
-  ["Mick Foley's three faces: Mankind, Dude Love and this one.", "Cactus Jack", ""],
-  ["Before he was The Rock, Dwayne Johnson debuted in 1996 under this name.", "Rocky Maivia", "Maivia"],
-  ["This wrestler and commentator was elected governor of Minnesota in 1998.", "Jesse Ventura", "Ventura|The Body"],
-  ["This 1996 Olympic gold medalist won \"with a broken freakin' neck.\"", "Kurt Angle", "Angle"],
-  ["Ric Flair borrowed his \"Nature Boy\" nickname from this earlier star.", "Buddy Rogers", "Rogers"],
-]},
-{ id: "football2", name: "Gridiron Greats", tag: "sports", clues: [
-  ["Tom Brady won his first six Super Bowls with this team.", "New England Patriots", "Patriots|New England"],
-  ["This trophy goes to college football's most outstanding player.", "Heisman Trophy", "Heisman"],
-  ["Dwight Clark's leaping 1982 playoff grab for the 49ers is known as this.", "The Catch", "Catch"],
-  ["This Bears running back was nicknamed \"Sweetness.\"", "Walter Payton", "Payton"],
-  ["The Super Bowl's name was inspired by this bouncy toy belonging to Lamar Hunt's kids.", "Super Ball", "Superball"],
-]},
-{ id: "royals2", name: "Heavy Is the Head", tag: "gen", clues: [
-  ["She reigned over the United Kingdom for 70 years, until 2022.", "Elizabeth II", "Queen Elizabeth|Elizabeth|Queen Elizabeth II"],
-  ["This English king had six wives.", "Henry VIII", "Henry the Eighth|Henry 8|Henry"],
-  ["\"The Game\" in wrestling, his entrance theme is \"King of Kings.\"", "Triple H", "HHH|Hunter Hearst Helmsley|Paul Levesque"],
-  ["This tsar founded St. Petersburg in 1703.", "Peter the Great", "Peter I|Peter"],
-  ["The last monarch of Hawaii, she wrote the song \"Aloha Oe.\"", "Liliuokalani", "Queen Liliuokalani|Lili'uokalani"],
-]},
-{ id: "pop2", name: "Pop Charts", tag: "gen", clues: [
-  ["The \"Material Girl.\"", "Madonna", ""],
-  ["Michael Jackson's 1982 album, widely cited as the best-selling of all time.", "Thriller", ""],
-  ["\"Purple Rain\" was his 1984 album and film.", "Prince", ""],
-  ["This Swedish group won Eurovision in 1974 with \"Waterloo.\"", "ABBA", ""],
-  ["In 2016, Bob Dylan received this award.", "Nobel Prize in Literature", "Nobel Prize|Nobel|Nobel Prize for Literature"],
-]},
-{ id: "physics2", name: "Let's Get Physical", tag: "gen", clues: [
-  ["The unit of electrical resistance.", "ohm", ""],
-  ["Newton's first law is also called the law of this.", "inertia", ""],
-  ["Light travels at roughly 300,000 of these units per second.", "kilometers", "km|kilometres|kilometer"],
-  ["He formulated the uncertainty principle in 1927.", "Werner Heisenberg", "Heisenberg"],
-  ["The SI unit of magnetic flux density, named for an inventor.", "tesla", ""],
-]},
-{ id: "tennis2", name: "Game, Set, Match", tag: "sports", clues: [
-  ["In tennis, a score of zero.", "love", ""],
-  ["The French Open is played on this surface.", "clay", "red clay"],
-  ["This Grand Slam event is played at Flushing Meadows.", "US Open", "U.S. Open|United States Open"],
-  ["Wimbledon's famous snack of fruit and dairy.", "strawberries and cream", "strawberries|strawberries & cream"],
-  ["This Australian won the calendar Grand Slam in both 1962 and 1969.", "Rod Laver", "Laver"],
-]},
-{ id: "animals2", name: "Creature Features", tag: "gen", clues: [
-  ["This mythical horse is Scotland's national animal.", "unicorn", ""],
-  ["The only birds able to fly backward.", "hummingbirds", "hummingbird"],
-  ["An octopus has this many hearts.", "3", ""],
-  ["The world's largest living lizard.", "Komodo dragon", "Komodo"],
-  ["A female donkey is called this.", "jenny", "jennet"],
-]},
-{ id: "poke2", name: "Poké Master", tag: "fun", clues: [
-  ["This Psychic-type was created through genetic experiments on Mew.", "Mewtwo", "Mew Two|Mew 2"],
-  ["The number of Pokémon in the original Red and Blue Pokédex.", "151", ""],
-  ["This legendary bird is Ice and Flying type.", "Articuno", ""],
-  ["Pokémon number 143 blocks the road until you wake it with the Poké Flute.", "Snorlax", ""],
-  ["Revived from the Helix Fossil, this Pokémon evolves into Omastar.", "Omanyte", ""],
-]},
-{ id: "nineties2", name: "Rewind the Tape", tag: "fun", clues: [
-  ["Leonardo DiCaprio and Kate Winslet starred in this 1997 blockbuster.", "Titanic", ""],
-  ["The Spice Girl known as \"Posh.\"", "Victoria Beckham", "Victoria Adams|Victoria|Posh Spice"],
-  ["This giggling \"Tickle Me\" toy caused 1996 holiday stampedes.", "Elmo", "Tickle Me Elmo"],
-  ["This Spanish duo first recorded \"Macarena.\"", "Los del Rio", "Los del Río"],
-  ["Kramer's rarely used first name on \"Seinfeld.\"", "Cosmo", ""],
-]},
-{ id: "landmarks2", name: "Built to Last", tag: "gen", clues: [
-  ["This Paris landmark was completed in 1889.", "Eiffel Tower", "Eiffel|Tour Eiffel"],
-  ["This Inca citadel sits high in the Peruvian Andes.", "Machu Picchu", "Machu Pichu"],
-  ["This vast temple complex is in Cambodia.", "Angkor Wat", "Angkor"],
-  ["This architect devoted his final decades to Barcelona's Sagrada Familia.", "Antoni Gaudi", "Gaudi"],
-  ["Frank Lloyd Wright built this house over a waterfall in Pennsylvania.", "Fallingwater", "Falling Water"],
-]},
-{ id: "lingo2", name: "Talk the Talk", tag: "wrestling", clues: [
-  ["Wrestling slang for a good guy.", "face", "babyface"],
-  ["Wrestling slang for a bad guy.", "heel", ""],
-  ["The insider term for keeping up the illusion that it's all real.", "kayfabe", ""],
-  ["The spot just behind the entrance curtain is named for this announcer and executive.", "Gorilla Monsoon", "Gorilla|Gorilla Position"],
-  ["A finish where a win gets overturned is named for this \"American Dream.\"", "Dusty Rhodes", "Dusty|Dusty finish"],
-]},
-{ id: "golf2", name: "Fore!", tag: "sports", clues: [
-  ["One under par on a hole.", "birdie", ""],
-  ["The color of the jacket given to the Masters champion.", "green", ""],
-  ["Two under par on a hole.", "eagle", ""],
-  ["The trophy awarded to the winner of The Open Championship.", "Claret Jug", ""],
-  ["Three under par on a hole.", "albatross", "double eagle"],
-]},
-{ id: "explorers2", name: "Off the Map", tag: "gen", clues: [
-  ["With William Clark, he explored the Louisiana Purchase.", "Meriwether Lewis", "Lewis"],
-  ["He led the first expedition to circle the globe but died in the Philippines.", "Ferdinand Magellan", "Magellan"],
-  ["This Norwegian reached the South Pole first, in 1911.", "Roald Amundsen", "Amundsen"],
-  ["In 1498, this Portuguese explorer reached India by sailing around Africa.", "Vasco da Gama", "da Gama"],
-  ["He reached the summit of Everest with Edmund Hillary in 1953.", "Tenzing Norgay", "Tenzing|Sherpa Tenzing"],
-]},
-{ id: "tv2", name: "Classic TV", tag: "gen", clues: [
-  ["Sitcom set in a Boston bar where everybody knows your name.", "Cheers", ""],
-  ["\"M*A*S*H\" was set during this war.", "Korean War", "Korea"],
-  ["He created and hosted \"The Twilight Zone.\"", "Rod Serling", "Serling"],
-  ["The Fonz hung out at this diner on \"Happy Days.\"", "Arnold's", "Arnolds|Arnold's Drive-In"],
-  ["Norm's last name on \"Cheers.\"", "Peterson", "Norm Peterson"],
-]},
-{ id: "cooking2", name: "Chef's Kiss", tag: "gen", clues: [
-  ["Pasta cooked firm \"to the tooth.\"", "al dente", ""],
-  ["To cook quickly in a little fat over high heat.", "saute", "sauté"],
-  ["The Japanese name for the savory fifth taste.", "umami", ""],
-  ["This French phrase means having everything prepped and in its place.", "mise en place", ""],
-  ["Cooking vacuum-sealed food in a water bath; the French means \"under vacuum.\"", "sous vide", ""],
-]},
-{ id: "leaders2", name: "World Leaders", tag: "gen", clues: [
-  ["South Africa's first Black president.", "Nelson Mandela", "Mandela"],
-  ["Britain's \"Iron Lady.\"", "Margaret Thatcher", "Thatcher"],
-  ["India's first prime minister.", "Jawaharlal Nehru", "Nehru"],
-  ["He took power after the Cuban Revolution in 1959.", "Fidel Castro", "Castro"],
-  ["Israel's first female prime minister.", "Golda Meir", "Meir"],
-]},
-{ id: "soccer2", name: "The Beautiful Game", tag: "sports", clues: [
-  ["The number of players each team has on the field in soccer.", "11", ""],
-  ["This Brazilian legend won three World Cups.", "Pele", "Pelé|Edson Arantes do Nascimento"],
-  ["Diego Maradona's 1986 handball goal against England got this nickname.", "Hand of God", "the Hand of God"],
-  ["The first World Cup, in 1930, was hosted and won by this country.", "Uruguay", ""],
-  ["Zinedine Zidane's career ended with a headbutt on this Italian defender in the 2006 final.", "Marco Materazzi", "Materazzi"],
-]},
-{ id: "math2", name: "Do the Math", tag: "gen", clues: [
-  ["The number of sides on a hexagon.", "6", ""],
-  ["The only even prime number.", "2", ""],
-  ["A triangle with three sides of different lengths.", "scalene", "scalene triangle"],
-  ["The highest score possible with three darts.", "180", ""],
-  ["The year written in Roman numerals as MCMLXXXIV.", "1984", ""],
-]},
-{ id: "wm2", name: "Grandest Stage", tag: "wrestling", clues: [
-  ["This \"A-Team\" star teamed with Hulk Hogan in the first WrestleMania main event.", "Mr. T", "Mr T|Mister T"],
-  ["The Ultimate Warrior beat Hulk Hogan at WrestleMania VI in this city.", "Toronto", ""],
-  ["Shawn Michaels and Razor Ramon had a classic match of this type at WrestleMania X.", "ladder match", "ladder"],
-  ["Known as \"The Man,\" she won the first women's WrestleMania main event in 2019.", "Becky Lynch", "Lynch|The Man"],
-  ["Edge won the very first Money in the Bank ladder match at this numbered WrestleMania.", "21", "WrestleMania 21|WrestleMania XXI|XXI"],
-]},
-{ id: "racing2", name: "Off to the Races", tag: "sports", clues: [
-  ["Indianapolis 500 winners traditionally drink this.", "milk", ""],
-  ["NASCAR's \"Great American Race.\"", "Daytona 500", "Daytona"],
-  ["This Formula One race winds through the streets of Monte Carlo.", "Monaco Grand Prix", "Monaco|Monaco GP"],
-  ["In 1973, this horse won the Triple Crown, taking the Belmont by 31 lengths.", "Secretariat", "Big Red"],
-  ["The Kentucky Derby is run at this Louisville track.", "Churchill Downs", ""],
-]},
-{ id: "scientists2", name: "Great Minds", tag: "gen", clues: [
-  ["He developed the theory of relativity.", "Albert Einstein", "Einstein"],
-  ["The first woman to win a Nobel Prize.", "Marie Curie", "Curie|Madame Curie"],
-  ["He discovered penicillin in 1928.", "Alexander Fleming", "Fleming"],
-  ["His 1543 book put the Sun, not Earth, at the center.", "Nicolaus Copernicus", "Copernicus"],
-  ["This Danish astronomer with a metal nose made precise sky measurements before the telescope.", "Tycho Brahe", "Tycho|Brahe"],
-]},
-{ id: "hoops2", name: "Hardwood Legends", tag: "sports", clues: [
-  ["LeBron James began his NBA career with this team.", "Cleveland Cavaliers", "Cavaliers|Cavs|Cleveland"],
-  ["Wilt Chamberlain scored this many points in a single 1962 game.", "100", ""],
-  ["Michael Jordan wore this number when he first returned in 1995.", "45", ""],
-  ["\"The Mailman\" delivered for the Utah Jazz for 18 seasons.", "Karl Malone", "Malone"],
-  ["The NBA logo silhouette is widely said to be this Lakers great.", "Jerry West", "West"],
-]},
-{ id: "states2", name: "State Your Name", tag: "gen", clues: [
-  ["\"The Lone Star State.\"", "Texas", ""],
-  ["\"The Bluegrass State.\"", "Kentucky", ""],
-  ["\"The Beehive State.\"", "Utah", ""],
-  ["\"The Pelican State.\"", "Louisiana", ""],
-  ["\"The Old Line State.\"", "Maryland", ""],
-]},
-{ id: "spacerace2", name: "Space Race", tag: "gen", clues: [
-  ["In 1961, he became the first human in space.", "Yuri Gagarin", "Gagarin"],
-  ["The first artificial satellite, launched in 1957.", "Sputnik", "Sputnik 1"],
-  ["The name of Apollo 11's lunar module.", "Eagle", "the Eagle"],
-  ["In 1983, she became the first American woman in space.", "Sally Ride", "Ride"],
-  ["He orbited the Moon in Columbia while Armstrong and Aldrin walked on it.", "Michael Collins", "Collins"],
-]},
-{ id: "factions2", name: "Stables", tag: "wrestling", clues: [
-  ["Roman Reigns, Seth Rollins and Dean Ambrose.", "The Shield", "Shield"],
-  ["Ric Flair, Triple H, Randy Orton and Batista.", "Evolution", ""],
-  ["The Undertaker's dark late-90s faction.", "Ministry of Darkness", "the Ministry"],
-  ["Bray Wyatt led this group with Luke Harper and Erick Rowan.", "Wyatt Family", "The Wyatt Family|Wyatts"],
-  ["Flair, Arn Anderson, Ole Anderson and Tully Blanchard were the originals in this group.", "Four Horsemen", "The Four Horsemen|Horsemen"],
-]},
-],
-final: [
-  { id: "f-maine", cat: "U.S. States", clue: "It's the only U.S. state whose name is a single syllable.", a: "Maine", alt: "" },
-  { id: "f-rumble", tag: "ring", cat: "Royal Rumble", clue: "He won the Royal Rumble three times: in 1997, 1998 and 2001.", a: "Steve Austin", alt: "Stone Cold Steve Austin|Stone Cold|Austin" },
-  { id: "f-original6", tag: "ring", cat: "The NHL", clue: "The Original Six were Boston, Chicago, Detroit, Montreal, New York and this city.", a: "Toronto", alt: "" },
-  { id: "f-uranus", cat: "Astronomy", clue: "Found by William Herschel in 1781, it was the first planet discovered with a telescope.", a: "Uranus", alt: "" },
-  { id: "f-waterloo", cat: "European History", clue: "This 1815 battle in present-day Belgium ended Napoleon's rule for good.", a: "Waterloo", alt: "Battle of Waterloo" },
-  { id: "f-baker", cat: "Fictional Addresses", clue: "This character's famous home is 221B Baker Street.", a: "Sherlock Holmes", alt: "Holmes|Sherlock" },
-  { id: "f-beauty", cat: "Animated Films", clue: "In 1991, it became the first animated feature nominated for the Best Picture Oscar.", a: "Beauty and the Beast", alt: "" },
-  { id: "f-deion", tag: "ring", cat: "Two-Sport Stars", clue: "He played in the 1992 World Series and later won two Super Bowl rings.", a: "Deion Sanders", alt: "Sanders|Prime Time|Neon Deion" },
-  { id: "f-pantheon", cat: "Word Roots", clue: "From the Greek for \"all\" and \"gods,\" it names a famous domed temple in Rome.", a: "Pantheon", alt: "" },
-  { id: "f-kili", cat: "World Geography", clue: "Africa's highest peak, Mount Kilimanjaro, stands in this country.", a: "Tanzania", alt: "" },
-  { id: "f-hof", tag: "ring", cat: "Hall of Fame", clue: "In 1993, he became the first inductee into the WWF Hall of Fame.", a: "Andre the Giant", alt: "Andre" },
-  { id: "f-ninth", cat: "Classical Music", clue: "He composed his Ninth Symphony after losing his hearing.", a: "Ludwig van Beethoven", alt: "Beethoven" },
-  { id: "f-pavlova", cat: "Desserts", clue: "Australia and New Zealand both claim this meringue dessert named for a Russian ballerina.", a: "pavlova", alt: "" },
-  { id: "f-aaron", tag: "ring", cat: "Baseball", clue: "In 1974, he passed Babe Ruth's career home run record.", a: "Hank Aaron", alt: "Aaron|Henry Aaron" },
-  { id: "f-karman", cat: "Space", clue: "This line, about 100 kilometers up, is often used to mark where space begins.", a: "Karman line", alt: "Kármán line|Karman" },
-  { id: "f-mash", cat: "TV Finales", clue: "This show's finale, \"Goodbye, Farewell and Amen,\" aired in 1983.", a: "M*A*S*H", alt: "MASH" },
-  { id: "f-aew", tag: "ring", cat: "Wrestling Promotions", clue: "This promotion held its first pay-per-view, Double or Nothing, in Las Vegas in 2019.", a: "AEW", alt: "All Elite Wrestling" },
-  { id: "f-rocket", tag: "ring", cat: "Hockey Legends", clue: "In 1944-45, this Montreal winger became the first to score 50 goals in 50 games.", a: "Maurice Richard", alt: "Rocket Richard|Richard|The Rocket" },
-  { id: "f-wall", cat: "The 20th Century", clue: "The Berlin Wall fell in this year.", a: "1989", alt: "" },
-  { id: "f-pearl", cat: "Famous Paintings", clue: "This Dutch master painted \"Girl with a Pearl Earring.\"", a: "Johannes Vermeer", alt: "Vermeer|Jan Vermeer" },
-  { id: "f-vatican", cat: "Small Wonders", clue: "By area, it's the smallest country in the world.", a: "Vatican City", alt: "Vatican|Holy See" },
-],
-};
-if (typeof module !== "undefined" && module.exports) module.exports = BB_BANK;
-
-</script>
-<script>
 /*! Schnorr signing for the PvP relay messages: @noble/curves 1.6.0 + @noble/hashes 1.5.0, MIT License (c) Paul Miller, paulmillr.com */
 (()=>{var De=Object.defineProperty;var Ke=(t,n)=>{for(var e in n)De(t,e,{get:n[e],enumerable:!0})};function pe(t){if(!Number.isSafeInteger(t)||t<0)throw new Error(`positive integer expected, not ${t}`)}function Ye(t){return t instanceof Uint8Array||t!=null&&typeof t=="object"&&t.constructor.name==="Uint8Array"}function at(t,...n){if(!Ye(t))throw new Error("Uint8Array expected");if(n.length>0&&!n.includes(t.length))throw new Error(`Uint8Array expected of length ${n}, not of length=${t.length}`)}function me(t){if(typeof t!="function"||typeof t.create!="function")throw new Error("Hash should be wrapped by utils.wrapConstructor");pe(t.outputLen),pe(t.blockLen)}function bt(t,n=!0){if(t.destroyed)throw new Error("Hash instance has been destroyed");if(n&&t.finished)throw new Error("Hash#digest() has already been called")}function be(t,n){at(t);let e=n.outputLen;if(t.length<e)throw new Error(`digestInto() expects output buffer of length at least ${e}`)}var ut=typeof globalThis=="object"&&"crypto"in globalThis?globalThis.crypto:void 0;var qt=t=>new DataView(t.buffer,t.byteOffset,t.byteLength),K=(t,n)=>t<<32-n|t>>>n;var Rn=new Uint8Array(new Uint32Array([287454020]).buffer)[0]===68;var Ge=Array.from({length:256},(t,n)=>n.toString(16).padStart(2,"0"));function ye(t){at(t);let n="";for(let e=0;e<t.length;e++)n+=Ge[t[e]];return n}function We(t){if(typeof t!="string")throw new Error(`utf8ToBytes expected string, got ${typeof t}`);return new Uint8Array(new TextEncoder().encode(t))}function St(t){return typeof t=="string"&&(t=We(t)),at(t),t}function xe(...t){let n=0;for(let r=0;r<t.length;r++){let s=t[r];at(s),n+=s.length}let e=new Uint8Array(n);for(let r=0,s=0;r<t.length;r++){let o=t[r];e.set(o,s),s+=o.length}return e}var yt=class{clone(){return this._cloneInto()}},Un={}.toString;function Ee(t){let n=r=>t().update(St(r)).digest(),e=t();return n.outputLen=e.outputLen,n.blockLen=e.blockLen,n.create=()=>t(),n}function Lt(t=32){if(ut&&typeof ut.getRandomValues=="function")return ut.getRandomValues(new Uint8Array(t));if(ut&&typeof ut.randomBytes=="function")return ut.randomBytes(t);throw new Error("crypto.getRandomValues must be defined")}function Xe(t,n,e,r){if(typeof t.setBigUint64=="function")return t.setBigUint64(n,e,r);let s=BigInt(32),o=BigInt(4294967295),c=Number(e>>s&o),f=Number(e&o),i=r?4:0,a=r?0:4;t.setUint32(n+i,c,r),t.setUint32(n+a,f,r)}var Be=(t,n,e)=>t&n^~t&e,ve=(t,n,e)=>t&n^t&e^n&e,Nt=class extends yt{constructor(n,e,r,s){super(),this.blockLen=n,this.outputLen=e,this.padOffset=r,this.isLE=s,this.finished=!1,this.length=0,this.pos=0,this.destroyed=!1,this.buffer=new Uint8Array(n),this.view=qt(this.buffer)}update(n){bt(this);let{view:e,buffer:r,blockLen:s}=this;n=St(n);let o=n.length;for(let c=0;c<o;){let f=Math.min(s-this.pos,o-c);if(f===s){let i=qt(n);for(;s<=o-c;c+=s)this.process(i,c);continue}r.set(n.subarray(c,c+f),this.pos),this.pos+=f,c+=f,this.pos===s&&(this.process(e,0),this.pos=0)}return this.length+=n.length,this.roundClean(),this}digestInto(n){bt(this),be(n,this),this.finished=!0;let{buffer:e,view:r,blockLen:s,isLE:o}=this,{pos:c}=this;e[c++]=128,this.buffer.subarray(c).fill(0),this.padOffset>s-c&&(this.process(r,0),c=0);for(let d=c;d<s;d++)e[d]=0;Xe(r,s-8,BigInt(this.length*8),o),this.process(r,0);let f=qt(n),i=this.outputLen;if(i%4)throw new Error("_sha2: outputLen should be aligned to 32bit");let a=i/4,h=this.get();if(a>h.length)throw new Error("_sha2: outputLen bigger than state");for(let d=0;d<a;d++)f.setUint32(4*d,h[d],o)}digest(){let{buffer:n,outputLen:e}=this;this.digestInto(n);let r=n.slice(0,e);return this.destroy(),r}_cloneInto(n){n||(n=new this.constructor),n.set(...this.get());let{blockLen:e,buffer:r,length:s,finished:o,destroyed:c,pos:f}=this;return n.length=s,n.pos=f,n.finished=o,n.destroyed=c,s%e&&n.buffer.set(r),n}};var Qe=new Uint32Array([1116352408,1899447441,3049323471,3921009573,961987163,1508970993,2453635748,2870763221,3624381080,310598401,607225278,1426881987,1925078388,2162078206,2614888103,3248222580,3835390401,4022224774,264347078,604807628,770255983,1249150122,1555081692,1996064986,2554220882,2821834349,2952996808,3210313671,3336571891,3584528711,113926993,338241895,666307205,773529912,1294757372,1396182291,1695183700,1986661051,2177026350,2456956037,2730485921,2820302411,3259730800,3345764771,3516065817,3600352804,4094571909,275423344,430227734,506948616,659060556,883997877,958139571,1322822218,1537002063,1747873779,1955562222,2024104815,2227730452,2361852424,2428436474,2756734187,3204031479,3329325298]),rt=new Uint32Array([1779033703,3144134277,1013904242,2773480762,1359893119,2600822924,528734635,1541459225]),ot=new Uint32Array(64),Mt=class extends Nt{constructor(){super(64,32,8,!1),this.A=rt[0]|0,this.B=rt[1]|0,this.C=rt[2]|0,this.D=rt[3]|0,this.E=rt[4]|0,this.F=rt[5]|0,this.G=rt[6]|0,this.H=rt[7]|0}get(){let{A:n,B:e,C:r,D:s,E:o,F:c,G:f,H:i}=this;return[n,e,r,s,o,c,f,i]}set(n,e,r,s,o,c,f,i){this.A=n|0,this.B=e|0,this.C=r|0,this.D=s|0,this.E=o|0,this.F=c|0,this.G=f|0,this.H=i|0}process(n,e){for(let d=0;d<16;d++,e+=4)ot[d]=n.getUint32(e,!1);for(let d=16;d<64;d++){let l=ot[d-15],E=ot[d-2],N=K(l,7)^K(l,18)^l>>>3,b=K(E,17)^K(E,19)^E>>>10;ot[d]=b+ot[d-7]+N+ot[d-16]|0}let{A:r,B:s,C:o,D:c,E:f,F:i,G:a,H:h}=this;for(let d=0;d<64;d++){let l=K(f,6)^K(f,11)^K(f,25),E=h+l+Be(f,i,a)+Qe[d]+ot[d]|0,b=(K(r,2)^K(r,13)^K(r,22))+ve(r,s,o)|0;h=a,a=i,i=f,f=c+E|0,c=o,o=s,s=r,r=E+b|0}r=r+this.A|0,s=s+this.B|0,o=o+this.C|0,c=c+this.D|0,f=f+this.E|0,i=i+this.F|0,a=a+this.G|0,h=h+this.H|0,this.set(r,s,o,c,f,i,a,h)}roundClean(){ot.fill(0)}destroy(){this.set(0,0,0,0,0,0,0,0),this.buffer.fill(0)}};var xt=Ee(()=>new Mt);var Rt=class extends yt{constructor(n,e){super(),this.finished=!1,this.destroyed=!1,me(n);let r=St(e);if(this.iHash=n.create(),typeof this.iHash.update!="function")throw new Error("Expected instance of class which extends utils.Hash");this.blockLen=this.iHash.blockLen,this.outputLen=this.iHash.outputLen;let s=this.blockLen,o=new Uint8Array(s);o.set(r.length>s?n.create().update(r).digest():r);for(let c=0;c<o.length;c++)o[c]^=54;this.iHash.update(o),this.oHash=n.create();for(let c=0;c<o.length;c++)o[c]^=106;this.oHash.update(o),o.fill(0)}update(n){return bt(this),this.iHash.update(n),this}digestInto(n){bt(this),at(n,this.outputLen),this.finished=!0,this.iHash.digestInto(n),this.oHash.update(n),this.oHash.digestInto(n),this.destroy()}digest(){let n=new Uint8Array(this.oHash.outputLen);return this.digestInto(n),n}_cloneInto(n){n||(n=Object.create(Object.getPrototypeOf(this),{}));let{oHash:e,iHash:r,finished:s,destroyed:o,blockLen:c,outputLen:f}=this;return n=n,n.finished=s,n.destroyed=o,n.blockLen=c,n.outputLen=f,n.oHash=e._cloneInto(n.oHash),n.iHash=r._cloneInto(n.iHash),n}destroy(){this.destroyed=!0,this.oHash.destroy(),this.iHash.destroy()}},Dt=(t,n,e)=>new Rt(t,n).update(e).digest();Dt.create=(t,n)=>new Rt(t,n);var Jt={};Ke(Jt,{aInRange:()=>W,abool:()=>lt,abytes:()=>Et,bitGet:()=>rn,bitLen:()=>Xt,bitMask:()=>At,bitSet:()=>on,bytesToHex:()=>dt,bytesToNumberBE:()=>M,bytesToNumberLE:()=>Ht,concatBytes:()=>Q,createHmacDrbg:()=>Qt,ensureBytes:()=>U,equalBytes:()=>en,hexToBytes:()=>gt,hexToNumber:()=>Wt,inRange:()=>it,isBytes:()=>st,memoized:()=>$t,notImplemented:()=>cn,numberToBytesBE:()=>Y,numberToBytesLE:()=>kt,numberToHexUnpadded:()=>ht,numberToVarBytesBE:()=>tn,utf8ToBytes:()=>nn,validateObject:()=>ct});var Gt=BigInt(0),Ut=BigInt(1),Je=BigInt(2);function st(t){return t instanceof Uint8Array||t!=null&&typeof t=="object"&&t.constructor.name==="Uint8Array"}function Et(t){if(!st(t))throw new Error("Uint8Array expected")}function lt(t,n){if(typeof n!="boolean")throw new Error(`${t} must be valid boolean, got "${n}".`)}var Fe=Array.from({length:256},(t,n)=>n.toString(16).padStart(2,"0"));function dt(t){Et(t);let n="";for(let e=0;e<t.length;e++)n+=Fe[t[e]];return n}function ht(t){let n=t.toString(16);return n.length&1?`0${n}`:n}function Wt(t){if(typeof t!="string")throw new Error("hex string expected, got "+typeof t);return BigInt(t===""?"0":`0x${t}`)}var X={_0:48,_9:57,_A:65,_F:70,_a:97,_f:102};function Se(t){if(t>=X._0&&t<=X._9)return t-X._0;if(t>=X._A&&t<=X._F)return t-(X._A-10);if(t>=X._a&&t<=X._f)return t-(X._a-10)}function gt(t){if(typeof t!="string")throw new Error("hex string expected, got "+typeof t);let n=t.length,e=n/2;if(n%2)throw new Error("padded hex string expected, got unpadded hex of length "+n);let r=new Uint8Array(e);for(let s=0,o=0;s<e;s++,o+=2){let c=Se(t.charCodeAt(o)),f=Se(t.charCodeAt(o+1));if(c===void 0||f===void 0){let i=t[o]+t[o+1];throw new Error('hex string expected, got non-hex character "'+i+'" at index '+o)}r[s]=c*16+f}return r}function M(t){return Wt(dt(t))}function Ht(t){return Et(t),Wt(dt(Uint8Array.from(t).reverse()))}function Y(t,n){return gt(t.toString(16).padStart(n*2,"0"))}function kt(t,n){return Y(t,n).reverse()}function tn(t){return gt(ht(t))}function U(t,n,e){let r;if(typeof n=="string")try{r=gt(n)}catch(o){throw new Error(`${t} must be valid hex string, got "${n}". Cause: ${o}`)}else if(st(n))r=Uint8Array.from(n);else throw new Error(`${t} must be hex string or Uint8Array`);let s=r.length;if(typeof e=="number"&&s!==e)throw new Error(`${t} expected ${e} bytes, got ${s}`);return r}function Q(...t){let n=0;for(let r=0;r<t.length;r++){let s=t[r];Et(s),n+=s.length}let e=new Uint8Array(n);for(let r=0,s=0;r<t.length;r++){let o=t[r];e.set(o,s),s+=o.length}return e}function en(t,n){if(t.length!==n.length)return!1;let e=0;for(let r=0;r<t.length;r++)e|=t[r]^n[r];return e===0}function nn(t){if(typeof t!="string")throw new Error(`utf8ToBytes expected string, got ${typeof t}`);return new Uint8Array(new TextEncoder().encode(t))}var Kt=t=>typeof t=="bigint"&&Gt<=t;function it(t,n,e){return Kt(t)&&Kt(n)&&Kt(e)&&n<=t&&t<e}function W(t,n,e,r){if(!it(n,e,r))throw new Error(`expected valid ${t}: ${e} <= n < ${r}, got ${typeof n} ${n}`)}function Xt(t){let n;for(n=0;t>Gt;t>>=Ut,n+=1);return n}function rn(t,n){return t>>BigInt(n)&Ut}function on(t,n,e){return t|(e?Ut:Gt)<<BigInt(n)}var At=t=>(Je<<BigInt(t-1))-Ut,Yt=t=>new Uint8Array(t),Ae=t=>Uint8Array.from(t);function Qt(t,n,e){if(typeof t!="number"||t<2)throw new Error("hashLen must be a number");if(typeof n!="number"||n<2)throw new Error("qByteLen must be a number");if(typeof e!="function")throw new Error("hmacFn must be a function");let r=Yt(t),s=Yt(t),o=0,c=()=>{r.fill(1),s.fill(0),o=0},f=(...d)=>e(s,r,...d),i=(d=Yt())=>{s=f(Ae([0]),d),r=f(),d.length!==0&&(s=f(Ae([1]),d),r=f())},a=()=>{if(o++>=1e3)throw new Error("drbg: tried 1000 values");let d=0,l=[];for(;d<n;){r=f();let E=r.slice();l.push(E),d+=r.length}return Q(...l)};return(d,l)=>{c(),i(d);let E;for(;!(E=l(a()));)i();return c(),E}}var sn={bigint:t=>typeof t=="bigint",function:t=>typeof t=="function",boolean:t=>typeof t=="boolean",string:t=>typeof t=="string",stringOrUint8Array:t=>typeof t=="string"||st(t),isSafeInteger:t=>Number.isSafeInteger(t),array:t=>Array.isArray(t),field:(t,n)=>n.Fp.isValid(t),hash:t=>typeof t=="function"&&Number.isSafeInteger(t.outputLen)};function ct(t,n,e={}){let r=(s,o,c)=>{let f=sn[o];if(typeof f!="function")throw new Error(`Invalid validator "${o}", expected function`);let i=t[s];if(!(c&&i===void 0)&&!f(i,t))throw new Error(`Invalid param ${String(s)}=${i} (${typeof i}), expected ${o}`)};for(let[s,o]of Object.entries(n))r(s,o,!1);for(let[s,o]of Object.entries(e))r(s,o,!0);return t}var cn=()=>{throw new Error("not implemented")};function $t(t){let n=new WeakMap;return(e,...r)=>{let s=n.get(e);if(s!==void 0)return s;let o=t(e,...r);return n.set(e,o),o}}var k=BigInt(0),R=BigInt(1),wt=BigInt(2),fn=BigInt(3),Ft=BigInt(4),Ie=BigInt(5),Oe=BigInt(8),an=BigInt(9),un=BigInt(16);function H(t,n){let e=t%n;return e>=k?e:n+e}function ln(t,n,e){if(e<=k||n<k)throw new Error("Expected power/modulo > 0");if(e===R)return k;let r=R;for(;n>k;)n&R&&(r=r*t%e),t=t*t%e,n>>=R;return r}function z(t,n,e){let r=t;for(;n-- >k;)r*=r,r%=e;return r}function Ct(t,n){if(t===k||n<=k)throw new Error(`invert: expected positive integers, got n=${t} mod=${n}`);let e=H(t,n),r=n,s=k,o=R,c=R,f=k;for(;e!==k;){let a=r/e,h=r%e,d=s-c*a,l=o-f*a;r=e,e=h,s=c,o=f,c=d,f=l}if(r!==R)throw new Error("invert: does not exist");return H(s,n)}function dn(t){let n=(t-R)/wt,e,r,s;for(e=t-R,r=0;e%wt===k;e/=wt,r++);for(s=wt;s<t&&ln(s,n,t)!==t-R;s++);if(r===1){let c=(t+R)/Ft;return function(i,a){let h=i.pow(a,c);if(!i.eql(i.sqr(h),a))throw new Error("Cannot find square root");return h}}let o=(e+R)/wt;return function(f,i){if(f.pow(i,n)===f.neg(f.ONE))throw new Error("Cannot find square root");let a=r,h=f.pow(f.mul(f.ONE,s),e),d=f.pow(i,o),l=f.pow(i,e);for(;!f.eql(l,f.ONE);){if(f.eql(l,f.ZERO))return f.ZERO;let E=1;for(let b=f.sqr(l);E<a&&!f.eql(b,f.ONE);E++)b=f.sqr(b);let N=f.pow(h,R<<BigInt(a-E-1));h=f.sqr(N),d=f.mul(d,N),l=f.mul(l,h),a=E}return d}}function hn(t){if(t%Ft===fn){let n=(t+R)/Ft;return function(r,s){let o=r.pow(s,n);if(!r.eql(r.sqr(o),s))throw new Error("Cannot find square root");return o}}if(t%Oe===Ie){let n=(t-Ie)/Oe;return function(r,s){let o=r.mul(s,wt),c=r.pow(o,n),f=r.mul(s,c),i=r.mul(r.mul(f,wt),c),a=r.mul(f,r.sub(i,r.ONE));if(!r.eql(r.sqr(a),s))throw new Error("Cannot find square root");return a}}return t%un,dn(t)}var gn=["create","isValid","is0","neg","inv","sqrt","sqr","eql","add","sub","mul","pow","div","addN","subN","mulN","sqrN"];function te(t){let n={ORDER:"bigint",MASK:"bigint",BYTES:"isSafeInteger",BITS:"isSafeInteger"},e=gn.reduce((r,s)=>(r[s]="function",r),n);return ct(t,e)}function wn(t,n,e){if(e<k)throw new Error("Expected power > 0");if(e===k)return t.ONE;if(e===R)return n;let r=t.ONE,s=n;for(;e>k;)e&R&&(r=t.mul(r,s)),s=t.sqr(s),e>>=R;return r}function pn(t,n){let e=new Array(n.length),r=n.reduce((o,c,f)=>t.is0(c)?o:(e[f]=o,t.mul(o,c)),t.ONE),s=t.inv(r);return n.reduceRight((o,c,f)=>t.is0(c)?o:(e[f]=t.mul(o,e[f]),t.mul(o,c)),s),e}function ee(t,n){let e=n!==void 0?n:t.toString(2).length,r=Math.ceil(e/8);return{nBitLength:e,nByteLength:r}}function Zt(t,n,e=!1,r={}){if(t<=k)throw new Error(`Expected Field ORDER > 0, got ${t}`);let{nBitLength:s,nByteLength:o}=ee(t,n);if(o>2048)throw new Error("Field lengths over 2048 bytes are not supported");let c=hn(t),f=Object.freeze({ORDER:t,BITS:s,BYTES:o,MASK:At(s),ZERO:k,ONE:R,create:i=>H(i,t),isValid:i=>{if(typeof i!="bigint")throw new Error(`Invalid field element: expected bigint, got ${typeof i}`);return k<=i&&i<t},is0:i=>i===k,isOdd:i=>(i&R)===R,neg:i=>H(-i,t),eql:(i,a)=>i===a,sqr:i=>H(i*i,t),add:(i,a)=>H(i+a,t),sub:(i,a)=>H(i-a,t),mul:(i,a)=>H(i*a,t),pow:(i,a)=>wn(f,i,a),div:(i,a)=>H(i*Ct(a,t),t),sqrN:i=>i*i,addN:(i,a)=>i+a,subN:(i,a)=>i-a,mulN:(i,a)=>i*a,inv:i=>Ct(i,t),sqrt:r.sqrt||(i=>c(f,i)),invertBatch:i=>pn(f,i),cmov:(i,a,h)=>h?a:i,toBytes:i=>e?kt(i,o):Y(i,o),fromBytes:i=>{if(i.length!==o)throw new Error(`Fp.fromBytes: expected ${o}, got ${i.length}`);return e?Ht(i):M(i)}});return Object.freeze(f)}function Te(t){if(typeof t!="bigint")throw new Error("field order must be bigint");let n=t.toString(2).length;return Math.ceil(n/8)}function ne(t){let n=Te(t);return n+Math.ceil(n/2)}function _e(t,n,e=!1){let r=t.length,s=Te(n),o=ne(n);if(r<16||r<o||r>1024)throw new Error(`expected ${o}-1024 bytes of input, got ${r}`);let c=e?M(t):Ht(t),f=H(c,n-R)+R;return e?kt(f,s):Y(f,s)}var bn=BigInt(0),re=BigInt(1),oe=new WeakMap,qe=new WeakMap;function Le(t,n){let e=(o,c)=>{let f=c.negate();return o?f:c},r=o=>{if(!Number.isSafeInteger(o)||o<=0||o>n)throw new Error(`Wrong window size=${o}, should be [1..${n}]`)},s=o=>{r(o);let c=Math.ceil(n/o)+1,f=2**(o-1);return{windows:c,windowSize:f}};return{constTimeNegate:e,unsafeLadder(o,c){let f=t.ZERO,i=o;for(;c>bn;)c&re&&(f=f.add(i)),i=i.double(),c>>=re;return f},precomputeWindow(o,c){let{windows:f,windowSize:i}=s(c),a=[],h=o,d=h;for(let l=0;l<f;l++){d=h,a.push(d);for(let E=1;E<i;E++)d=d.add(h),a.push(d);h=d.double()}return a},wNAF(o,c,f){let{windows:i,windowSize:a}=s(o),h=t.ZERO,d=t.BASE,l=BigInt(2**o-1),E=2**o,N=BigInt(o);for(let b=0;b<i;b++){let u=b*a,w=Number(f&l);f>>=N,w>a&&(w-=E,f+=re);let y=u,B=u+Math.abs(w)-1,S=b%2!==0,T=w<0;w===0?d=d.add(e(S,c[y])):h=h.add(e(T,c[B]))}return{p:h,f:d}},wNAFCached(o,c,f){let i=qe.get(o)||1,a=oe.get(o);return a||(a=this.precomputeWindow(o,i),i!==1&&oe.set(o,f(a))),this.wNAF(i,a,c)},setWindowSize(o,c){r(c),qe.set(o,c),oe.delete(o)}}}function Ne(t,n,e,r){if(!Array.isArray(e)||!Array.isArray(r)||r.length!==e.length)throw new Error("arrays of points and scalars must have equal length");r.forEach((h,d)=>{if(!n.isValid(h))throw new Error(`wrong scalar at index ${d}`)}),e.forEach((h,d)=>{if(!(h instanceof t))throw new Error(`wrong point at index ${d}`)});let s=Xt(BigInt(e.length)),o=s>12?s-3:s>4?s-2:s?2:1,c=(1<<o)-1,f=new Array(c+1).fill(t.ZERO),i=Math.floor((n.BITS-1)/o)*o,a=t.ZERO;for(let h=i;h>=0;h-=o){f.fill(t.ZERO);for(let l=0;l<r.length;l++){let E=r[l],N=Number(E>>BigInt(h)&BigInt(c));f[N]=f[N].add(e[l])}let d=t.ZERO;for(let l=f.length-1,E=t.ZERO;l>0;l--)E=E.add(f[l]),d=d.add(E);if(a=a.add(d),h!==0)for(let l=0;l<o;l++)a=a.double()}return a}function se(t){return te(t.Fp),ct(t,{n:"bigint",h:"bigint",Gx:"field",Gy:"field"},{nBitLength:"isSafeInteger",nByteLength:"isSafeInteger"}),Object.freeze({...ee(t.n,t.nBitLength),...t,p:t.Fp.ORDER})}function Re(t){t.lowS!==void 0&&lt("lowS",t.lowS),t.prehash!==void 0&&lt("prehash",t.prehash)}function yn(t){let n=se(t);ct(n,{a:"field",b:"field"},{allowedPrivateKeyLengths:"array",wrapPrivateKey:"boolean",isTorsionFree:"function",clearCofactor:"function",allowInfinityPoint:"boolean",fromBytes:"function",toBytes:"function"});let{endo:e,Fp:r,a:s}=n;if(e){if(!r.eql(s,r.ZERO))throw new Error("Endomorphism can only be defined for Koblitz curves that have a=0");if(typeof e!="object"||typeof e.beta!="bigint"||typeof e.splitScalar!="function")throw new Error("Expected endomorphism with beta: bigint and splitScalar: function")}return Object.freeze({...n})}var{bytesToNumberBE:xn,hexToBytes:En}=Jt,J={Err:class extends Error{constructor(n=""){super(n)}},_tlv:{encode:(t,n)=>{let{Err:e}=J;if(t<0||t>256)throw new e("tlv.encode: wrong tag");if(n.length&1)throw new e("tlv.encode: unpadded data");let r=n.length/2,s=ht(r);if(s.length/2&128)throw new e("tlv.encode: long form length too big");let o=r>127?ht(s.length/2|128):"";return`${ht(t)}${o}${s}${n}`},decode(t,n){let{Err:e}=J,r=0;if(t<0||t>256)throw new e("tlv.encode: wrong tag");if(n.length<2||n[r++]!==t)throw new e("tlv.decode: wrong tlv");let s=n[r++],o=!!(s&128),c=0;if(!o)c=s;else{let i=s&127;if(!i)throw new e("tlv.decode(long): indefinite length not supported");if(i>4)throw new e("tlv.decode(long): byte length is too big");let a=n.subarray(r,r+i);if(a.length!==i)throw new e("tlv.decode: length bytes not complete");if(a[0]===0)throw new e("tlv.decode(long): zero leftmost byte");for(let h of a)c=c<<8|h;if(r+=i,c<128)throw new e("tlv.decode(long): not minimal encoding")}let f=n.subarray(r,r+c);if(f.length!==c)throw new e("tlv.decode: wrong value length");return{v:f,l:n.subarray(r+c)}}},_int:{encode(t){let{Err:n}=J;if(t<F)throw new n("integer: negative integers are not allowed");let e=ht(t);if(Number.parseInt(e[0],16)&8&&(e="00"+e),e.length&1)throw new n("unexpected assertion");return e},decode(t){let{Err:n}=J;if(t[0]&128)throw new n("Invalid signature integer: negative");if(t[0]===0&&!(t[1]&128))throw new n("Invalid signature integer: unnecessary leading zero");return xn(t)}},toSig(t){let{Err:n,_int:e,_tlv:r}=J,s=typeof t=="string"?En(t):t;Et(s);let{v:o,l:c}=r.decode(48,s);if(c.length)throw new n("Invalid signature: left bytes after parsing");let{v:f,l:i}=r.decode(2,o),{v:a,l:h}=r.decode(2,i);if(h.length)throw new n("Invalid signature: left bytes after parsing");return{r:e.decode(f),s:e.decode(a)}},hexFromSig(t){let{_tlv:n,_int:e}=J,r=`${n.encode(2,e.encode(t.r))}${n.encode(2,e.encode(t.s))}`;return n.encode(48,r)}},F=BigInt(0),C=BigInt(1),Jn=BigInt(2),Ue=BigInt(3),Fn=BigInt(4);function Bn(t){let n=yn(t),{Fp:e}=n,r=Zt(n.n,n.nBitLength),s=n.toBytes||((b,u,w)=>{let y=u.toAffine();return Q(Uint8Array.from([4]),e.toBytes(y.x),e.toBytes(y.y))}),o=n.fromBytes||(b=>{let u=b.subarray(1),w=e.fromBytes(u.subarray(0,e.BYTES)),y=e.fromBytes(u.subarray(e.BYTES,2*e.BYTES));return{x:w,y}});function c(b){let{a:u,b:w}=n,y=e.sqr(b),B=e.mul(y,b);return e.add(e.add(B,e.mul(b,u)),w)}if(!e.eql(e.sqr(n.Gy),c(n.Gx)))throw new Error("bad generator point: equation left != right");function f(b){return it(b,C,n.n)}function i(b){let{allowedPrivateKeyLengths:u,nByteLength:w,wrapPrivateKey:y,n:B}=n;if(u&&typeof b!="bigint"){if(st(b)&&(b=dt(b)),typeof b!="string"||!u.includes(b.length))throw new Error("Invalid key");b=b.padStart(w*2,"0")}let S;try{S=typeof b=="bigint"?b:M(U("private key",b,w))}catch{throw new Error(`private key must be ${w} bytes, hex or bigint, not ${typeof b}`)}return y&&(S=H(S,B)),W("private key",S,C,B),S}function a(b){if(!(b instanceof l))throw new Error("ProjectivePoint expected")}let h=$t((b,u)=>{let{px:w,py:y,pz:B}=b;if(e.eql(B,e.ONE))return{x:w,y};let S=b.is0();u==null&&(u=S?e.ONE:e.inv(B));let T=e.mul(w,u),A=e.mul(y,u),x=e.mul(B,u);if(S)return{x:e.ZERO,y:e.ZERO};if(!e.eql(x,e.ONE))throw new Error("invZ was invalid");return{x:T,y:A}}),d=$t(b=>{if(b.is0()){if(n.allowInfinityPoint&&!e.is0(b.py))return;throw new Error("bad point: ZERO")}let{x:u,y:w}=b.toAffine();if(!e.isValid(u)||!e.isValid(w))throw new Error("bad point: x or y not FE");let y=e.sqr(w),B=c(u);if(!e.eql(y,B))throw new Error("bad point: equation left != right");if(!b.isTorsionFree())throw new Error("bad point: not in prime-order subgroup");return!0});class l{constructor(u,w,y){if(this.px=u,this.py=w,this.pz=y,u==null||!e.isValid(u))throw new Error("x required");if(w==null||!e.isValid(w))throw new Error("y required");if(y==null||!e.isValid(y))throw new Error("z required");Object.freeze(this)}static fromAffine(u){let{x:w,y}=u||{};if(!u||!e.isValid(w)||!e.isValid(y))throw new Error("invalid affine point");if(u instanceof l)throw new Error("projective point not allowed");let B=S=>e.eql(S,e.ZERO);return B(w)&&B(y)?l.ZERO:new l(w,y,e.ONE)}get x(){return this.toAffine().x}get y(){return this.toAffine().y}static normalizeZ(u){let w=e.invertBatch(u.map(y=>y.pz));return u.map((y,B)=>y.toAffine(w[B])).map(l.fromAffine)}static fromHex(u){let w=l.fromAffine(o(U("pointHex",u)));return w.assertValidity(),w}static fromPrivateKey(u){return l.BASE.multiply(i(u))}static msm(u,w){return Ne(l,r,u,w)}_setWindowSize(u){N.setWindowSize(this,u)}assertValidity(){d(this)}hasEvenY(){let{y:u}=this.toAffine();if(e.isOdd)return!e.isOdd(u);throw new Error("Field doesn't support isOdd")}equals(u){a(u);let{px:w,py:y,pz:B}=this,{px:S,py:T,pz:A}=u,x=e.eql(e.mul(w,A),e.mul(S,B)),v=e.eql(e.mul(y,A),e.mul(T,B));return x&&v}negate(){return new l(this.px,e.neg(this.py),this.pz)}double(){let{a:u,b:w}=n,y=e.mul(w,Ue),{px:B,py:S,pz:T}=this,A=e.ZERO,x=e.ZERO,v=e.ZERO,O=e.mul(B,B),P=e.mul(S,S),L=e.mul(T,T),_=e.mul(B,S);return _=e.add(_,_),v=e.mul(B,T),v=e.add(v,v),A=e.mul(u,v),x=e.mul(y,L),x=e.add(A,x),A=e.sub(P,x),x=e.add(P,x),x=e.mul(A,x),A=e.mul(_,A),v=e.mul(y,v),L=e.mul(u,L),_=e.sub(O,L),_=e.mul(u,_),_=e.add(_,v),v=e.add(O,O),O=e.add(v,O),O=e.add(O,L),O=e.mul(O,_),x=e.add(x,O),L=e.mul(S,T),L=e.add(L,L),O=e.mul(L,_),A=e.sub(A,O),v=e.mul(L,P),v=e.add(v,v),v=e.add(v,v),new l(A,x,v)}add(u){a(u);let{px:w,py:y,pz:B}=this,{px:S,py:T,pz:A}=u,x=e.ZERO,v=e.ZERO,O=e.ZERO,P=n.a,L=e.mul(n.b,Ue),_=e.mul(w,S),j=e.mul(y,T),g=e.mul(B,A),p=e.add(w,y),m=e.add(S,T);p=e.mul(p,m),m=e.add(_,j),p=e.sub(p,m),m=e.add(w,B);let I=e.add(S,A);return m=e.mul(m,I),I=e.add(_,g),m=e.sub(m,I),I=e.add(y,B),x=e.add(T,A),I=e.mul(I,x),x=e.add(j,g),I=e.sub(I,x),O=e.mul(P,m),x=e.mul(L,g),O=e.add(x,O),x=e.sub(j,O),O=e.add(j,O),v=e.mul(x,O),j=e.add(_,_),j=e.add(j,_),g=e.mul(P,g),m=e.mul(L,m),j=e.add(j,g),g=e.sub(_,g),g=e.mul(P,g),m=e.add(m,g),_=e.mul(j,m),v=e.add(v,_),_=e.mul(I,m),x=e.mul(p,x),x=e.sub(x,_),_=e.mul(p,j),O=e.mul(I,O),O=e.add(O,_),new l(x,v,O)}subtract(u){return this.add(u.negate())}is0(){return this.equals(l.ZERO)}wNAF(u){return N.wNAFCached(this,u,l.normalizeZ)}multiplyUnsafe(u){W("scalar",u,F,n.n);let w=l.ZERO;if(u===F)return w;if(u===C)return this;let{endo:y}=n;if(!y)return N.unsafeLadder(this,u);let{k1neg:B,k1:S,k2neg:T,k2:A}=y.splitScalar(u),x=w,v=w,O=this;for(;S>F||A>F;)S&C&&(x=x.add(O)),A&C&&(v=v.add(O)),O=O.double(),S>>=C,A>>=C;return B&&(x=x.negate()),T&&(v=v.negate()),v=new l(e.mul(v.px,y.beta),v.py,v.pz),x.add(v)}multiply(u){let{endo:w,n:y}=n;W("scalar",u,C,y);let B,S;if(w){let{k1neg:T,k1:A,k2neg:x,k2:v}=w.splitScalar(u),{p:O,f:P}=this.wNAF(A),{p:L,f:_}=this.wNAF(v);O=N.constTimeNegate(T,O),L=N.constTimeNegate(x,L),L=new l(e.mul(L.px,w.beta),L.py,L.pz),B=O.add(L),S=P.add(_)}else{let{p:T,f:A}=this.wNAF(u);B=T,S=A}return l.normalizeZ([B,S])[0]}multiplyAndAddUnsafe(u,w,y){let B=l.BASE,S=(A,x)=>x===F||x===C||!A.equals(B)?A.multiplyUnsafe(x):A.multiply(x),T=S(this,w).add(S(u,y));return T.is0()?void 0:T}toAffine(u){return h(this,u)}isTorsionFree(){let{h:u,isTorsionFree:w}=n;if(u===C)return!0;if(w)return w(l,this);throw new Error("isTorsionFree() has not been declared for the elliptic curve")}clearCofactor(){let{h:u,clearCofactor:w}=n;return u===C?this:w?w(l,this):this.multiplyUnsafe(n.h)}toRawBytes(u=!0){return lt("isCompressed",u),this.assertValidity(),s(l,this,u)}toHex(u=!0){return lt("isCompressed",u),dt(this.toRawBytes(u))}}l.BASE=new l(n.Gx,n.Gy,e.ONE),l.ZERO=new l(e.ZERO,e.ONE,e.ZERO);let E=n.nBitLength,N=Le(l,n.endo?Math.ceil(E/2):E);return{CURVE:n,ProjectivePoint:l,normPrivateKeyToScalar:i,weierstrassEquation:c,isWithinCurveOrder:f}}function vn(t){let n=se(t);return ct(n,{hash:"hash",hmac:"function",randomBytes:"function"},{bits2int:"function",bits2int_modN:"function",lowS:"boolean"}),Object.freeze({lowS:!0,...n})}function He(t){let n=vn(t),{Fp:e,n:r}=n,s=e.BYTES+1,o=2*e.BYTES+1;function c(g){return H(g,r)}function f(g){return Ct(g,r)}let{ProjectivePoint:i,normPrivateKeyToScalar:a,weierstrassEquation:h,isWithinCurveOrder:d}=Bn({...n,toBytes(g,p,m){let I=p.toAffine(),q=e.toBytes(I.x),$=Q;return lt("isCompressed",m),m?$(Uint8Array.from([p.hasEvenY()?2:3]),q):$(Uint8Array.from([4]),q,e.toBytes(I.y))},fromBytes(g){let p=g.length,m=g[0],I=g.subarray(1);if(p===s&&(m===2||m===3)){let q=M(I);if(!it(q,C,e.ORDER))throw new Error("Point is not on curve");let $=h(q),Z;try{Z=e.sqrt($)}catch(D){let et=D instanceof Error?": "+D.message:"";throw new Error("Point is not on curve"+et)}let V=(Z&C)===C;return(m&1)===1!==V&&(Z=e.neg(Z)),{x:q,y:Z}}else if(p===o&&m===4){let q=e.fromBytes(I.subarray(0,e.BYTES)),$=e.fromBytes(I.subarray(e.BYTES,2*e.BYTES));return{x:q,y:$}}else throw new Error(`Point of length ${p} was invalid. Expected ${s} compressed bytes or ${o} uncompressed bytes`)}}),l=g=>dt(Y(g,n.nByteLength));function E(g){let p=r>>C;return g>p}function N(g){return E(g)?c(-g):g}let b=(g,p,m)=>M(g.slice(p,m));class u{constructor(p,m,I){this.r=p,this.s=m,this.recovery=I,this.assertValidity()}static fromCompact(p){let m=n.nByteLength;return p=U("compactSignature",p,m*2),new u(b(p,0,m),b(p,m,2*m))}static fromDER(p){let{r:m,s:I}=J.toSig(U("DER",p));return new u(m,I)}assertValidity(){W("r",this.r,C,r),W("s",this.s,C,r)}addRecoveryBit(p){return new u(this.r,this.s,p)}recoverPublicKey(p){let{r:m,s:I,recovery:q}=this,$=A(U("msgHash",p));if(q==null||![0,1,2,3].includes(q))throw new Error("recovery id invalid");let Z=q===2||q===3?m+n.n:m;if(Z>=e.ORDER)throw new Error("recovery id 2 or 3 invalid");let V=q&1?"03":"02",tt=i.fromHex(V+l(Z)),D=f(Z),et=c(-$*D),vt=c(I*D),nt=i.BASE.multiplyAndAddUnsafe(tt,et,vt);if(!nt)throw new Error("point at infinify");return nt.assertValidity(),nt}hasHighS(){return E(this.s)}normalizeS(){return this.hasHighS()?new u(this.r,c(-this.s),this.recovery):this}toDERRawBytes(){return gt(this.toDERHex())}toDERHex(){return J.hexFromSig({r:this.r,s:this.s})}toCompactRawBytes(){return gt(this.toCompactHex())}toCompactHex(){return l(this.r)+l(this.s)}}let w={isValidPrivateKey(g){try{return a(g),!0}catch{return!1}},normPrivateKeyToScalar:a,randomPrivateKey:()=>{let g=ne(n.n);return _e(n.randomBytes(g),n.n)},precompute(g=8,p=i.BASE){return p._setWindowSize(g),p.multiply(BigInt(3)),p}};function y(g,p=!0){return i.fromPrivateKey(g).toRawBytes(p)}function B(g){let p=st(g),m=typeof g=="string",I=(p||m)&&g.length;return p?I===s||I===o:m?I===2*s||I===2*o:g instanceof i}function S(g,p,m=!0){if(B(g))throw new Error("first arg must be private key");if(!B(p))throw new Error("second arg must be public key");return i.fromHex(p).multiply(a(g)).toRawBytes(m)}let T=n.bits2int||function(g){let p=M(g),m=g.length*8-n.nBitLength;return m>0?p>>BigInt(m):p},A=n.bits2int_modN||function(g){return c(T(g))},x=At(n.nBitLength);function v(g){return W(`num < 2^${n.nBitLength}`,g,F,x),Y(g,n.nByteLength)}function O(g,p,m=P){if(["recovered","canonical"].some(ft=>ft in m))throw new Error("sign() legacy options not supported");let{hash:I,randomBytes:q}=n,{lowS:$,prehash:Z,extraEntropy:V}=m;$==null&&($=!0),g=U("msgHash",g),Re(m),Z&&(g=U("prehashed msgHash",I(g)));let tt=A(g),D=a(p),et=[v(D),v(tt)];if(V!=null&&V!==!1){let ft=V===!0?q(e.BYTES):V;et.push(U("extraEntropy",ft))}let vt=Q(...et),nt=tt;function Pt(ft){let pt=T(ft);if(!d(pt))return;let he=f(pt),G=i.BASE.multiply(pt).toAffine(),mt=c(G.x);if(mt===F)return;let _t=c(he*c(nt+mt*D));if(_t===F)return;let ge=(G.x===mt?0:2)|Number(G.y&C),we=_t;return $&&E(_t)&&(we=N(_t),ge^=1),new u(mt,we,ge)}return{seed:vt,k2sig:Pt}}let P={lowS:n.lowS,prehash:!1},L={lowS:n.lowS,prehash:!1};function _(g,p,m=P){let{seed:I,k2sig:q}=O(g,p,m),$=n;return Qt($.hash.outputLen,$.nByteLength,$.hmac)(I,q)}i.BASE._setWindowSize(8);function j(g,p,m,I=L){let q=g;if(p=U("msgHash",p),m=U("publicKey",m),"strict"in I)throw new Error("options.strict was renamed to lowS");Re(I);let{lowS:$,prehash:Z}=I,V,tt;try{if(typeof q=="string"||st(q))try{V=u.fromDER(q)}catch(G){if(!(G instanceof J.Err))throw G;V=u.fromCompact(q)}else if(typeof q=="object"&&typeof q.r=="bigint"&&typeof q.s=="bigint"){let{r:G,s:mt}=q;V=new u(G,mt)}else throw new Error("PARSE");tt=i.fromHex(m)}catch(G){if(G.message==="PARSE")throw new Error("signature must be Signature instance, Uint8Array or hex string");return!1}if($&&V.hasHighS())return!1;Z&&(p=n.hash(p));let{r:D,s:et}=V,vt=A(p),nt=f(et),Pt=c(vt*nt),ft=c(D*nt),pt=i.BASE.multiplyAndAddUnsafe(tt,Pt,ft)?.toAffine();return pt?c(pt.x)===D:!1}return{CURVE:n,getPublicKey:y,getSharedSecret:S,sign:_,verify:j,ProjectivePoint:i,Signature:u,utils:w}}function Sn(t){return{hash:t,hmac:(n,...e)=>Dt(t,n,xe(...e)),randomBytes:Lt}}function ke(t,n){let e=r=>He({...t,...Sn(r)});return Object.freeze({...e(n),create:e})}var Tt=BigInt("0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f"),Vt=BigInt("0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141"),It=BigInt(1),jt=BigInt(2),$e=(t,n)=>(t+n/jt)/n;function Ze(t){let n=Tt,e=BigInt(3),r=BigInt(6),s=BigInt(11),o=BigInt(22),c=BigInt(23),f=BigInt(44),i=BigInt(88),a=t*t*t%n,h=a*a*t%n,d=z(h,e,n)*h%n,l=z(d,e,n)*h%n,E=z(l,jt,n)*a%n,N=z(E,s,n)*E%n,b=z(N,o,n)*N%n,u=z(b,f,n)*b%n,w=z(u,i,n)*u%n,y=z(w,f,n)*b%n,B=z(y,e,n)*h%n,S=z(B,c,n)*N%n,T=z(S,r,n)*a%n,A=z(T,jt,n);if(!ce.eql(ce.sqr(A),t))throw new Error("Cannot find square root");return A}var ce=Zt(Tt,void 0,void 0,{sqrt:Ze}),ue=ke({a:BigInt(0),b:BigInt(7),Fp:ce,n:Vt,Gx:BigInt("55066263022277343669578718895168534326250603453777594175500187360389116729240"),Gy:BigInt("32670510020758816978083085130507043184471273380659243275938904335757337482424"),h:BigInt(1),lowS:!0,endo:{beta:BigInt("0x7ae96a2b657c07106e64479eac3434e99cf0497512f58995c1396c28719501ee"),splitScalar:t=>{let n=Vt,e=BigInt("0x3086d221a7d46bcde86c90e49284eb15"),r=-It*BigInt("0xe4437ed6010e88286f547fa90abfe4c3"),s=BigInt("0x114ca50f7a8e2f3f657c1108d9d44cfd8"),o=e,c=BigInt("0x100000000000000000000000000000000"),f=$e(o*t,n),i=$e(-r*t,n),a=H(t-f*e-i*s,n),h=H(-f*r-i*o,n),d=a>c,l=h>c;if(d&&(a=n-a),l&&(h=n-h),a>c||h>c)throw new Error("splitScalar: Endomorphism failed, k="+t);return{k1neg:d,k1:a,k2neg:l,k2:h}}}},xt),Ve=BigInt(0),Ce={};function zt(t,...n){let e=Ce[t];if(e===void 0){let r=xt(Uint8Array.from(t,s=>s.charCodeAt(0)));e=Q(r,r),Ce[t]=e}return xt(Q(e,...n))}var le=t=>t.toRawBytes(!0).slice(1),fe=t=>Y(t,32),ie=t=>H(t,Tt),Ot=t=>H(t,Vt),de=ue.ProjectivePoint,An=(t,n,e)=>de.BASE.multiplyAndAddUnsafe(t,n,e);function ae(t){let n=ue.utils.normPrivateKeyToScalar(t),e=de.fromPrivateKey(n);return{scalar:e.hasEvenY()?n:Ot(-n),bytes:le(e)}}function je(t){W("x",t,It,Tt);let n=ie(t*t),e=ie(n*t+BigInt(7)),r=Ze(e);r%jt!==Ve&&(r=ie(-r));let s=new de(t,r,It);return s.assertValidity(),s}var Bt=M;function ze(...t){return Ot(Bt(zt("BIP0340/challenge",...t)))}function In(t){return ae(t).bytes}function On(t,n,e=Lt(32)){let r=U("message",t),{bytes:s,scalar:o}=ae(n),c=U("auxRand",e,32),f=fe(o^Bt(zt("BIP0340/aux",c))),i=zt("BIP0340/nonce",f,s,r),a=Ot(Bt(i));if(a===Ve)throw new Error("sign failed: k is zero");let{bytes:h,scalar:d}=ae(a),l=ze(h,s,r),E=new Uint8Array(64);if(E.set(h,0),E.set(fe(Ot(d+l*o)),32),!Pe(E,r,s))throw new Error("sign: Invalid signature produced");return E}function Pe(t,n,e){let r=U("signature",t,64),s=U("message",n),o=U("publicKey",e,32);try{let c=je(Bt(o)),f=Bt(r.subarray(0,32));if(!it(f,It,Tt))return!1;let i=Bt(r.subarray(32,64));if(!it(i,It,Vt))return!1;let a=ze(fe(f),le(c),s),h=An(c,i,Ot(-a));return!(!h||!h.hasEvenY()||h.toAffine().x!==f)}catch{return!1}}var Me={getPublicKey:In,sign:On,verify:Pe,utils:{randomPrivateKey:ue.utils.randomPrivateKey,lift_x:je,pointToBytes:le,numberToBytesBE:Y,bytesToNumberBE:M,taggedHash:zt,mod:H}};window.NOSTR_SIGN={schnorr:Me,sha256:xt,bytesToHex:ye};})();
 
@@ -1249,6 +726,7 @@ if (typeof module !== "undefined" && module.exports) module.exports = BB_BANK;
     wrongShow: 2200, reveal: 4000, intro: 2500,
     wager: 20000, ddAnswer: 18000, finalWager: 30000, finalAnswer: 30000, finalStep: 3500,
     early: 250, // early-buzz lockout
+    flash: 1800, // category + value splash on every screen before the clue appears
   };
   const sc = (ms) => Math.round(ms / SPEED);
   const scA = (ms) => Math.max(Math.min(ms, 5000), sc(ms)); // answer and bet clocks never drop under 5 s in fast tests
@@ -1307,14 +785,29 @@ if (typeof module !== "undefined" && module.exports) module.exports = BB_BANK;
     cats.push(...drawFrom(gen, 6 - cats.length, used, avoid));
     return shuffle(cats);
   }
+  // ---------- Clue bank ----------
+  // The bank is a separate file (clues.json, written by tools/build_deploy.py) that only the host loads;
+  // players get each clue over the network. In the source folder, clues.js defines BB_BANK directly.
+  const BANK_URL = "clues.json?v=5d25beb14e";
+  let BANK = typeof BB_BANK !== "undefined" ? BB_BANK : null, bankLoading = null;
+  function loadBank() {
+    if (BANK) return Promise.resolve(BANK);
+    if (!bankLoading) {
+      bankLoading = fetch(BANK_URL, { cache: "force-cache" })
+        .then((res) => { if (!res.ok) throw new Error(`clues ${res.status}`); return res.json(); })
+        .then((b) => { if (!b || !Array.isArray(b.r1) || !Array.isArray(b.final)) throw new Error("bad bank"); BANK = b; return b; })
+        .catch((e) => { bankLoading = null; throw e; });
+    }
+    return bankLoading;
+  }
   function drawGame(mix, quick) {
     const used = new Set(store.get(KEYS.used) || []);
     const avoid = new Set();
     const first = Math.random() < 0.5 ? "sports" : "wrestling";
     const funRound = Math.random() < 0.3 ? (quick ? 1 : 1 + randInt(2)) : 0;
-    const r1 = planRound(BB_BANK.r1, mix, first, funRound === 1, used, avoid);
-    const r2 = quick ? null : planRound(BB_BANK.r2, mix, first === "sports" ? "wrestling" : "sports", funRound === 2, used, avoid);
-    const pool = BB_BANK.final.filter((f) => (mix === "fight" ? f.tag === "ring" : mix === "general" ? f.tag !== "ring" : true));
+    const r1 = planRound(BANK.r1, mix, first, funRound === 1, used, avoid);
+    const r2 = quick ? null : planRound(BANK.r2, mix, first === "sports" ? "wrestling" : "sports", funRound === 2, used, avoid);
+    const pool = BANK.final.filter((f) => (mix === "fight" ? f.tag === "ring" : mix === "general" ? f.tag !== "ring" : true));
     let finals = pool.filter((f) => !used.has(f.id));
     if (!finals.length) { for (const f of pool) used.delete(f.id); finals = pool.slice(); }
     const fin = finals[randInt(finals.length)];
@@ -1357,7 +850,10 @@ if (typeof module !== "undefined" && module.exports) module.exports = BB_BANK;
   }
   const saveRoom = () => { if (room) store.set(KEYS.host, { room, priv, key: bus && bus.secret, ts: Date.now() }); };
   function publicRoom() {
-    return { ...room, players: room.players.map((p) => ({ name: p.name, host: p.host, connected: p.connected, score: p.score })), deadline: 0 };
+    // A deep copy: the host-player's own screen compares each new state with the previous one
+    // (new clue stage, new final stage). Sharing the live clue/final objects made those comparisons
+    // always equal on the host phone, which left it stuck "busy" after a wager.
+    return JSON.parse(JSON.stringify({ ...room, players: room.players.map((p) => ({ name: p.name, host: p.host, connected: p.connected, score: p.score })), deadline: 0 }));
   }
   function updateConnected() {
     room.players.forEach((p, seat) => { p.connected = p.host || [...links.values()].some((l) => l.seat === seat); });
@@ -1391,6 +887,7 @@ if (typeof module !== "undefined" && module.exports) module.exports = BB_BANK;
     onClientMsg(from, link, m);
   }
   async function hostRoom(name, tv, resume) {
+    loadBank().catch(() => { /* retried when the game starts */ });
     const saved = resume ? store.get(KEYS.host) : null;
     me = { role: "host", code: saved ? saved.room.code : newCode(), name, tv, token: newToken() };
     if (saved) { const hp = saved.room.players.find((p) => p.host); if (hp) me.token = hp.token; }
@@ -1479,9 +976,16 @@ if (typeof module !== "undefined" && module.exports) module.exports = BB_BANK;
     return null;
   }
   // ----- game flow -----
-  function hostStart() {
-    if (!room || room.phase !== "lobby") return;
+  let starting = false;
+  async function hostStart() {
+    if (!room || room.phase !== "lobby" || starting) return;
     if (room.players.length < MIN_PLAYERS) { toast(`You need at least ${MIN_PLAYERS} players`); return; }
+    if (!BANK) {
+      starting = true;
+      toast("Loading clues…");
+      try { await loadBank(); } catch (_) { toast("Couldn't load the clues. Check your connection and tap Start again."); return; } finally { starting = false; }
+      if (!room || room.phase !== "lobby") return;
+    }
     const g = drawGame(room.opts.mix, room.opts.quick);
     priv = { r1: g.r1, r2: g.r2, fin: g.fin, dd: [], fw: {}, fa: {} };
     room.players.forEach((p) => { p.score = 0; });
@@ -1520,9 +1024,12 @@ if (typeof module !== "undefined" && module.exports) module.exports = BB_BANK;
     const v = room.vals[r];
     room.cid += 1;
     const dd = priv.dd.includes(`${c},${r}`);
-    room.clue = { id: room.cid, c, r, v, cat: room.cats[c], kind: dd ? "wager" : "normal", text: dd ? null : text, stage: dd ? "wager" : "reading", seat: dd ? by : -1, tried: [], log: [], answer: null, wager: null, maxWager: dd ? Math.max(room.players[by].score, roundTop()) : 0, openN: 0 };
+    priv.cur.dd = dd; priv.cur.by = by;
+    // Everyone first sees "CATEGORY for VALUE"; the clue (or the wager) only appears after the splash,
+    // so reading time and buzzer timing start when the clue is actually on screen.
+    room.clue = { id: room.cid, c, r, v, cat: room.cats[c], kind: "normal", text: null, stage: "flash", seat: -1, tried: [], log: [], answer: null, wager: null, maxWager: 0, openN: 0 };
     pending = null;
-    room.deadline = Date.now() + (dd ? scA(T.wager) : readMs(text));
+    room.deadline = Date.now() + sc(T.flash);
     broadcast();
     return null;
   }
@@ -1534,6 +1041,19 @@ if (typeof module !== "undefined" && module.exports) module.exports = BB_BANK;
     if (on) priv.mic[key] = Date.now(); else delete priv.mic[key];
   }
   function micBusy(key) { const t = priv && priv.mic && priv.mic[key]; return Boolean(t && Date.now() - t < 15000); }
+  function showClue() {
+    const cl = room.clue, cur = priv.cur;
+    if (!cl || cl.stage !== "flash") return;
+    if (cur.dd) {
+      cl.kind = "wager"; cl.stage = "wager"; cl.seat = cur.by;
+      cl.maxWager = Math.max(room.players[cur.by].score, roundTop());
+      room.deadline = Date.now() + scA(T.wager);
+    } else {
+      cl.text = cur.text; cl.stage = "reading";
+      room.deadline = Date.now() + readMs(cur.text);
+    }
+    broadcast();
+  }
   function hostWager(seat, cid, amt) {
     const cl = room.clue;
     if (!cl || cl.id !== cid || cl.stage !== "wager" || seat !== cl.seat) return "Too late to wager.";
@@ -1708,6 +1228,7 @@ if (typeof module !== "undefined" && module.exports) module.exports = BB_BANK;
     room.deadline = 0;
     if (room.phase === "board" && room.clue) {
       const cl = room.clue;
+      if (cl.stage === "flash") { showClue(); return; }
       if (cl.stage === "wager") { hostWager(cl.seat, cl.id, 5); return; }
       if (cl.stage === "reading") { openBuzzers(sc(T.buzz)); return; }
       if (cl.stage === "open") { if (pending) { room.deadline = pending.until + 50; return; } revealClue(); return; }
@@ -2026,7 +1547,7 @@ if (typeof module !== "undefined" && module.exports) module.exports = BB_BANK;
   // ---------- Game controls ----------
   function pressBuzz() {
     const cl = view && view.clue;
-    if (!cl || mySeat < 0 || cl.kind !== "normal") return;
+    if (!cl || mySeat < 0 || cl.kind !== "normal" || cl.stage === "flash") return;
     const now = performance.now();
     if (cl.tried.includes(mySeat) || buzzedKey === openKey || (cl.stage === "reading" && buzzedKey === `${cl.id}:1`)) return;
     // This phone counts down to the opening itself (from when the clue reached it), so a slow connection
@@ -2170,7 +1691,7 @@ if (typeof module !== "undefined" && module.exports) module.exports = BB_BANK;
     }, ms);
   }
   $("open-now").addEventListener("click", () => { if (room && room.clue && room.clue.stage === "reading") openBuzzers(sc(T.buzz)); });
-  $("skip").addEventListener("click", () => { if (room && room.clue && room.clue.stage !== "reveal" && room.clue.stage !== "wager") revealClue(); });
+  $("skip").addEventListener("click", () => { if (room && room.clue && room.clue.stage !== "reveal" && room.clue.stage !== "wager" && room.clue.stage !== "flash") revealClue(); });
   $("next-reveal").addEventListener("click", () => {
     const f = room && room.final;
     if (!f) return;
@@ -2321,12 +1842,25 @@ if (typeof module !== "undefined" && module.exports) module.exports = BB_BANK;
     const cl = view.clue;
     show("cluebox", Boolean(cl));
     if (!cl) { clueKey = ""; return; }
-    $("cb-cat").textContent = cl.cat;
-    $("cb-val").textContent = cl.kind === "wager" ? (cl.wager ? `Wager ${fmt(cl.wager)}` : "Wager clue") : fmt(cl.v);
-    $("cluebox").classList.toggle("dd", cl.kind === "wager" && !cl.text);
-    $("cb-text").textContent = cl.text || "WAGER CLUE!";
+    const flash = cl.stage === "flash";
+    $("cluebox").classList.toggle("flash", flash);
+    if (flash) {
+      $("cb-cat").textContent = ""; $("cb-val").textContent = "";
+      $("cluebox").classList.remove("dd");
+      if ($("cb-text").dataset.k !== `f${cl.id}`) {
+        $("cb-text").dataset.k = `f${cl.id}`;
+        $("cb-text").innerHTML = `<span class="fl-cat">${esc(cl.cat)}</span><span class="fl-for">for</span><span class="fl-val">${fmt(cl.v)}</span>`;
+      }
+    } else {
+      $("cb-text").dataset.k = "";
+      $("cb-cat").textContent = cl.cat;
+      $("cb-val").textContent = cl.kind === "wager" ? (cl.wager ? `Wager ${fmt(cl.wager)}` : "Wager clue") : fmt(cl.v);
+      $("cluebox").classList.toggle("dd", cl.kind === "wager" && !cl.text);
+      $("cb-text").textContent = cl.text || "WAGER CLUE!";
+    }
     let st = "";
-    if (cl.stage === "wager") st = cl.seat === mySeat ? "You found a Wager clue! Only you answer it. Place your bet." : `${nameOf(cl.seat)} found a Wager clue and is placing a bet…`;
+    if (flash) st = "";
+    else if (cl.stage === "wager") st = cl.seat === mySeat ? "You found a Wager clue! Only you answer it. Place your bet." : `${nameOf(cl.seat)} found a Wager clue and is placing a bet…`;
     else if (cl.stage === "reading") st = "Read along. Buzzers open soon…";
     else if (cl.stage === "open") st = cl.tried.length ? "Buzzers are open again!" : "Buzzers open!";
     else if (cl.stage === "answer") st = cl.seat === mySeat ? "You're up! Answer now" : `${nameOf(cl.seat)} ${cl.kind === "wager" ? "is answering" : "buzzed in"}…`;
@@ -2395,7 +1929,7 @@ if (typeof module !== "undefined" && module.exports) module.exports = BB_BANK;
     $("judge-sub").textContent = where === "last" ? `Last clue: ${view.last.answer}` : where ? "Tap to overrule a call" : view.tv ? "Overrule calls here if there's a dispute" : "You're the referee and can overrule calls";
     $("judge-list").innerHTML = list.map((e, i) => `<li><span>${esc(nameOf(e.seat))}: <q>${e.text ? esc(e.text) : "no answer"}</q> ${e.ok ? "✓" : "✗"}</span><button type="button" class="linkbtn" data-w="${where}" data-i="${i}">Mark ${e.ok ? "wrong" : "right"}</button></li>`).join("");
     show("open-now", Boolean(cl && cl.stage === "reading"));
-    show("skip", Boolean(cl && cl.stage !== "reveal" && cl.stage !== "wager"));
+    show("skip", Boolean(cl && cl.stage !== "reveal" && cl.stage !== "wager" && cl.stage !== "flash"));
     show("next-reveal", Boolean(view.phase === "final" && f));
     $("next-reveal").textContent = f && f.stage === "wager" ? "Close betting" : f && f.stage === "clue" ? "Close answers" : "Next reveal";
     show("tts-wrap", Boolean(view.tv && "speechSynthesis" in window));
@@ -2527,7 +2061,7 @@ if (typeof module !== "undefined" && module.exports) module.exports = BB_BANK;
   window.__bb = {
     get view() { return view; }, get seat() { return mySeat; }, get net() { return netState; }, get msg() { return netMsg; },
     get relays() { return bus ? bus.openCount() : 0; }, get rtt() { return rttNow(); }, get rtts() { return rtts.slice(); },
-    get room() { return room; }, netLog: BB_NET.netLog, get priv() { return priv; }, overrule, T, SPEED, drawGame, buzzLog, get voice() { return voice; },
+    get room() { return room; }, netLog: BB_NET.netLog, get priv() { return priv; }, overrule, T, SPEED, drawGame, loadBank, buzzLog, get voice() { return voice; },
     get buzzState() { return { openAt, lockUntil, buzzed: buzzedKey !== "" && (buzzedKey === openKey || buzzedKey.endsWith(":1")), now: performance.now() }; },
   };
 })();
