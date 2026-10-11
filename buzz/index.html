@@ -788,7 +788,7 @@ body.tv .fl-val { font-size: clamp(60px, 9vw, 180px); }
   // ---------- Clue bank ----------
   // The bank is a separate file (clues.json, written by tools/build_deploy.py) that only the host loads;
   // players get each clue over the network. In the source folder, clues.js defines BB_BANK directly.
-  const BANK_URL = "clues.json?v=5d25beb14e";
+  const BANK_URL = "clues.json?v=2e508cbef3";
   let BANK = typeof BB_BANK !== "undefined" ? BB_BANK : null, bankLoading = null;
   function loadBank() {
     if (BANK) return Promise.resolve(BANK);
