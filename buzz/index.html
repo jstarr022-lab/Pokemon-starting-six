@@ -788,14 +788,15 @@ body.tv .fl-val { font-size: clamp(60px, 9vw, 180px); }
   // ---------- Clue bank ----------
   // The bank is a separate file (clues.json, written by tools/build_deploy.py) that only the host loads;
   // players get each clue over the network. In the source folder, clues.js defines BB_BANK directly.
-  const BANK_URL = "clues.json?v=2e508cbef3";
+  const BANK_URL = "clues.json?v=da81054c67";
+  const clueAudio = new Map(); // clue text -> [audio file key, duration ms], filled from the bank
   let BANK = typeof BB_BANK !== "undefined" ? BB_BANK : null, bankLoading = null;
   function loadBank() {
     if (BANK) return Promise.resolve(BANK);
     if (!bankLoading) {
       bankLoading = fetch(BANK_URL, { cache: "force-cache" })
         .then((res) => { if (!res.ok) throw new Error(`clues ${res.status}`); return res.json(); })
-        .then((b) => { if (!b || !Array.isArray(b.r1) || !Array.isArray(b.final)) throw new Error("bad bank"); BANK = b; return b; })
+        .then((b) => { if (!b || !Array.isArray(b.r1) || !Array.isArray(b.final)) throw new Error("bad bank"); BANK = b; indexAudio(b); return b; })
         .catch((e) => { bankLoading = null; throw e; });
     }
     return bankLoading;
@@ -814,6 +815,11 @@ body.tv .fl-val { font-size: clamp(60px, 9vw, 180px); }
     used.add(fin.id);
     store.set(KEYS.used, [...used]);
     return { r1, r2, fin };
+  }
+  // Each clue is [clue, answer, alternates, difficulty 1-5, ...]. The cheapest row gets the easiest clue and the
+  // top row the hardest. Ties (or a bank without scores) keep the bank's own order.
+  function byDifficulty(clues) {
+    return clues.map((q, i) => ({ q, i, d: Number(q[3]) || i + 1 })).sort((a, b) => a.d - b.d || a.i - b.i).map((x) => x.q);
   }
   function wagerSpots(n) {
     // Wager clues hide in rows 2 to 5 (more often lower down), each in a different category.
@@ -999,7 +1005,7 @@ body.tv .fl-val { font-size: clamp(60px, 9vw, 180px); }
     room.cats = cats.map((c) => c.name);
     room.vals = VALUES[n];
     room.used = cats.map(() => [false, false, false, false, false]);
-    priv.board = cats.map((c) => c.clues);
+    priv.board = cats.map((c) => byDifficulty(c.clues));
     priv.dd = wagerSpots(n === 1 ? 1 : 2);
     room.phase = "board";
     room.clue = null;
@@ -1009,6 +1015,10 @@ body.tv .fl-val { font-size: clamp(60px, 9vw, 180px); }
     broadcast();
   }
   const readMs = (text) => sc(Math.max(T.readMin, Math.min(T.readMax, T.readBase + text.length * T.readPerChar)));
+  // When the TV reads clues aloud, buzzers wait for the read to finish (and open as soon as it does).
+  const readingAloud = () => Boolean(room && room.tv && $("tts").checked);
+  const spokenMs = (text) => { const a = clueAudio.get(text); return sc(Math.min(16000, a ? a[1] : 900 + text.length * 75)); };
+  const readWindow = (text) => (readingAloud() ? Math.max(readMs(text), spokenMs(text) + sc(500)) : readMs(text));
   const roundTop = () => VALUES[room.round][4];
   function hostPick(seat, c, r) {
     if (room.phase !== "board" || room.clue) return "Hang on, a clue is still in play.";
@@ -1021,6 +1031,7 @@ body.tv .fl-val { font-size: clamp(60px, 9vw, 180px); }
     room.intro = 0;
     const [text, answer, alt] = priv.board[c][r];
     priv.cur = { answer, alt, text };
+    if (readingAloud()) prefetchClue(text);
     const v = room.vals[r];
     room.cid += 1;
     const dd = priv.dd.includes(`${c},${r}`);
@@ -1050,7 +1061,8 @@ body.tv .fl-val { font-size: clamp(60px, 9vw, 180px); }
       room.deadline = Date.now() + scA(T.wager);
     } else {
       cl.text = cur.text; cl.stage = "reading";
-      room.deadline = Date.now() + readMs(cur.text);
+      cur.readMinAt = Date.now() + readMs(cur.text);
+      room.deadline = Date.now() + readWindow(cur.text);
     }
     broadcast();
   }
@@ -1061,8 +1073,8 @@ body.tv .fl-val { font-size: clamp(60px, 9vw, 180px); }
     cl.wager = Math.round(Math.max(5, Math.min(cl.maxWager, amt)));
     cl.text = priv.cur.text;
     cl.stage = "answer";
-    cl.ansMs = scA(T.ddAnswer);
-    room.deadline = Date.now() + scA(T.ddAnswer) + T.grace;
+    cl.ansMs = scA(T.ddAnswer) + (readingAloud() ? spokenMs(cl.text) : 0); // the clock covers the read, then the full answer time
+    room.deadline = Date.now() + cl.ansMs + T.grace;
     broadcast();
     return null;
   }
@@ -1150,6 +1162,7 @@ body.tv .fl-val { font-size: clamp(60px, 9vw, 180px); }
     room.intro = 0;
     priv.fw = {}; priv.fa = {};
     room.final = { cat: priv.fin.cat, stage: "wager", text: null, inSeats, wagered: [], answered: [], reveals: [], order: [], answer: null };
+    if (readingAloud()) prefetchClue(priv.fin.clue);
     if (!inSeats.length) { finish("Nobody finished in the black, so there's no Final Clue."); return; }
     room.deadline = Date.now() + scA(T.finalWager);
     broadcast();
@@ -1168,7 +1181,8 @@ body.tv .fl-val { font-size: clamp(60px, 9vw, 180px); }
     for (const s of f.inSeats) if (!(s in priv.fw)) priv.fw[s] = 0;
     f.stage = "clue";
     f.text = priv.fin.clue;
-    room.deadline = Date.now() + scA(T.finalAnswer);
+    f.ansMs = scA(T.finalAnswer) + (readingAloud() ? spokenMs(f.text) : 0);
+    room.deadline = Date.now() + f.ansMs;
     broadcast();
   }
   function hostFinalAnswer(seat, text) {
@@ -1435,18 +1449,122 @@ body.tv .fl-val { font-size: clamp(60px, 9vw, 180px); }
         buzzFx(true);
         setTimeout(() => { if (!$("ansform").hidden) $("ans").focus(); }, 60);
       }
-      if (cl.text && r.tv && me && me.role === "host" && $("tts").checked && spokenKey !== `c${cl.id}`) { spokenKey = `c${cl.id}`; speak(cl.text); }
+      if (cl.text && r.tv && me && me.role === "host" && $("tts").checked && spokenKey !== `c${cl.id}`) { spokenKey = `c${cl.id}`; const id = cl.id; speak(cl.text, () => readFinished(id)); }
     } else { openAt = Infinity; openKey = ""; }
     if (r.final && (!prev || !prev.final || prev.final.stage !== r.final.stage)) { busy = false; $("ans").value = ""; $("wager").value = ""; resetVoice(); }
     if (r.final && r.final.stage === "clue" && r.tv && me && me.role === "host" && $("tts").checked && spokenKey !== "final") { spokenKey = "final"; speak(r.final.text); }
+    if (r.phase === "lobby" || r.phase === "done") stopReading();
     if (r.phase === "board" && r.intro && r.intro !== lastIntro) toast(r.intro === 1 ? "Round 1. Good luck!" : "Round 2: values double!");
     if (r.intro) lastIntro = r.intro;
     if (r.phase === "lobby") { lastIntro = 0; lastClueId = 0; spokenKey = ""; myFinal.wager = null; myFinal.answer = null; }
     wakeLock(r.phase !== "lobby" && r.phase !== "done");
     render();
   }
-  function speak(text) {
-    try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.rate = 1.05; speechSynthesis.speak(u); } catch (_) { /* no speech */ }
+  // ---------- Clue reader ----------
+  // Every clue has a pre-recorded host read (audio/<key>.mp3, a few KB each). The TV only fetches the file for
+  // the clue that was just picked. If a file is missing or won't play, the best built-in voice reads it instead.
+  // Browsers (iPhone Safari above all) only allow sound after a tap, so the first tap anywhere unlocks audio.
+  const AUDIO_DIR = "audio/";
+  const SILENT_MP3 = "data:audio/mpeg;base64,SUQzBAAAAAAAIlRTU0UAAAAOAAADTGF2ZjYxLjcuMTAzAAAAAAAAAAAAAAD/4zjAAAAAAAAAAAAASW5mbwAAAA8AAAADAAABsACqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqrV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dX///////////////////////////////////////////8AAAAATGF2YzYxLjE5AAAAAAAAAAAAAAAAJALwAAAAAAAAAbD3CmUrAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD/4xjEAAAAA0gAAAAATEFNRTMuMTAwVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/4xjEOwAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/4xjEdgAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVU=";
+  function indexAudio(b) {
+    for (const r of ["r1", "r2"]) for (const c of b[r] || []) for (const q of c.clues) if (q[4]) clueAudio.set(q[0], [q[4], Number(q[5]) || 0]);
+    for (const f of b.final || []) if (f.au) clueAudio.set(f.clue, [f.au, Number(f.ms) || 0]);
+  }
+  const reader = { el: null, unlocked: false, token: 0, files: new Map(), ready: new Map() };
+  function readerEl() {
+    if (!reader.el) { reader.el = new Audio(); reader.el.preload = "auto"; reader.el.setAttribute("playsinline", ""); }
+    return reader.el;
+  }
+  function unlockAudio() {
+    if (reader.unlocked) return;
+    reader.unlocked = true;
+    const a = readerEl();
+    if (!a.src || a.src === SILENT_MP3 || a.paused) {
+      try {
+        a.src = SILENT_MP3;
+        const p = a.play();
+        if (p && p.then) p.then(() => { if (a.src === SILENT_MP3) a.pause(); }).catch(() => { reader.unlocked = false; });
+      } catch (_) { reader.unlocked = false; }
+    }
+    try { if ("speechSynthesis" in window && !speechSynthesis.speaking) { const u = new SpeechSynthesisUtterance(" "); u.volume = 0; speechSynthesis.speak(u); } } catch (_) { /* no speech */ }
+  }
+  for (const ev of ["touchend", "click", "keydown"]) document.addEventListener(ev, unlockAudio, true);
+  function prefetchClue(text) {
+    const a = clueAudio.get(text);
+    if (!a || reader.files.has(a[0])) return;
+    const key = a[0];
+    reader.files.set(key, fetch(AUDIO_DIR + key + ".mp3").then((res) => { if (!res.ok) throw new Error(String(res.status)); return res.blob(); })
+      .then((b) => { const u = URL.createObjectURL(b); reader.ready.set(key, u); return u; }).catch(() => null));
+    if (reader.files.size > 16) { // keep only the last few clues around
+      const old = reader.files.keys().next().value;
+      reader.files.delete(old);
+      const u = reader.ready.get(old);
+      reader.ready.delete(old);
+      if (u) setTimeout(() => URL.revokeObjectURL(u), 60000);
+    }
+  }
+  // Built-in voice fallback: prefer natural / enhanced / premium English voices, a little slower than normal.
+  let hostVoice = null;
+  function pickVoice() {
+    if (!("speechSynthesis" in window)) return null;
+    const vs = speechSynthesis.getVoices().filter((v) => /^en([-_]|$)/i.test(v.lang || ""));
+    if (!vs.length) return null;
+    const score = (v) => {
+      const n = v.name || "";
+      let s = 0;
+      if (/^en[-_]US/i.test(v.lang)) s += 4;
+      if (/natural|neural|premium|enhanced/i.test(n)) s += 10;
+      if (/online/i.test(n)) s += 3;
+      if (/google us english/i.test(n)) s += 6;
+      if (/\b(christopher|guy|andrew|brian|davis|eric|roger|steffan|aaron|evan|nathan|tom|alex|daniel|fred)\b/i.test(n)) s += 3;
+      if (/\b(albert|bad news|bahh|bells|boing|bubbles|cellos|deranged|good news|hysterical|jester|organ|superstar|trinoids|whisper|wobble|zarvox|junior|ralph|kathy|princess|grandma|grandpa|rocko|shelley|flo|sandy|eddy|reed)\b/i.test(n)) s -= 20;
+      return s;
+    };
+    return vs.slice().sort((a, b) => score(b) - score(a))[0];
+  }
+  if ("speechSynthesis" in window) {
+    hostVoice = pickVoice();
+    try { speechSynthesis.addEventListener("voiceschanged", () => { hostVoice = pickVoice(); }); } catch (_) { /* old browser */ }
+  }
+  function speakBrowser(text, end) {
+    if (!("speechSynthesis" in window)) return false;
+    try {
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      if (!hostVoice) hostVoice = pickVoice();
+      if (hostVoice) { u.voice = hostVoice; u.lang = hostVoice.lang; } else u.lang = "en-US";
+      u.rate = 0.92;
+      u.onend = end; u.onerror = end;
+      speechSynthesis.speak(u);
+      return true;
+    } catch (_) { return false; }
+  }
+  function stopReading() {
+    reader.token += 1;
+    try { if (reader.el && reader.el.src !== SILENT_MP3) reader.el.pause(); } catch (_) { /* nothing playing */ }
+    try { if ("speechSynthesis" in window) speechSynthesis.cancel(); } catch (_) { /* no speech */ }
+  }
+  function speak(text, done) {
+    stopReading();
+    const tok = reader.token;
+    let finished = false;
+    const end = () => { if (finished || tok !== reader.token) return; finished = true; if (done) done(); };
+    const fallback = () => { if (finished || tok !== reader.token) return; if (!speakBrowser(text, end)) end(); };
+    const a = clueAudio.get(text);
+    if (!a) { fallback(); return; }
+    const el = readerEl();
+    el.onended = end;
+    el.onerror = fallback;
+    el.src = reader.ready.get(a[0]) || AUDIO_DIR + a[0] + ".mp3";
+    try { const p = el.play(); if (p && p.catch) p.catch(fallback); } catch (_) { fallback(); }
+    setTimeout(end, (a[1] || 8000) + 4000); // never hold the buzzers if playback stalls
+  }
+  // The read finished: open the buzzers now instead of waiting out the estimate (never before the usual read time).
+  function readFinished(id) {
+    const cl = room && room.clue;
+    if (!cl || cl.id !== id || cl.stage !== "reading" || !priv || !priv.cur) return;
+    const at = Math.max(Date.now() + 300, priv.cur.readMinAt || 0);
+    if (room.deadline > at) room.deadline = at;
   }
   function buzzFx(won) {
     if (navigator.vibrate) { try { navigator.vibrate(won ? [80, 40, 160] : 60); } catch (_) { /* none */ } }
@@ -1697,7 +1815,7 @@ body.tv .fl-val { font-size: clamp(60px, 9vw, 180px); }
     if (!f) return;
     if (f.stage === "wager") finalClue(); else if (f.stage === "clue") finalReveal(); else finalStep();
   });
-  $("tts").checked = Boolean(store.get(KEYS.tts));
+  { const t = store.get(KEYS.tts); $("tts").checked = t === null ? true : Boolean(t); } // on unless turned off
   $("tts").addEventListener("change", () => store.set(KEYS.tts, $("tts").checked));
 
   // ---------- Render ----------
@@ -1897,7 +2015,7 @@ body.tv .fl-val { font-size: clamp(60px, 9vw, 180px); }
     show("fn-answer", Boolean(f.answer) && f.reveals.length > 0);
     if (f.answer) $("fn-answer").querySelector("b").textContent = f.answer;
     const k = `${f.stage}:${Math.round(endsAt)}`;
-    if (k !== finalKey) { finalKey = k; setTimer("fn-timer", f.stage === "wager" ? scA(T.finalWager) : f.stage === "clue" ? scA(T.finalAnswer) : 0); }
+    if (k !== finalKey) { finalKey = k; setTimer("fn-timer", f.stage === "wager" ? scA(T.finalWager) : f.stage === "clue" ? f.ansMs || scA(T.finalAnswer) : 0); }
   }
   function standings() {
     return view.players.map((p, seat) => ({ seat, name: p.name, score: p.score })).sort((a, b) => b.score - a.score || a.seat - b.seat);
@@ -1932,7 +2050,7 @@ body.tv .fl-val { font-size: clamp(60px, 9vw, 180px); }
     show("skip", Boolean(cl && cl.stage !== "reveal" && cl.stage !== "wager" && cl.stage !== "flash"));
     show("next-reveal", Boolean(view.phase === "final" && f));
     $("next-reveal").textContent = f && f.stage === "wager" ? "Close betting" : f && f.stage === "clue" ? "Close answers" : "Next reveal";
-    show("tts-wrap", Boolean(view.tv && "speechSynthesis" in window));
+    show("tts-wrap", Boolean(view.tv));
   }
   $("judge-list").addEventListener("click", (e) => {
     const b = e.target.closest("button[data-w]");
@@ -1981,7 +2099,7 @@ body.tv .fl-val { font-size: clamp(60px, 9vw, 180px); }
       $("ans-hint").textContent = busy ? "Sent! Checking…" : (final ? "Answer in any form. Nobody sees it until the reveal." : "Any form works: \"Rome\" is as good as \"What is Rome?\"") + ($("mic").hidden ? "" : " Tap the mic to say it.");
       $("ansform").classList.toggle("busy", busy);
       const k = final ? `f:${Math.round(endsAt)}` : `${cl.id}:${Math.round(endsAt)}`;
-      if ($("ansform").dataset.k !== k) { $("ansform").dataset.k = k; setTimer("ans-timer", final ? scA(T.finalAnswer) : cl.ansMs); }
+      if ($("ansform").dataset.k !== k) { $("ansform").dataset.k = k; setTimer("ans-timer", final ? f.ansMs || scA(T.finalAnswer) : cl.ansMs); }
       if (!busy) armLastCall(k);
     }
     if (wagerOn) {
