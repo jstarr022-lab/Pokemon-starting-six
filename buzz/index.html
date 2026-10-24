@@ -807,7 +807,9 @@ body.tv .fl-val { font-size: clamp(60px, 9vw, 180px); }
     const first = Math.random() < 0.5 ? "sports" : "wrestling";
     const funRound = Math.random() < 0.3 ? (quick ? 1 : 1 + randInt(2)) : 0;
     const r1 = planRound(BANK.r1, mix, first, funRound === 1, used, avoid);
-    const r2 = quick ? null : planRound(BANK.r2, mix, first === "sports" ? "wrestling" : "sports", funRound === 2, used, avoid);
+    // Round 2 draws from the same category pool as Round 1, so row 1 to row 5 ramps up exactly like Round 1
+    // (only the dollar values double). The old harder Round 2 pool (BANK.r2) is no longer used for boards.
+    const r2 = quick ? null : planRound(BANK.r1, mix, first === "sports" ? "wrestling" : "sports", funRound === 2, used, avoid);
     const pool = BANK.final.filter((f) => (mix === "fight" ? f.tag === "ring" : mix === "general" ? f.tag !== "ring" : true));
     let finals = pool.filter((f) => !used.has(f.id));
     if (!finals.length) { for (const f of pool) used.delete(f.id); finals = pool.slice(); }
