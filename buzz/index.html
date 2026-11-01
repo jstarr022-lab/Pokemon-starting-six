@@ -759,9 +759,11 @@ body.tv .fl-val { font-size: clamp(60px, 9vw, 180px); }
   $("hero-name").textContent = APP_NAME;
 
   // ---------- Category draw ----------
-  // Standard: mostly general knowledge, about one sports or wrestling category per round (one of each
-  // across a full game), sometimes a second; Pokémon / 90s packs turn up now and then.
-  // Fight Night: half of each board is sports and wrestling. No sports: general only.
+  // Standard: mostly general knowledge, one music category every round, about one sports or wrestling
+  // category per round (one of each across a full game), sometimes a second; a fun pack now and then.
+  // Fight Night: half of each board is sports and wrestling, plus one music category. The music column
+  // replaces a general slot, so sports and wrestling keep their count.
+  // No sports: general knowledge and music, no sports or wrestling.
   // A category isn't reused on this device until its group has been used up.
   function drawFrom(pool, n, used, avoid) {
     let open = pool.filter((c) => !used.has(c.id) && !avoid.has(c.id));
@@ -770,10 +772,13 @@ body.tv .fl-val { font-size: clamp(60px, 9vw, 180px); }
     for (const c of out) { used.add(c.id); avoid.add(c.id); }
     return out;
   }
-  function planRound(bank, mix, ringFirst, funHere, used, avoid) {
+  function planRound(bank, mix, ringFirst, funHere, used, avoid, musicBank) {
     const by = (f) => bank.filter(f);
     const gen = by((c) => c.tag === "gen"), fun = by((c) => c.tag === "fun");
     const sports = by((c) => c.tag === "sports"), wrest = by((c) => c.tag === "wrestling");
+    // musicBank can be the other round's pool. Round 2 keeps the round 1 sports, wrestling, fun,
+    // and general columns, and only the music column steps up to the harder set.
+    const music = (musicBank || bank).filter((c) => c.tag === "music");
     let cats = [];
     if (mix === "fight") {
       cats = [...drawFrom(sports, ringFirst === "wrestling" ? 1 : 2, used, avoid), ...drawFrom(wrest, ringFirst === "wrestling" ? 2 : 1, used, avoid)];
@@ -781,6 +786,7 @@ body.tv .fl-val { font-size: clamp(60px, 9vw, 180px); }
       cats = drawFrom(ringFirst === "wrestling" ? wrest : sports, 1, used, avoid);
       if (Math.random() < 0.25) cats.push(...drawFrom(ringFirst === "wrestling" ? sports : wrest, 1, used, avoid));
     }
+    if (music.length) cats.push(...drawFrom(music, 1, used, avoid));
     if (funHere && mix !== "fight") cats.push(...drawFrom(fun, 1, used, avoid));
     cats.push(...drawFrom(gen, 6 - cats.length, used, avoid));
     return shuffle(cats);
@@ -788,7 +794,7 @@ body.tv .fl-val { font-size: clamp(60px, 9vw, 180px); }
   // ---------- Clue bank ----------
   // The bank is a separate file (clues.json, written by tools/build_deploy.py) that only the host loads;
   // players get each clue over the network. In the source folder, clues.js defines BB_BANK directly.
-  const BANK_URL = "clues.json?v=581f3aa559";
+  const BANK_URL = "clues.json?v=cc9258ee03";
   const clueAudio = new Map(); // clue text -> [audio file key, duration ms], filled from the bank
   let BANK = typeof BB_BANK !== "undefined" ? BB_BANK : null, bankLoading = null;
   function loadBank() {
@@ -806,10 +812,11 @@ body.tv .fl-val { font-size: clamp(60px, 9vw, 180px); }
     const avoid = new Set();
     const first = Math.random() < 0.5 ? "sports" : "wrestling";
     const funRound = Math.random() < 0.3 ? (quick ? 1 : 1 + randInt(2)) : 0;
-    const r1 = planRound(BANK.r1, mix, first, funRound === 1, used, avoid);
-    // Round 2 draws from the same category pool as Round 1, so row 1 to row 5 ramps up exactly like Round 1
-    // (only the dollar values double). The old harder Round 2 pool (BANK.r2) is no longer used for boards.
-    const r2 = quick ? null : planRound(BANK.r1, mix, first === "sports" ? "wrestling" : "sports", funRound === 2, used, avoid);
+    const r1 = planRound(BANK.r1, mix, first, funRound === 1, used, avoid, BANK.r1);
+    // Sports, wrestling, fun, and general columns still come from the round 1 pool, so those rows ramp
+    // the same way and only the dollar values double. The music column is the exception: round 2 draws
+    // it from the harder round 2 music set.
+    const r2 = quick ? null : planRound(BANK.r1, mix, first === "sports" ? "wrestling" : "sports", funRound === 2, used, avoid, BANK.r2);
     const pool = BANK.final.filter((f) => (mix === "fight" ? f.tag === "ring" : mix === "general" ? f.tag !== "ring" : true));
     let finals = pool.filter((f) => !used.has(f.id));
     if (!finals.length) { for (const f of pool) used.delete(f.id); finals = pool.slice(); }
@@ -1878,7 +1885,7 @@ body.tv .fl-val { font-size: clamp(60px, 9vw, 180px); }
     for (const i of document.querySelectorAll('input[name="mix"]')) { i.checked = i.value === view.opts.mix; i.disabled = !host; }
     for (const i of document.querySelectorAll('input[name="len"]')) { i.checked = (i.value === "quick") === view.opts.quick; i.disabled = !host; }
     $("settings").classList.toggle("locked", !host);
-    $("opt-note").textContent = ({ standard: "Mostly general knowledge, with a sports or pro wrestling category in each round.", fight: "Half of every board is sports and pro wrestling.", general: "General knowledge only, no sports or wrestling categories." })[view.opts.mix] +
+    $("opt-note").textContent = ({ standard: "Mostly general knowledge, with a music category and a sports or pro wrestling category in each round.", fight: "Half of every board is sports and pro wrestling, plus a music category.", general: "General knowledge and music. No sports or wrestling categories." })[view.opts.mix] +
       (view.opts.quick ? " Quick game: one round, then the Final Clue (about 20 minutes)." : " Full game: two rounds, then the Final Clue (about 40 minutes).");
     const n = view.players.length;
     const st = $("start");
